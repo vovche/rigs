@@ -95,5 +95,33 @@ namespace Rigs.Tests {
             }
             assert(exists);
         }
+
+        public static void test_mock_driver_lifecycle() {
+            var mock = new MockDriver("test_hypervisor");
+            var registry = DriverRegistry.get_default();
+            registry.register_driver(mock);
+
+            var retrieved = registry.get_driver("test_hypervisor");
+            assert(retrieved != null);
+            assert(retrieved.vm_type == "test_hypervisor");
+
+            var vm = new VmModel();
+            vm.id = "mock-vm-1";
+            retrieved.start(vm);
+            retrieved.connect_vm(vm);
+            retrieved.stop(vm);
+            retrieved.insert_iso(vm, "/tmp/test.iso");
+            retrieved.eject_iso(vm);
+
+            assert(mock.started_vms.length == 1);
+            assert(mock.started_vms[0] == "mock-vm-1");
+            assert(mock.connected_vms.length == 1);
+            assert(mock.stopped_vms.length == 1);
+            assert(mock.inserted_isos.lookup("mock-vm-1") == "/tmp/test.iso");
+            assert(mock.ejected_isos.length == 1);
+
+            mock.reset();
+            assert(mock.started_vms.length == 0);
+        }
     }
 }

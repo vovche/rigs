@@ -44,6 +44,7 @@ test_sources = [
   'tests/test_drivers.vala',
   'tests/test_diagnostics.vala',
   'tests/test_search_provider.vala',
+  'tests/mock_driver.vala',
   'src/vm_model.vala',
   'src/search_provider.vala',
   'src/system_diagnostics.vala',

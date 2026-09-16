@@ -11,6 +11,10 @@ add_project_arguments([
   '--target-glib=2.76',
 ], language: 'vala')
 
+add_project_arguments([
+  '-DGETTEXT_PACKAGE="rigs"',
+], language: 'c')
+
 gtk_dep = dependency('gtk4', version: '>= 4.10')
 adw_dep = dependency('libadwaita-1', version: '>= 1.4')
 json_dep = dependency('json-glib-1.0')
@@ -18,6 +22,19 @@ glib_dep = dependency('glib-2.0', version: '>= 2.76')
 gio_dep = dependency('gio-2.0')
 posix_dep = meson.get_compiler('vala').find_library('posix')
 
+i18n = import('i18n')
+
+conf_data = configuration_data()
+conf_data.set_quoted('GETTEXT_PACKAGE', 'rigs')
+conf_data.set_quoted('LOCALEDIR', get_option('prefix') / get_option('localedir'))
+
+config_vala = configure_file(
+  input: 'src/config.vala.in',
+  output: 'config.vala',
+  configuration: conf_data,
+)
+
+subdir('po')
 subdir('data')
 subdir('src')
 

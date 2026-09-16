@@ -1,4 +1,4 @@
-/* vm_card.vala — Expander card for a virtual machine or container in Rigs */
+using GLib.Intl;
 
 namespace Rigs {
 
@@ -33,7 +33,7 @@ namespace Rigs {
             this.add_prefix(new Gtk.Image.from_icon_name(vm.icon));
 
             // Status label badge
-            status_lbl = new Gtk.Label("STOPPED");
+            status_lbl = new Gtk.Label(_("STOPPED"));
             status_lbl.valign = Gtk.Align.CENTER;
             status_lbl.add_css_class("status-stopped");
             this.add_suffix(status_lbl);
@@ -42,13 +42,13 @@ namespace Rigs {
             var btn_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
             btn_box.valign = Gtk.Align.CENTER;
 
-            start_btn = new Gtk.Button.with_label("Start");
+            start_btn = new Gtk.Button.with_label(_("Start"));
             start_btn.icon_name = "media-playback-start-symbolic";
             start_btn.add_css_class("suggested-action");
             start_btn.clicked.connect(() => { start_requested(vm); });
             btn_box.append(start_btn);
 
-            connect_btn = new Gtk.Button.with_label("Connect");
+            connect_btn = new Gtk.Button.with_label(_("Connect"));
             connect_btn.icon_name = "display-symbolic";
             connect_btn.add_css_class("suggested-action");
             connect_btn.visible = false;
@@ -56,7 +56,7 @@ namespace Rigs {
             btn_box.append(connect_btn);
 
             stop_btn = new Gtk.Button.from_icon_name("media-playback-stop-symbolic");
-            stop_btn.tooltip_text = "Stop";
+            stop_btn.tooltip_text = _("Stop");
             stop_btn.add_css_class("destructive-action");
             stop_btn.visible = false;
             stop_btn.clicked.connect(() => { stop_requested(vm); });
@@ -67,7 +67,7 @@ namespace Rigs {
             // Child rows when expanded
             // 1. CPU with Resources-style sparkline
             cpu_row = new Adw.ActionRow();
-            cpu_row.title = "VM CPU Usage";
+            cpu_row.title = _("VM CPU Usage");
             cpu_row.subtitle = "0.0%";
             cpu_sparkline = new SmoothSparkline(0.18, 0.58, 0.95, 25, 130, 32);
             cpu_row.add_suffix(cpu_sparkline);
@@ -75,27 +75,27 @@ namespace Rigs {
 
             // 2. RAM
             ram_row = new Adw.ActionRow();
-            ram_row.title = "Host RAM Usage";
+            ram_row.title = _("Host RAM Usage");
             ram_row.subtitle = "0 MB";
             ram_row.add_suffix(new Gtk.Image.from_icon_name("media-memory-symbolic"));
             this.add_row(ram_row);
 
             // 3. Optical Drive (ISO)
             iso_row = new Adw.ActionRow();
-            iso_row.title = "Optical Drive (ISO)";
+            iso_row.title = _("Optical Drive (ISO)");
             iso_row.add_prefix(new Gtk.Image.from_icon_name("media-optical-symbolic"));
             update_iso_subtitle();
 
             var iso_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
             iso_box.valign = Gtk.Align.CENTER;
 
-            var insert_btn = new Gtk.Button.with_label("Insert…");
+            var insert_btn = new Gtk.Button.with_label(_("Insert…"));
             insert_btn.icon_name = "media-optical-symbolic";
             insert_btn.add_css_class("flat");
             insert_btn.clicked.connect(() => { insert_iso_requested(vm); });
             iso_box.append(insert_btn);
 
-            eject_btn = new Gtk.Button.with_label("Eject");
+            eject_btn = new Gtk.Button.with_label(_("Eject"));
             eject_btn.icon_name = "media-eject-symbolic";
             eject_btn.add_css_class("destructive-action");
             eject_btn.add_css_class("flat");
@@ -108,20 +108,20 @@ namespace Rigs {
 
             // 4. Ports & Endpoints
             var endpoint_row = new Adw.ActionRow();
-            endpoint_row.title = "Services and Ports";
-            endpoint_row.subtitle = (vm.details.length > 0) ? vm.details : "None";
+            endpoint_row.title = _("Services and Ports");
+            endpoint_row.subtitle = (vm.details.length > 0) ? vm.details : _("None");
             this.add_row(endpoint_row);
 
             // 5. Directory
             var dir_row = new Adw.ActionRow();
-            dir_row.title = "Working Directory";
-            dir_row.subtitle = (vm.dir.length > 0) ? vm.dir : "None";
+            dir_row.title = _("Working Directory");
+            dir_row.subtitle = (vm.dir.length > 0) ? vm.dir : _("None");
             this.add_row(dir_row);
 
             // 6. Remove VM
             var remove_row = new Adw.ActionRow();
-            remove_row.title = "Remove from Rigs";
-            var remove_btn = new Gtk.Button.with_label("Remove");
+            remove_row.title = _("Remove from Rigs");
+            var remove_btn = new Gtk.Button.with_label(_("Remove"));
             remove_btn.add_css_class("destructive-action");
             remove_btn.add_css_class("flat");
             remove_btn.clicked.connect(() => { remove_requested(vm); });
@@ -134,14 +134,14 @@ namespace Rigs {
                 iso_row.subtitle = Path.get_basename(vm.attached_iso);
                 if (eject_btn != null) eject_btn.visible = true;
             } else {
-                iso_row.subtitle = "[ No Media / Ejected ]";
+                iso_row.subtitle = _("[ No Media / Ejected ]");
                 if (eject_btn != null) eject_btn.visible = false;
             }
         }
 
         public void update_status(VmStatus status) {
             if (status.running) {
-                status_lbl.label = "RUNNING";
+                status_lbl.label = _("RUNNING");
                 status_lbl.remove_css_class("status-stopped");
                 status_lbl.add_css_class("status-running");
 
@@ -149,7 +149,7 @@ namespace Rigs {
                 connect_btn.visible = true;
                 stop_btn.visible = true;
             } else {
-                status_lbl.label = "STOPPED";
+                status_lbl.label = _("STOPPED");
                 status_lbl.remove_css_class("status-running");
                 status_lbl.add_css_class("status-stopped");
 
@@ -158,9 +158,9 @@ namespace Rigs {
                 stop_btn.visible = false;
             }
 
-            cpu_row.subtitle = "CPU: %.1f%%".printf(status.cpu_pct);
+            cpu_row.subtitle = _("CPU: %.1f%%").printf(status.cpu_pct);
             cpu_sparkline.add_value(status.running ? status.cpu_pct : 0.0);
-            ram_row.subtitle = "Memory: " + status.ram_str;
+            ram_row.subtitle = _("Memory: %s").printf(status.ram_str);
         }
     }
 }

@@ -45,5 +45,13 @@ echo "=== Installing desktop file and icons ==="
 mkdir -p "${INSTALL_PREFIX}/share/applications"
 cp "${SCRIPT_DIR}/data/io.github.vovche.Rigs.desktop" "${INSTALL_PREFIX}/share/applications/io.github.vovche.Rigs.desktop"
 
+echo "=== Installing translations to ${INSTALL_PREFIX}/share/locale ==="
+for mo in "${BUILD_DIR}"/po/*/LC_MESSAGES/rigs.mo; do
+    lang="$(basename "$(dirname "$(dirname "${mo}")")")"
+    dest_dir="${INSTALL_PREFIX}/share/locale/${lang}/LC_MESSAGES"
+    mkdir -p "${dest_dir}"
+    cp "${mo}" "${dest_dir}/rigs.mo"
+done
+
 echo "=== Build & Installation Complete! ==="
 echo "Binary: ${INSTALL_PREFIX}/bin/rigs"

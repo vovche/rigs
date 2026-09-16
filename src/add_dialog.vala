@@ -1,4 +1,4 @@
-/* add_dialog.vala — Add Virtual Machine dialog for Rigs */
+using GLib.Intl;
 
 namespace Rigs {
 
@@ -19,7 +19,7 @@ namespace Rigs {
 
         public AddDialog(Gtk.Window parent) {
             this.parent_window = parent;
-            this.set_title("Add Virtual Machine");
+            this.set_title(_("Add Virtual Machine"));
             this.set_content_width(480);
             this.set_content_height(560);
 
@@ -33,11 +33,11 @@ namespace Rigs {
             var header = new Adw.HeaderBar();
             root.append(header);
 
-            var cancel_btn = new Gtk.Button.with_label("Cancel");
+            var cancel_btn = new Gtk.Button.with_label(_("Cancel"));
             cancel_btn.clicked.connect(() => { this.close(); });
             header.pack_start(cancel_btn);
 
-            var add_btn = new Gtk.Button.with_label("Add");
+            var add_btn = new Gtk.Button.with_label(_("Add"));
             add_btn.add_css_class("suggested-action");
             add_btn.clicked.connect(on_submit);
             header.pack_end(add_btn);
@@ -50,64 +50,64 @@ namespace Rigs {
             scrolled.set_child(page);
 
             var grp = new Adw.PreferencesGroup();
-            grp.title = "Machine Details";
-            grp.description = "Configure your virtual machine or container";
+            grp.title = _("Machine Details");
+            grp.description = _("Configure your virtual machine or container");
             page.add(grp);
 
             name_row = new Adw.EntryRow();
-            name_row.title = "VM Name";
+            name_row.title = _("VM Name");
             grp.add(name_row);
 
             sub_row = new Adw.EntryRow();
-            sub_row.title = "Subtitle / OS";
-            sub_row.text = "Linux • Custom VM";
+            sub_row.title = _("Subtitle / OS");
+            sub_row.text = _("Linux • Custom VM");
             grp.add(sub_row);
 
             type_row = new Adw.ComboRow();
-            type_row.title = "Type";
-            var model = new Gtk.StringList(new string[] { "Podman / Docker Compose", "Direct QEMU Script" });
+            type_row.title = _("Type");
+            var model = new Gtk.StringList(new string[] { _("Podman / Docker Compose"), _("Direct QEMU Script") });
             type_row.model = model;
             type_row.notify["selected"].connect(on_type_changed);
             grp.add(type_row);
 
             dir_row = new Adw.EntryRow();
-            dir_row.title = "Working Directory";
+            dir_row.title = _("Working Directory");
             dir_row.text = "/home/why/src/vms/";
             var browse_btn = new Gtk.Button.from_icon_name("folder-open-symbolic");
             browse_btn.add_css_class("flat");
-            browse_btn.tooltip_text = "Browse Directory";
+            browse_btn.tooltip_text = _("Browse Directory");
             browse_btn.clicked.connect(on_browse_clicked);
             dir_row.add_suffix(browse_btn);
             grp.add(dir_row);
 
             id_row = new Adw.EntryRow();
-            id_row.title = "Container Name";
+            id_row.title = _("Container Name");
             grp.add(id_row);
 
             start_row = new Adw.EntryRow();
-            start_row.title = "Start Command";
+            start_row.title = _("Start Command");
             start_row.text = "docker compose up -d";
             grp.add(start_row);
 
             stop_row = new Adw.EntryRow();
-            stop_row.title = "Stop Command";
+            stop_row.title = _("Stop Command");
             stop_row.text = "docker compose down";
             grp.add(stop_row);
 
             connect_row = new Adw.EntryRow();
-            connect_row.title = "Connect Command";
+            connect_row.title = _("Connect Command");
             connect_row.text = "remmina -c ...";
             grp.add(connect_row);
 
             details_row = new Adw.EntryRow();
-            details_row.title = "Ports and Services";
+            details_row.title = _("Ports and Services");
             details_row.text = "RDP :3389 • SSH :22";
             grp.add(details_row);
         }
 
         private void on_browse_clicked() {
             var dialog = new Gtk.FileDialog();
-            dialog.title = "Select VM Directory";
+            dialog.title = _("Select VM Directory");
 
             string current_path = dir_row.text.strip();
             if (FileUtils.test(current_path, FileTest.IS_DIR)) {
@@ -155,12 +155,12 @@ namespace Rigs {
         private void on_type_changed() {
             bool is_compose = (type_row.selected == 0);
             if (is_compose) {
-                id_row.title = "Container Name";
+                id_row.title = _("Container Name");
                 start_row.text = "docker compose up -d";
                 stop_row.text = "docker compose down";
                 connect_row.text = "remmina -c ...";
             } else {
-                id_row.title = "Process Name";
+                id_row.title = _("Process Name");
                 start_row.text = "./run-vm.sh";
                 stop_row.text = "pkill -f ...";
                 connect_row.text = "remote-viewer spice://127.0.0.1:5930";

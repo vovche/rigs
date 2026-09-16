@@ -7,3 +7,5 @@ build/
 subprojects/
 .cache/
 compile_commands.json
+__pycache__/
+*.pyc

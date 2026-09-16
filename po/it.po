@@ -1,0 +1,301 @@
+# Italian translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Rigs 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-16 00:24+0000\n"
+"PO-Revision-Date: 2026-09-16 00:24+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: /workspace/src/application.vala:67
+msgid ""
+"Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
+msgstr "Hub nativo e ultraveloce per macchine virtuali e container per GNOME, scritto in Vala."
+
+#: /workspace/src/window.vala:45
+msgid "Rigs"
+msgstr "Rigs"
+
+#: /workspace/src/window.vala:45
+msgid "Virtual Machine and Container Hub"
+msgstr "Hub di macchine virtuali e container"
+
+#: /workspace/src/window.vala:49
+msgid "Add Virtual Machine (Ctrl+N)"
+msgstr "Aggiungi macchina virtuale (Ctrl+N)"
+
+#: /workspace/src/window.vala:54
+msgid "About Rigs"
+msgstr "Informazioni su Rigs"
+
+#: /workspace/src/window.vala:55
+msgid "Quit"
+msgstr "Esci"
+
+#: /workspace/src/window.vala:59
+msgid "Main Menu"
+msgstr "Menu principale"
+
+#: /workspace/src/window.vala:85
+msgid "Host Overview"
+msgstr "Panoramica dell'host"
+
+#: /workspace/src/window.vala:86
+msgid "Overall CPU and RAM usage on your host machine"
+msgstr "Utilizzo generale di CPU e RAM sul sistema host"
+
+#: /workspace/src/window.vala:91
+msgid "CPU Usage"
+msgstr "Utilizzo CPU"
+
+#: /workspace/src/window.vala:92
+msgid "Host CPU load: --%"
+msgstr "Carico CPU host: --%"
+
+#: /workspace/src/window.vala:100
+msgid "Memory (RAM)"
+msgstr "Memoria (RAM)"
+
+#: /workspace/src/window.vala:101
+msgid "Host RAM: -- / -- GB"
+msgstr "RAM host: -- / -- GB"
+
+#: /workspace/src/window.vala:109
+msgid "Virtual Machines"
+msgstr "Macchine virtuali"
+
+#: /workspace/src/window.vala:110
+msgid "Status, resource consumption and controls"
+msgstr "Stato, consumo delle risorse e controlli"
+
+#: /workspace/src/window.vala:114
+msgid "No Virtual Machines"
+msgstr "Nessuna macchina virtuale"
+
+#: /workspace/src/window.vala:115
+msgid "Click the + button above to register your first virtual machine"
+msgstr "Fai clic sul pulsante + in alto per registrare la prima macchina virtuale"
+
+#: /workspace/src/window.vala:150
+#, c-format
+msgid "Registered '%s'"
+msgstr "Registrato '%s'"
+
+#: /workspace/src/window.vala:170
+msgid "Select ISO Disk Image"
+msgstr "Seleziona immagine disco ISO"
+
+#: /workspace/src/window.vala:173
+msgid "Disk Images (*.iso)"
+msgstr "Immagini disco (*.iso)"
+
+#: /workspace/src/window.vala:197
+#, c-format
+msgid "Inserted '%s' into %s"
+msgstr "Inserito '%s' in %s"
+
+#: /workspace/src/window.vala:215
+#, c-format
+msgid "Ejected optical media from %s"
+msgstr "Supporto espulso da %s"
+
+#: /workspace/src/window.vala:220
+#, c-format
+msgid "Starting %s…"
+msgstr "Avvio di %s…"
+
+#: /workspace/src/window.vala:230
+#, c-format
+msgid "Stopping %s…"
+msgstr "Arresto di %s…"
+
+#: /workspace/src/window.vala:248
+#, c-format
+msgid "Remove '%s'?"
+msgstr "Rimuovere '%s'?"
+
+#: /workspace/src/window.vala:249
+msgid ""
+"The virtual machine will be removed from Rigs. Your files and VM disk on the "
+"host will remain untouched."
+msgstr "La macchina virtuale verrà rimossa da Rigs. I file e il disco sull'host rimarranno invariati."
+
+#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+msgid "Cancel"
+msgstr "Annulla"
+
+#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+msgid "Remove"
+msgstr "Rimuovi"
+
+#: /workspace/src/window.vala:288
+#, c-format
+msgid "Removed '%s'"
+msgstr "Rimosso '%s'"
+
+#: /workspace/src/window.vala:289
+msgid "Undo"
+msgstr "Annulla azione"
+
+#: /workspace/src/window.vala:301
+#, c-format
+msgid "Host CPU load: %.1f%%"
+msgstr "Carico CPU host: %.1f%%"
+
+#: /workspace/src/window.vala:304
+#, c-format
+msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
+msgstr "RAM host: %.2f / %.1f GB (%.0f%%)"
+
+#: /workspace/src/vm_card.vala:36 /workspace/src/vm_card.vala:152
+msgid "STOPPED"
+msgstr "ARRESTATO"
+
+#: /workspace/src/vm_card.vala:45
+msgid "Start"
+msgstr "Avvia"
+
+#: /workspace/src/vm_card.vala:51
+msgid "Connect"
+msgstr "Connetti"
+
+#: /workspace/src/vm_card.vala:59
+msgid "Stop"
+msgstr "Arresta"
+
+#: /workspace/src/vm_card.vala:70
+msgid "VM CPU Usage"
+msgstr "Utilizzo CPU della VM"
+
+#: /workspace/src/vm_card.vala:78
+msgid "Host RAM Usage"
+msgstr "Utilizzo RAM dell'host"
+
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "Unità ottica (ISO)"
+
+#: /workspace/src/vm_card.vala:92
+msgid "Insert…"
+msgstr "Inserisci…"
+
+#: /workspace/src/vm_card.vala:98
+msgid "Eject"
+msgstr "Espelli"
+
+#: /workspace/src/vm_card.vala:111
+msgid "Services and Ports"
+msgstr "Servizi e porte"
+
+#: /workspace/src/vm_card.vala:112 /workspace/src/vm_card.vala:118
+msgid "None"
+msgstr "Nessuno"
+
+#: /workspace/src/vm_card.vala:117 /workspace/src/add_dialog.vala:74
+msgid "Working Directory"
+msgstr "Cartella di lavoro"
+
+#: /workspace/src/vm_card.vala:123
+msgid "Remove from Rigs"
+msgstr "Rimuovi da Rigs"
+
+#: /workspace/src/vm_card.vala:137
+msgid "[ No Media / Ejected ]"
+msgstr "[ Nessun supporto / Espulso ]"
+
+#: /workspace/src/vm_card.vala:144
+msgid "RUNNING"
+msgstr "IN ESECUZIONE"
+
+#: /workspace/src/vm_card.vala:161
+#, c-format
+msgid "CPU: %.1f%%"
+msgstr "CPU: %.1f%%"
+
+#: /workspace/src/vm_card.vala:163
+#, c-format
+msgid "Memory: %s"
+msgstr "Memoria: %s"
+
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "Aggiungi macchina virtuale"
+
+#: /workspace/src/add_dialog.vala:40
+msgid "Add"
+msgstr "Aggiungi"
+
+#: /workspace/src/add_dialog.vala:53
+msgid "Machine Details"
+msgstr "Dettagli macchina"
+
+#: /workspace/src/add_dialog.vala:54
+msgid "Configure your virtual machine or container"
+msgstr "Configura la tua macchina virtuale o il tuo container"
+
+#: /workspace/src/add_dialog.vala:58
+msgid "VM Name"
+msgstr "Nome della VM"
+
+#: /workspace/src/add_dialog.vala:62
+msgid "Subtitle / OS"
+msgstr "Sottotitolo / Sistema operativo"
+
+#: /workspace/src/add_dialog.vala:63
+msgid "Linux • Custom VM"
+msgstr "Linux • VM personalizzata"
+
+#: /workspace/src/add_dialog.vala:67
+msgid "Type"
+msgstr "Tipo"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Podman / Docker Compose"
+msgstr "Podman / Docker Compose"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Direct QEMU Script"
+msgstr "Script QEMU diretto"
+
+#: /workspace/src/add_dialog.vala:78
+msgid "Browse Directory"
+msgstr "Sfoglia cartella"
+
+#: /workspace/src/add_dialog.vala:84 /workspace/src/add_dialog.vala:158
+msgid "Container Name"
+msgstr "Nome del container"
+
+#: /workspace/src/add_dialog.vala:88
+msgid "Start Command"
+msgstr "Comando di avvio"
+
+#: /workspace/src/add_dialog.vala:93
+msgid "Stop Command"
+msgstr "Comando di arresto"
+
+#: /workspace/src/add_dialog.vala:98
+msgid "Connect Command"
+msgstr "Comando di connessione"
+
+#: /workspace/src/add_dialog.vala:103
+msgid "Ports and Services"
+msgstr "Porte e servizi"
+
+#: /workspace/src/add_dialog.vala:110
+msgid "Select VM Directory"
+msgstr "Seleziona cartella della VM"
+
+#: /workspace/src/add_dialog.vala:163
+msgid "Process Name"
+msgstr "Nome del processo"
+

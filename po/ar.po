@@ -1,0 +1,300 @@
+# Arabic translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Rigs 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-16 00:24+0000\n"
+"PO-Revision-Date: 2026-09-16 00:24+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /workspace/src/application.vala:67
+msgid ""
+"Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
+msgstr "مركز أصلي فائق السرعة لإدارة الأجهزة الافتراضية والحاويات لبيئة جنوم مكتوب بلغة فالا."
+
+#: /workspace/src/window.vala:45
+msgid "Rigs"
+msgstr "Rigs"
+
+#: /workspace/src/window.vala:45
+msgid "Virtual Machine and Container Hub"
+msgstr "مركز الأجهزة الافتراضية والحاويات"
+
+#: /workspace/src/window.vala:49
+msgid "Add Virtual Machine (Ctrl+N)"
+msgstr "إضافة جهاز افتراضي (Ctrl+N)"
+
+#: /workspace/src/window.vala:54
+msgid "About Rigs"
+msgstr "حول Rigs"
+
+#: /workspace/src/window.vala:55
+msgid "Quit"
+msgstr "إنهاء"
+
+#: /workspace/src/window.vala:59
+msgid "Main Menu"
+msgstr "القائمة الرئيسية"
+
+#: /workspace/src/window.vala:85
+msgid "Host Overview"
+msgstr "نظرة عامة على المضيف"
+
+#: /workspace/src/window.vala:86
+msgid "Overall CPU and RAM usage on your host machine"
+msgstr "الاستخدام العام للمعالج والذاكرة على الجهاز المضيف"
+
+#: /workspace/src/window.vala:91
+msgid "CPU Usage"
+msgstr "استخدام المعالج"
+
+#: /workspace/src/window.vala:92
+msgid "Host CPU load: --%"
+msgstr "حمولة معالج المضيف: --%"
+
+#: /workspace/src/window.vala:100
+msgid "Memory (RAM)"
+msgstr "الذاكرة العشوائية (RAM)"
+
+#: /workspace/src/window.vala:101
+msgid "Host RAM: -- / -- GB"
+msgstr "ذاكرة المضيف: -- / -- غيغابايت"
+
+#: /workspace/src/window.vala:109
+msgid "Virtual Machines"
+msgstr "الأجهزة الافتراضية"
+
+#: /workspace/src/window.vala:110
+msgid "Status, resource consumption and controls"
+msgstr "الحالة واستهلاك الموارد وأزرار التحكم"
+
+#: /workspace/src/window.vala:114
+msgid "No Virtual Machines"
+msgstr "لا توجد أجهزة افتراضية"
+
+#: /workspace/src/window.vala:115
+msgid "Click the + button above to register your first virtual machine"
+msgstr "انقر فوق الزر + أعلاه لإضافة أول جهاز افتراضي"
+
+#: /workspace/src/window.vala:150
+#, c-format
+msgid "Registered '%s'"
+msgstr "تم تسجيل '%s'"
+
+#: /workspace/src/window.vala:170
+msgid "Select ISO Disk Image"
+msgstr "اختر صورة قرص ISO"
+
+#: /workspace/src/window.vala:173
+msgid "Disk Images (*.iso)"
+msgstr "صور الأقراص (*.iso)"
+
+#: /workspace/src/window.vala:197
+#, c-format
+msgid "Inserted '%s' into %s"
+msgstr "تم إدخال '%s' في %s"
+
+#: /workspace/src/window.vala:215
+#, c-format
+msgid "Ejected optical media from %s"
+msgstr "تم إخراج القرص من %s"
+
+#: /workspace/src/window.vala:220
+#, c-format
+msgid "Starting %s…"
+msgstr "جارٍ تشغيل %s…"
+
+#: /workspace/src/window.vala:230
+#, c-format
+msgid "Stopping %s…"
+msgstr "جارٍ إيقاف %s…"
+
+#: /workspace/src/window.vala:248
+#, c-format
+msgid "Remove '%s'?"
+msgstr "هل تريد إزالة '%s'؟"
+
+#: /workspace/src/window.vala:249
+msgid ""
+"The virtual machine will be removed from Rigs. Your files and VM disk on the "
+"host will remain untouched."
+msgstr "ستتم إزالة الجهاز الافتراضي من Rigs. ستبقى ملفاتك وقرص الجهاز على المضيف دون تغيير."
+
+#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+msgid "Cancel"
+msgstr "إلغاء"
+
+#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+msgid "Remove"
+msgstr "إزالة"
+
+#: /workspace/src/window.vala:288
+#, c-format
+msgid "Removed '%s'"
+msgstr "تمت إزالة '%s'"
+
+#: /workspace/src/window.vala:289
+msgid "Undo"
+msgstr "تراجع"
+
+#: /workspace/src/window.vala:301
+#, c-format
+msgid "Host CPU load: %.1f%%"
+msgstr "حمولة معالج المضيف: %.1f%%"
+
+#: /workspace/src/window.vala:304
+#, c-format
+msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
+msgstr "ذاكرة المضيف: %.2f / %.1f غيغابايت (%.0f%%)"
+
+#: /workspace/src/vm_card.vala:36 /workspace/src/vm_card.vala:152
+msgid "STOPPED"
+msgstr "متوقف"
+
+#: /workspace/src/vm_card.vala:45
+msgid "Start"
+msgstr "تشغيل"
+
+#: /workspace/src/vm_card.vala:51
+msgid "Connect"
+msgstr "اتصال"
+
+#: /workspace/src/vm_card.vala:59
+msgid "Stop"
+msgstr "إيقاف"
+
+#: /workspace/src/vm_card.vala:70
+msgid "VM CPU Usage"
+msgstr "استخدام معالج الجهاز الافتراضي"
+
+#: /workspace/src/vm_card.vala:78
+msgid "Host RAM Usage"
+msgstr "استخدام ذاكرة المضيف"
+
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "المحرك البصري (ISO)"
+
+#: /workspace/src/vm_card.vala:92
+msgid "Insert…"
+msgstr "إدخال…"
+
+#: /workspace/src/vm_card.vala:98
+msgid "Eject"
+msgstr "إخراج"
+
+#: /workspace/src/vm_card.vala:111
+msgid "Services and Ports"
+msgstr "الخدمات والمنافذ"
+
+#: /workspace/src/vm_card.vala:112 /workspace/src/vm_card.vala:118
+msgid "None"
+msgstr "لا يوجد"
+
+#: /workspace/src/vm_card.vala:117 /workspace/src/add_dialog.vala:74
+msgid "Working Directory"
+msgstr "دليل العمل"
+
+#: /workspace/src/vm_card.vala:123
+msgid "Remove from Rigs"
+msgstr "إزالة من Rigs"
+
+#: /workspace/src/vm_card.vala:137
+msgid "[ No Media / Ejected ]"
+msgstr "[ لا توجد وسائط / تم الإخراج ]"
+
+#: /workspace/src/vm_card.vala:144
+msgid "RUNNING"
+msgstr "قيد التشغيل"
+
+#: /workspace/src/vm_card.vala:161
+#, c-format
+msgid "CPU: %.1f%%"
+msgstr "المعالج: %.1f%%"
+
+#: /workspace/src/vm_card.vala:163
+#, c-format
+msgid "Memory: %s"
+msgstr "الذاكرة: %s"
+
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "إضافة جهاز افتراضي"
+
+#: /workspace/src/add_dialog.vala:40
+msgid "Add"
+msgstr "إضافة"
+
+#: /workspace/src/add_dialog.vala:53
+msgid "Machine Details"
+msgstr "تفاصيل الجهاز"
+
+#: /workspace/src/add_dialog.vala:54
+msgid "Configure your virtual machine or container"
+msgstr "تكوين الجهاز الافتراضي أو الحاوية"
+
+#: /workspace/src/add_dialog.vala:58
+msgid "VM Name"
+msgstr "اسم الجهاز الافتراضي"
+
+#: /workspace/src/add_dialog.vala:62
+msgid "Subtitle / OS"
+msgstr "العنوان الفرعي / نظام التشغيل"
+
+#: /workspace/src/add_dialog.vala:63
+msgid "Linux • Custom VM"
+msgstr "لينكس • جهاز افتراضي مخصص"
+
+#: /workspace/src/add_dialog.vala:67
+msgid "Type"
+msgstr "النوع"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Podman / Docker Compose"
+msgstr "Podman / Docker Compose"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Direct QEMU Script"
+msgstr "برنامج QEMU النصي المباشر"
+
+#: /workspace/src/add_dialog.vala:78
+msgid "Browse Directory"
+msgstr "استعراض الدليل"
+
+#: /workspace/src/add_dialog.vala:84 /workspace/src/add_dialog.vala:158
+msgid "Container Name"
+msgstr "اسم الحاوية"
+
+#: /workspace/src/add_dialog.vala:88
+msgid "Start Command"
+msgstr "أمر البدء"
+
+#: /workspace/src/add_dialog.vala:93
+msgid "Stop Command"
+msgstr "أمر الإيقاف"
+
+#: /workspace/src/add_dialog.vala:98
+msgid "Connect Command"
+msgstr "أمر الاتصال"
+
+#: /workspace/src/add_dialog.vala:103
+msgid "Ports and Services"
+msgstr "المنافذ والخدمات"
+
+#: /workspace/src/add_dialog.vala:110
+msgid "Select VM Directory"
+msgstr "اختر دليل الجهاز الافتراضي"
+
+#: /workspace/src/add_dialog.vala:163
+msgid "Process Name"
+msgstr "اسم العملية"
+

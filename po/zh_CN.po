@@ -1,0 +1,300 @@
+# Chinese translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Rigs 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-16 00:24+0000\n"
+"PO-Revision-Date: 2026-09-16 00:24+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /workspace/src/application.vala:67
+msgid ""
+"Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
+msgstr "使用 Vala 编写的超快速原生 GNOME 虚拟机与容器管理中心。"
+
+#: /workspace/src/window.vala:45
+msgid "Rigs"
+msgstr "Rigs"
+
+#: /workspace/src/window.vala:45
+msgid "Virtual Machine and Container Hub"
+msgstr "虚拟机与容器中心"
+
+#: /workspace/src/window.vala:49
+msgid "Add Virtual Machine (Ctrl+N)"
+msgstr "添加虚拟机 (Ctrl+N)"
+
+#: /workspace/src/window.vala:54
+msgid "About Rigs"
+msgstr "关于 Rigs"
+
+#: /workspace/src/window.vala:55
+msgid "Quit"
+msgstr "退出"
+
+#: /workspace/src/window.vala:59
+msgid "Main Menu"
+msgstr "主菜单"
+
+#: /workspace/src/window.vala:85
+msgid "Host Overview"
+msgstr "主机概览"
+
+#: /workspace/src/window.vala:86
+msgid "Overall CPU and RAM usage on your host machine"
+msgstr "主机系统的总体 CPU 与内存使用情况"
+
+#: /workspace/src/window.vala:91
+msgid "CPU Usage"
+msgstr "CPU 使用率"
+
+#: /workspace/src/window.vala:92
+msgid "Host CPU load: --%"
+msgstr "主机 CPU 负载：--%"
+
+#: /workspace/src/window.vala:100
+msgid "Memory (RAM)"
+msgstr "内存 (RAM)"
+
+#: /workspace/src/window.vala:101
+msgid "Host RAM: -- / -- GB"
+msgstr "主机内存：-- / -- GB"
+
+#: /workspace/src/window.vala:109
+msgid "Virtual Machines"
+msgstr "虚拟机"
+
+#: /workspace/src/window.vala:110
+msgid "Status, resource consumption and controls"
+msgstr "状态、资源消耗与控制"
+
+#: /workspace/src/window.vala:114
+msgid "No Virtual Machines"
+msgstr "无虚拟机"
+
+#: /workspace/src/window.vala:115
+msgid "Click the + button above to register your first virtual machine"
+msgstr "点击上方的 + 按钮添加您的第一台虚拟机"
+
+#: /workspace/src/window.vala:150
+#, c-format
+msgid "Registered '%s'"
+msgstr "已注册 '%s'"
+
+#: /workspace/src/window.vala:170
+msgid "Select ISO Disk Image"
+msgstr "选择 ISO 磁盘镜像"
+
+#: /workspace/src/window.vala:173
+msgid "Disk Images (*.iso)"
+msgstr "磁盘镜像 (*.iso)"
+
+#: /workspace/src/window.vala:197
+#, c-format
+msgid "Inserted '%s' into %s"
+msgstr "已将 '%s' 插入 %s"
+
+#: /workspace/src/window.vala:215
+#, c-format
+msgid "Ejected optical media from %s"
+msgstr "已从 %s 弹出光盘介质"
+
+#: /workspace/src/window.vala:220
+#, c-format
+msgid "Starting %s…"
+msgstr "正在启动 %s…"
+
+#: /workspace/src/window.vala:230
+#, c-format
+msgid "Stopping %s…"
+msgstr "正在停止 %s…"
+
+#: /workspace/src/window.vala:248
+#, c-format
+msgid "Remove '%s'?"
+msgstr "移除 '%s'？"
+
+#: /workspace/src/window.vala:249
+msgid ""
+"The virtual machine will be removed from Rigs. Your files and VM disk on the "
+"host will remain untouched."
+msgstr "虚拟机将从 Rigs 中移除。您在主机上的文件和磁盘镜像将保持不变。"
+
+#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+msgid "Cancel"
+msgstr "取消"
+
+#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+msgid "Remove"
+msgstr "移除"
+
+#: /workspace/src/window.vala:288
+#, c-format
+msgid "Removed '%s'"
+msgstr "已移除 '%s'"
+
+#: /workspace/src/window.vala:289
+msgid "Undo"
+msgstr "撤消"
+
+#: /workspace/src/window.vala:301
+#, c-format
+msgid "Host CPU load: %.1f%%"
+msgstr "主机 CPU 负载：%.1f%%"
+
+#: /workspace/src/window.vala:304
+#, c-format
+msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
+msgstr "主机内存：%.2f / %.1f GB (%.0f%%)"
+
+#: /workspace/src/vm_card.vala:36 /workspace/src/vm_card.vala:152
+msgid "STOPPED"
+msgstr "已停止"
+
+#: /workspace/src/vm_card.vala:45
+msgid "Start"
+msgstr "启动"
+
+#: /workspace/src/vm_card.vala:51
+msgid "Connect"
+msgstr "连接"
+
+#: /workspace/src/vm_card.vala:59
+msgid "Stop"
+msgstr "停止"
+
+#: /workspace/src/vm_card.vala:70
+msgid "VM CPU Usage"
+msgstr "虚拟机 CPU 使用率"
+
+#: /workspace/src/vm_card.vala:78
+msgid "Host RAM Usage"
+msgstr "主机内存占用"
+
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "光驱 (ISO)"
+
+#: /workspace/src/vm_card.vala:92
+msgid "Insert…"
+msgstr "插入…"
+
+#: /workspace/src/vm_card.vala:98
+msgid "Eject"
+msgstr "弹出"
+
+#: /workspace/src/vm_card.vala:111
+msgid "Services and Ports"
+msgstr "服务与端口"
+
+#: /workspace/src/vm_card.vala:112 /workspace/src/vm_card.vala:118
+msgid "None"
+msgstr "无"
+
+#: /workspace/src/vm_card.vala:117 /workspace/src/add_dialog.vala:74
+msgid "Working Directory"
+msgstr "工作目录"
+
+#: /workspace/src/vm_card.vala:123
+msgid "Remove from Rigs"
+msgstr "从 Rigs 移除"
+
+#: /workspace/src/vm_card.vala:137
+msgid "[ No Media / Ejected ]"
+msgstr "[ 无介质 / 已弹出 ]"
+
+#: /workspace/src/vm_card.vala:144
+msgid "RUNNING"
+msgstr "运行中"
+
+#: /workspace/src/vm_card.vala:161
+#, c-format
+msgid "CPU: %.1f%%"
+msgstr "CPU：%.1f%%"
+
+#: /workspace/src/vm_card.vala:163
+#, c-format
+msgid "Memory: %s"
+msgstr "内存：%s"
+
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "添加虚拟机"
+
+#: /workspace/src/add_dialog.vala:40
+msgid "Add"
+msgstr "添加"
+
+#: /workspace/src/add_dialog.vala:53
+msgid "Machine Details"
+msgstr "虚拟机详情"
+
+#: /workspace/src/add_dialog.vala:54
+msgid "Configure your virtual machine or container"
+msgstr "配置您的虚拟机或容器"
+
+#: /workspace/src/add_dialog.vala:58
+msgid "VM Name"
+msgstr "虚拟机名称"
+
+#: /workspace/src/add_dialog.vala:62
+msgid "Subtitle / OS"
+msgstr "副标题 / 操作系统"
+
+#: /workspace/src/add_dialog.vala:63
+msgid "Linux • Custom VM"
+msgstr "Linux • 自定义虚拟机"
+
+#: /workspace/src/add_dialog.vala:67
+msgid "Type"
+msgstr "类型"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Podman / Docker Compose"
+msgstr "Podman / Docker Compose"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Direct QEMU Script"
+msgstr "直接 QEMU 脚本"
+
+#: /workspace/src/add_dialog.vala:78
+msgid "Browse Directory"
+msgstr "浏览目录"
+
+#: /workspace/src/add_dialog.vala:84 /workspace/src/add_dialog.vala:158
+msgid "Container Name"
+msgstr "容器名称"
+
+#: /workspace/src/add_dialog.vala:88
+msgid "Start Command"
+msgstr "启动命令"
+
+#: /workspace/src/add_dialog.vala:93
+msgid "Stop Command"
+msgstr "停止命令"
+
+#: /workspace/src/add_dialog.vala:98
+msgid "Connect Command"
+msgstr "连接命令"
+
+#: /workspace/src/add_dialog.vala:103
+msgid "Ports and Services"
+msgstr "端口与服务"
+
+#: /workspace/src/add_dialog.vala:110
+msgid "Select VM Directory"
+msgstr "选择虚拟机目录"
+
+#: /workspace/src/add_dialog.vala:163
+msgid "Process Name"
+msgstr "进程名称"
+

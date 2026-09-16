@@ -1,4 +1,4 @@
-/* window.vala — Main application window for Rigs */
+using GLib.Intl;
 
 namespace Rigs {
 
@@ -42,21 +42,21 @@ namespace Rigs {
             this.set_content(root);
 
             var header = new Adw.HeaderBar();
-            var title_widget = new Adw.WindowTitle("Rigs", "Virtual Machine and Container Hub");
+            var title_widget = new Adw.WindowTitle(_("Rigs"), _("Virtual Machine and Container Hub"));
             header.title_widget = title_widget;
 
             var add_btn = new Gtk.Button.from_icon_name("list-add-symbolic");
-            add_btn.tooltip_text = "Add Virtual Machine (Ctrl+N)";
+            add_btn.tooltip_text = _("Add Virtual Machine (Ctrl+N)");
             add_btn.clicked.connect(open_add_dialog);
             header.pack_start(add_btn);
 
             var menu = new Menu();
-            menu.append("About Rigs", "app.about");
-            menu.append("Quit", "app.quit");
+            menu.append(_("About Rigs"), "app.about");
+            menu.append(_("Quit"), "app.quit");
 
             var menu_btn = new Gtk.MenuButton();
             menu_btn.icon_name = "open-menu-symbolic";
-            menu_btn.tooltip_text = "Main Menu";
+            menu_btn.tooltip_text = _("Main Menu");
             menu_btn.menu_model = menu;
             header.pack_end(menu_btn);
 
@@ -82,14 +82,14 @@ namespace Rigs {
 
             // Host Group with Resources-style Bezier sparklines
             var host_group = new Adw.PreferencesGroup();
-            host_group.title = "Host Overview";
-            host_group.description = "Overall CPU and RAM usage on your host machine";
+            host_group.title = _("Host Overview");
+            host_group.description = _("Overall CPU and RAM usage on your host machine");
             page.add(host_group);
 
             // CPU Sparkline (Blue)
             host_cpu_row = new Adw.ActionRow();
-            host_cpu_row.title = "CPU Usage";
-            host_cpu_row.subtitle = "Host CPU load: --%";
+            host_cpu_row.title = _("CPU Usage");
+            host_cpu_row.subtitle = _("Host CPU load: --%");
             host_cpu_row.add_prefix(new Gtk.Image.from_icon_name("computer-symbolic"));
             host_cpu_sparkline = new SmoothSparkline(0.208, 0.518, 0.894, 25, 120, 34);
             host_cpu_row.add_suffix(host_cpu_sparkline);
@@ -97,8 +97,8 @@ namespace Rigs {
 
             // RAM Sparkline (Purple)
             host_ram_row = new Adw.ActionRow();
-            host_ram_row.title = "Memory (RAM)";
-            host_ram_row.subtitle = "Host RAM: -- / -- GB";
+            host_ram_row.title = _("Memory (RAM)");
+            host_ram_row.subtitle = _("Host RAM: -- / -- GB");
             host_ram_row.add_prefix(new Gtk.Image.from_icon_name("drive-harddisk-symbolic"));
             host_ram_sparkline = new SmoothSparkline(0.569, 0.255, 0.675, 25, 120, 34);
             host_ram_row.add_suffix(host_ram_sparkline);
@@ -106,13 +106,13 @@ namespace Rigs {
 
             // VM Group
             vm_group = new Adw.PreferencesGroup();
-            vm_group.title = "Virtual Machines";
-            vm_group.description = "Status, resource consumption and controls";
+            vm_group.title = _("Virtual Machines");
+            vm_group.description = _("Status, resource consumption and controls");
             page.add(vm_group);
 
             empty_status_row = new Adw.ActionRow();
-            empty_status_row.title = "No Virtual Machines";
-            empty_status_row.subtitle = "Click the + button above to register your first virtual machine";
+            empty_status_row.title = _("No Virtual Machines");
+            empty_status_row.subtitle = _("Click the + button above to register your first virtual machine");
             empty_status_row.add_prefix(new Gtk.Image.from_icon_name("utilities-system-monitor-symbolic"));
 
             for (int i = 0; i < vms.length; i++) {
@@ -147,7 +147,7 @@ namespace Rigs {
                 update_empty_state();
                 save_window_state();
 
-                var toast = new Adw.Toast("Registered '%s'".printf(new_vm.name));
+                var toast = new Adw.Toast(_("Registered '%s'").printf(new_vm.name));
                 toast_overlay.add_toast(toast);
             });
             dialog.present(this);
@@ -167,10 +167,10 @@ namespace Rigs {
 
         private void choose_and_insert_iso(VmModel vm, VmCard card) {
             var dialog = new Gtk.FileDialog();
-            dialog.title = "Select ISO Disk Image";
+            dialog.title = _("Select ISO Disk Image");
 
             var filter = new Gtk.FileFilter();
-            filter.name = "Disk Images (*.iso)";
+            filter.name = _("Disk Images (*.iso)");
             filter.add_pattern("*.iso");
             filter.add_pattern("*.ISO");
 
@@ -194,7 +194,7 @@ namespace Rigs {
                             driver.insert_iso(vm, iso_path);
                         }
 
-                        var toast = new Adw.Toast("Inserted '%s' into %s".printf(Path.get_basename(iso_path), vm.name));
+                        var toast = new Adw.Toast(_("Inserted '%s' into %s").printf(Path.get_basename(iso_path), vm.name));
                         toast_overlay.add_toast(toast);
                     }
                 } catch (Error e) {}
@@ -212,12 +212,12 @@ namespace Rigs {
                 driver.eject_iso(vm);
             }
 
-            var toast = new Adw.Toast("Ejected optical media from %s".printf(vm.name));
+            var toast = new Adw.Toast(_("Ejected optical media from %s").printf(vm.name));
             toast_overlay.add_toast(toast);
         }
 
         private void start_vm(VmModel vm) {
-            var toast = new Adw.Toast("Starting %s…".printf(vm.name));
+            var toast = new Adw.Toast(_("Starting %s…").printf(vm.name));
             toast_overlay.add_toast(toast);
 
             Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
@@ -227,7 +227,7 @@ namespace Rigs {
         }
 
         private void stop_vm(VmModel vm) {
-            var toast = new Adw.Toast("Stopping %s…".printf(vm.name));
+            var toast = new Adw.Toast(_("Stopping %s…").printf(vm.name));
             toast_overlay.add_toast(toast);
 
             Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
@@ -245,11 +245,11 @@ namespace Rigs {
 
         private void prompt_remove_vm(VmModel vm) {
             var dialog = new Adw.AlertDialog(
-                "Remove '%s'?".printf(vm.name),
-                "The virtual machine will be removed from Rigs. Your files and VM disk on the host will remain untouched."
+                _("Remove '%s'?").printf(vm.name),
+                _("The virtual machine will be removed from Rigs. Your files and VM disk on the host will remain untouched.")
             );
-            dialog.add_response("cancel", "Cancel");
-            dialog.add_response("remove", "Remove");
+            dialog.add_response("cancel", _("Cancel"));
+            dialog.add_response("remove", _("Remove"));
             dialog.set_response_appearance("remove", Adw.ResponseAppearance.DESTRUCTIVE);
             dialog.set_default_response("cancel");
             dialog.set_close_response("cancel");
@@ -285,8 +285,8 @@ namespace Rigs {
             update_empty_state();
             save_window_state();
 
-            var toast = new Adw.Toast("Removed '%s'".printf(removed.name));
-            toast.button_label = "Undo";
+            var toast = new Adw.Toast(_("Removed '%s'").printf(removed.name));
+            toast.button_label = _("Undo");
             toast.button_clicked.connect(() => {
                 vms.insert(idx, removed);
                 ConfigManager.save_vms(vms);
@@ -298,10 +298,10 @@ namespace Rigs {
         }
 
         private void on_monitor_updated(HostStatus host, HashTable<string, VmStatus?> vm_statuses) {
-            host_cpu_row.subtitle = "Host CPU load: %.1f%%".printf(host.cpu_pct);
+            host_cpu_row.subtitle = _("Host CPU load: %.1f%%").printf(host.cpu_pct);
             host_cpu_sparkline.add_value(host.cpu_pct);
 
-            host_ram_row.subtitle = "Host RAM: %.2f / %.1f GB (%.0f%%)".printf(host.ram_used_gb, host.ram_total_gb, host.ram_pct);
+            host_ram_row.subtitle = _("Host RAM: %.2f / %.1f GB (%.0f%%)").printf(host.ram_used_gb, host.ram_total_gb, host.ram_pct);
             host_ram_sparkline.add_value(host.ram_pct);
 
             vm_statuses.foreach((id, status) => {

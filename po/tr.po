@@ -1,0 +1,301 @@
+# Turkish translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Rigs 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-16 00:24+0000\n"
+"PO-Revision-Date: 2026-09-16 00:24+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: /workspace/src/application.vala:67
+msgid ""
+"Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
+msgstr "Vala ile yazılmış, GNOME için son derece hızlı, yerel Sanal Makine ve Konteyner Merkezi."
+
+#: /workspace/src/window.vala:45
+msgid "Rigs"
+msgstr "Rigs"
+
+#: /workspace/src/window.vala:45
+msgid "Virtual Machine and Container Hub"
+msgstr "Sanal Makine ve Konteyner Merkezi"
+
+#: /workspace/src/window.vala:49
+msgid "Add Virtual Machine (Ctrl+N)"
+msgstr "Sanal Makine Ekle (Ctrl+N)"
+
+#: /workspace/src/window.vala:54
+msgid "About Rigs"
+msgstr "Rigs Hakkında"
+
+#: /workspace/src/window.vala:55
+msgid "Quit"
+msgstr "Çıkış"
+
+#: /workspace/src/window.vala:59
+msgid "Main Menu"
+msgstr "Ana Menü"
+
+#: /workspace/src/window.vala:85
+msgid "Host Overview"
+msgstr "Ana Makine Özeti"
+
+#: /workspace/src/window.vala:86
+msgid "Overall CPU and RAM usage on your host machine"
+msgstr "Ana makinenizdeki genel CPU ve RAM kullanımı"
+
+#: /workspace/src/window.vala:91
+msgid "CPU Usage"
+msgstr "CPU Kullanımı"
+
+#: /workspace/src/window.vala:92
+msgid "Host CPU load: --%"
+msgstr "Ana makine CPU yükü: --%"
+
+#: /workspace/src/window.vala:100
+msgid "Memory (RAM)"
+msgstr "Bellek (RAM)"
+
+#: /workspace/src/window.vala:101
+msgid "Host RAM: -- / -- GB"
+msgstr "Ana makine RAM: -- / -- GB"
+
+#: /workspace/src/window.vala:109
+msgid "Virtual Machines"
+msgstr "Sanal Makineler"
+
+#: /workspace/src/window.vala:110
+msgid "Status, resource consumption and controls"
+msgstr "Durum, kaynak tüketimi ve kontroller"
+
+#: /workspace/src/window.vala:114
+msgid "No Virtual Machines"
+msgstr "Sanal Makine Yok"
+
+#: /workspace/src/window.vala:115
+msgid "Click the + button above to register your first virtual machine"
+msgstr "İlk sanal makinenizi kaydetmek için yukarıdaki + düğmesine tıklayın"
+
+#: /workspace/src/window.vala:150
+#, c-format
+msgid "Registered '%s'"
+msgstr "'%s' kaydedildi"
+
+#: /workspace/src/window.vala:170
+msgid "Select ISO Disk Image"
+msgstr "ISO Disk Kalıbı Seç"
+
+#: /workspace/src/window.vala:173
+msgid "Disk Images (*.iso)"
+msgstr "Disk Kalıpları (*.iso)"
+
+#: /workspace/src/window.vala:197
+#, c-format
+msgid "Inserted '%s' into %s"
+msgstr "'%s', %s içine yerleştirildi"
+
+#: /workspace/src/window.vala:215
+#, c-format
+msgid "Ejected optical media from %s"
+msgstr "Ortam %s üzerinden çıkarıldı"
+
+#: /workspace/src/window.vala:220
+#, c-format
+msgid "Starting %s…"
+msgstr "%s başlatılıyor…"
+
+#: /workspace/src/window.vala:230
+#, c-format
+msgid "Stopping %s…"
+msgstr "%s durduruluyor…"
+
+#: /workspace/src/window.vala:248
+#, c-format
+msgid "Remove '%s'?"
+msgstr "'%s' kaldırılsın mı?"
+
+#: /workspace/src/window.vala:249
+msgid ""
+"The virtual machine will be removed from Rigs. Your files and VM disk on the "
+"host will remain untouched."
+msgstr "Sanal makine Rigs üzerinden kaldırılacak. Ana makinedeki dosyalarınıza ve diskinize dokunulmayacaktır."
+
+#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+msgid "Cancel"
+msgstr "İptal"
+
+#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+msgid "Remove"
+msgstr "Kaldır"
+
+#: /workspace/src/window.vala:288
+#, c-format
+msgid "Removed '%s'"
+msgstr "'%s' kaldırıldı"
+
+#: /workspace/src/window.vala:289
+msgid "Undo"
+msgstr "Geri Al"
+
+#: /workspace/src/window.vala:301
+#, c-format
+msgid "Host CPU load: %.1f%%"
+msgstr "Ana makine CPU yükü: %.1f%%"
+
+#: /workspace/src/window.vala:304
+#, c-format
+msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
+msgstr "Ana makine RAM: %.2f / %.1f GB (%.0f%%)"
+
+#: /workspace/src/vm_card.vala:36 /workspace/src/vm_card.vala:152
+msgid "STOPPED"
+msgstr "DURDURULDU"
+
+#: /workspace/src/vm_card.vala:45
+msgid "Start"
+msgstr "Başlat"
+
+#: /workspace/src/vm_card.vala:51
+msgid "Connect"
+msgstr "Bağlan"
+
+#: /workspace/src/vm_card.vala:59
+msgid "Stop"
+msgstr "Durdur"
+
+#: /workspace/src/vm_card.vala:70
+msgid "VM CPU Usage"
+msgstr "Sanal Makine CPU Kullanımı"
+
+#: /workspace/src/vm_card.vala:78
+msgid "Host RAM Usage"
+msgstr "Ana Makine RAM Kullanımı"
+
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "Optik Sürücü (ISO)"
+
+#: /workspace/src/vm_card.vala:92
+msgid "Insert…"
+msgstr "Yerleştir…"
+
+#: /workspace/src/vm_card.vala:98
+msgid "Eject"
+msgstr "Çıkar"
+
+#: /workspace/src/vm_card.vala:111
+msgid "Services and Ports"
+msgstr "Hizmetler ve Portlar"
+
+#: /workspace/src/vm_card.vala:112 /workspace/src/vm_card.vala:118
+msgid "None"
+msgstr "Yok"
+
+#: /workspace/src/vm_card.vala:117 /workspace/src/add_dialog.vala:74
+msgid "Working Directory"
+msgstr "Çalışma Dizini"
+
+#: /workspace/src/vm_card.vala:123
+msgid "Remove from Rigs"
+msgstr "Rigs'ten Kaldır"
+
+#: /workspace/src/vm_card.vala:137
+msgid "[ No Media / Ejected ]"
+msgstr "[ Ortam Yok / Çıkarıldı ]"
+
+#: /workspace/src/vm_card.vala:144
+msgid "RUNNING"
+msgstr "ÇALIŞIYOR"
+
+#: /workspace/src/vm_card.vala:161
+#, c-format
+msgid "CPU: %.1f%%"
+msgstr "CPU: %.1f%%"
+
+#: /workspace/src/vm_card.vala:163
+#, c-format
+msgid "Memory: %s"
+msgstr "Bellek: %s"
+
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "Sanal Makine Ekle"
+
+#: /workspace/src/add_dialog.vala:40
+msgid "Add"
+msgstr "Ekle"
+
+#: /workspace/src/add_dialog.vala:53
+msgid "Machine Details"
+msgstr "Makine Ayrıntıları"
+
+#: /workspace/src/add_dialog.vala:54
+msgid "Configure your virtual machine or container"
+msgstr "Sanal makinenizi veya konteynerinizi yapılandırın"
+
+#: /workspace/src/add_dialog.vala:58
+msgid "VM Name"
+msgstr "Sanal Makine Adı"
+
+#: /workspace/src/add_dialog.vala:62
+msgid "Subtitle / OS"
+msgstr "Alt Başlık / İşletim Sistemi"
+
+#: /workspace/src/add_dialog.vala:63
+msgid "Linux • Custom VM"
+msgstr "Linux • Özel VM"
+
+#: /workspace/src/add_dialog.vala:67
+msgid "Type"
+msgstr "Tür"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Podman / Docker Compose"
+msgstr "Podman / Docker Compose"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Direct QEMU Script"
+msgstr "Doğrudan QEMU Betiği"
+
+#: /workspace/src/add_dialog.vala:78
+msgid "Browse Directory"
+msgstr "Dizine Göz At"
+
+#: /workspace/src/add_dialog.vala:84 /workspace/src/add_dialog.vala:158
+msgid "Container Name"
+msgstr "Konteyner Adı"
+
+#: /workspace/src/add_dialog.vala:88
+msgid "Start Command"
+msgstr "Başlatma Komutu"
+
+#: /workspace/src/add_dialog.vala:93
+msgid "Stop Command"
+msgstr "Durdurma Komutu"
+
+#: /workspace/src/add_dialog.vala:98
+msgid "Connect Command"
+msgstr "Bağlantı Komutu"
+
+#: /workspace/src/add_dialog.vala:103
+msgid "Ports and Services"
+msgstr "Portlar ve Hizmetler"
+
+#: /workspace/src/add_dialog.vala:110
+msgid "Select VM Directory"
+msgstr "Sanal Makine Dizinini Seçin"
+
+#: /workspace/src/add_dialog.vala:163
+msgid "Process Name"
+msgstr "Süreç Adı"
+

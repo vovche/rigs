@@ -1,0 +1,7 @@
+data/io.github.vovche.Rigs.desktop
+data/io.github.vovche.Rigs.metainfo.xml.in
+src/main.vala
+src/application.vala
+src/window.vala
+src/vm_card.vala
+src/add_dialog.vala

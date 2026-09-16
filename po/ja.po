@@ -1,0 +1,301 @@
+# Japanese translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Rigs 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-16 00:24+0000\n"
+"PO-Revision-Date: 2026-09-16 00:24+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: /workspace/src/application.vala:67
+msgid ""
+"Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
+msgstr "Valaで書かれた超高速ネイティブGNOME仮想マシン＆コンテナハブ。"
+
+#: /workspace/src/window.vala:45
+msgid "Rigs"
+msgstr "Rigs"
+
+#: /workspace/src/window.vala:45
+msgid "Virtual Machine and Container Hub"
+msgstr "仮想マシンとコンテナのハブ"
+
+#: /workspace/src/window.vala:49
+msgid "Add Virtual Machine (Ctrl+N)"
+msgstr "仮想マシンを追加 (Ctrl+N)"
+
+#: /workspace/src/window.vala:54
+msgid "About Rigs"
+msgstr "Rigs について"
+
+#: /workspace/src/window.vala:55
+msgid "Quit"
+msgstr "終了"
+
+#: /workspace/src/window.vala:59
+msgid "Main Menu"
+msgstr "メインメニュー"
+
+#: /workspace/src/window.vala:85
+msgid "Host Overview"
+msgstr "ホストの概要"
+
+#: /workspace/src/window.vala:86
+msgid "Overall CPU and RAM usage on your host machine"
+msgstr "ホストマシンの全体的なCPUとメモリの使用量"
+
+#: /workspace/src/window.vala:91
+msgid "CPU Usage"
+msgstr "CPU使用率"
+
+#: /workspace/src/window.vala:92
+msgid "Host CPU load: --%"
+msgstr "ホストCPU負荷: --%"
+
+#: /workspace/src/window.vala:100
+msgid "Memory (RAM)"
+msgstr "メモリ (RAM)"
+
+#: /workspace/src/window.vala:101
+msgid "Host RAM: -- / -- GB"
+msgstr "ホストRAM: -- / -- GB"
+
+#: /workspace/src/window.vala:109
+msgid "Virtual Machines"
+msgstr "仮想マシン"
+
+#: /workspace/src/window.vala:110
+msgid "Status, resource consumption and controls"
+msgstr "状態、リソース消費、操作"
+
+#: /workspace/src/window.vala:114
+msgid "No Virtual Machines"
+msgstr "仮想マシンがありません"
+
+#: /workspace/src/window.vala:115
+msgid "Click the + button above to register your first virtual machine"
+msgstr "上の + ボタンをクリックして仮想マシンを追加してください"
+
+#: /workspace/src/window.vala:150
+#, c-format
+msgid "Registered '%s'"
+msgstr "'%s' を登録しました"
+
+#: /workspace/src/window.vala:170
+msgid "Select ISO Disk Image"
+msgstr "ISOディスクイメージを選択"
+
+#: /workspace/src/window.vala:173
+msgid "Disk Images (*.iso)"
+msgstr "ディスクイメージ (*.iso)"
+
+#: /workspace/src/window.vala:197
+#, c-format
+msgid "Inserted '%s' into %s"
+msgstr "%2$s に '%1$s' を挿入しました"
+
+#: /workspace/src/window.vala:215
+#, c-format
+msgid "Ejected optical media from %s"
+msgstr "%s から光学メディアを排出しました"
+
+#: /workspace/src/window.vala:220
+#, c-format
+msgid "Starting %s…"
+msgstr "%s を起動中…"
+
+#: /workspace/src/window.vala:230
+#, c-format
+msgid "Stopping %s…"
+msgstr "%s を停止中…"
+
+#: /workspace/src/window.vala:248
+#, c-format
+msgid "Remove '%s'?"
+msgstr "'%s' を削除しますか？"
+
+#: /workspace/src/window.vala:249
+msgid ""
+"The virtual machine will be removed from Rigs. Your files and VM disk on the "
+"host will remain untouched."
+msgstr "仮想マシンはRigsから削除されます。ホスト上のファイルやVMディスクは保持されます。"
+
+#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+msgid "Remove"
+msgstr "削除"
+
+#: /workspace/src/window.vala:288
+#, c-format
+msgid "Removed '%s'"
+msgstr "'%s' を削除しました"
+
+#: /workspace/src/window.vala:289
+msgid "Undo"
+msgstr "元に戻す"
+
+#: /workspace/src/window.vala:301
+#, c-format
+msgid "Host CPU load: %.1f%%"
+msgstr "ホストCPU負荷: %.1f%%"
+
+#: /workspace/src/window.vala:304
+#, c-format
+msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
+msgstr "ホストRAM: %.2f / %.1f GB (%.0f%%)"
+
+#: /workspace/src/vm_card.vala:36 /workspace/src/vm_card.vala:152
+msgid "STOPPED"
+msgstr "停止中"
+
+#: /workspace/src/vm_card.vala:45
+msgid "Start"
+msgstr "起動"
+
+#: /workspace/src/vm_card.vala:51
+msgid "Connect"
+msgstr "接続"
+
+#: /workspace/src/vm_card.vala:59
+msgid "Stop"
+msgstr "停止"
+
+#: /workspace/src/vm_card.vala:70
+msgid "VM CPU Usage"
+msgstr "VMのCPU使用率"
+
+#: /workspace/src/vm_card.vala:78
+msgid "Host RAM Usage"
+msgstr "ホストのRAM使用量"
+
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "光学ドライブ (ISO)"
+
+#: /workspace/src/vm_card.vala:92
+msgid "Insert…"
+msgstr "挿入…"
+
+#: /workspace/src/vm_card.vala:98
+msgid "Eject"
+msgstr "取り出し"
+
+#: /workspace/src/vm_card.vala:111
+msgid "Services and Ports"
+msgstr "サービスとポート"
+
+#: /workspace/src/vm_card.vala:112 /workspace/src/vm_card.vala:118
+msgid "None"
+msgstr "なし"
+
+#: /workspace/src/vm_card.vala:117 /workspace/src/add_dialog.vala:74
+msgid "Working Directory"
+msgstr "作業ディレクトリ"
+
+#: /workspace/src/vm_card.vala:123
+msgid "Remove from Rigs"
+msgstr "Rigsから削除"
+
+#: /workspace/src/vm_card.vala:137
+msgid "[ No Media / Ejected ]"
+msgstr "[ メディアなし / 排出済み ]"
+
+#: /workspace/src/vm_card.vala:144
+msgid "RUNNING"
+msgstr "実行中"
+
+#: /workspace/src/vm_card.vala:161
+#, c-format
+msgid "CPU: %.1f%%"
+msgstr "CPU: %.1f%%"
+
+#: /workspace/src/vm_card.vala:163
+#, c-format
+msgid "Memory: %s"
+msgstr "メモリ: %s"
+
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "仮想マシンを追加"
+
+#: /workspace/src/add_dialog.vala:40
+msgid "Add"
+msgstr "追加"
+
+#: /workspace/src/add_dialog.vala:53
+msgid "Machine Details"
+msgstr "マシンの詳細"
+
+#: /workspace/src/add_dialog.vala:54
+msgid "Configure your virtual machine or container"
+msgstr "仮想マシンまたはコンテナの設定"
+
+#: /workspace/src/add_dialog.vala:58
+msgid "VM Name"
+msgstr "仮想マシン名"
+
+#: /workspace/src/add_dialog.vala:62
+msgid "Subtitle / OS"
+msgstr "サブタイトル / OS"
+
+#: /workspace/src/add_dialog.vala:63
+msgid "Linux • Custom VM"
+msgstr "Linux • カスタムVM"
+
+#: /workspace/src/add_dialog.vala:67
+msgid "Type"
+msgstr "種類"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Podman / Docker Compose"
+msgstr "Podman / Docker Compose"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Direct QEMU Script"
+msgstr "直接QEMUスクリプト"
+
+#: /workspace/src/add_dialog.vala:78
+msgid "Browse Directory"
+msgstr "ディレクトリを参照"
+
+#: /workspace/src/add_dialog.vala:84 /workspace/src/add_dialog.vala:158
+msgid "Container Name"
+msgstr "コンテナ名"
+
+#: /workspace/src/add_dialog.vala:88
+msgid "Start Command"
+msgstr "起動コマンド"
+
+#: /workspace/src/add_dialog.vala:93
+msgid "Stop Command"
+msgstr "停止コマンド"
+
+#: /workspace/src/add_dialog.vala:98
+msgid "Connect Command"
+msgstr "接続コマンド"
+
+#: /workspace/src/add_dialog.vala:103
+msgid "Ports and Services"
+msgstr "ポートとサービス"
+
+#: /workspace/src/add_dialog.vala:110
+msgid "Select VM Directory"
+msgstr "VMディレクトリを選択"
+
+#: /workspace/src/add_dialog.vala:163
+msgid "Process Name"
+msgstr "プロセス名"
+

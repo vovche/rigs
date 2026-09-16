@@ -1,0 +1,6 @@
+/* config.vala.in — Build configuration variables for Rigs */
+
+namespace Rigs.Config {
+    public const string GETTEXT_PACKAGE = @GETTEXT_PACKAGE@;
+    public const string LOCALEDIR = @LOCALEDIR@;
+}

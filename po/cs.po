@@ -1,0 +1,301 @@
+# Czech translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Rigs 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-16 00:24+0000\n"
+"PO-Revision-Date: 2026-09-16 00:24+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: /workspace/src/application.vala:67
+msgid ""
+"Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
+msgstr "Rychlé nativní centrum virtuálních počítačů a kontejnerů pro GNOME napsané ve Vale."
+
+#: /workspace/src/window.vala:45
+msgid "Rigs"
+msgstr "Rigs"
+
+#: /workspace/src/window.vala:45
+msgid "Virtual Machine and Container Hub"
+msgstr "Centrum virtuálních počítačů a kontejnerů"
+
+#: /workspace/src/window.vala:49
+msgid "Add Virtual Machine (Ctrl+N)"
+msgstr "Přidat virtuální počítač (Ctrl+N)"
+
+#: /workspace/src/window.vala:54
+msgid "About Rigs"
+msgstr "O aplikaci Rigs"
+
+#: /workspace/src/window.vala:55
+msgid "Quit"
+msgstr "Ukončit"
+
+#: /workspace/src/window.vala:59
+msgid "Main Menu"
+msgstr "Hlavní nabídka"
+
+#: /workspace/src/window.vala:85
+msgid "Host Overview"
+msgstr "Přehled hostitele"
+
+#: /workspace/src/window.vala:86
+msgid "Overall CPU and RAM usage on your host machine"
+msgstr "Celkové využití procesoru a paměti RAM hostitele"
+
+#: /workspace/src/window.vala:91
+msgid "CPU Usage"
+msgstr "Využití procesoru"
+
+#: /workspace/src/window.vala:92
+msgid "Host CPU load: --%"
+msgstr "Zatížení procesoru: --%"
+
+#: /workspace/src/window.vala:100
+msgid "Memory (RAM)"
+msgstr "Paměť (RAM)"
+
+#: /workspace/src/window.vala:101
+msgid "Host RAM: -- / -- GB"
+msgstr "RAM hostitele: -- / -- GB"
+
+#: /workspace/src/window.vala:109
+msgid "Virtual Machines"
+msgstr "Virtuální počítače"
+
+#: /workspace/src/window.vala:110
+msgid "Status, resource consumption and controls"
+msgstr "Stav, využití prostředků a ovládání"
+
+#: /workspace/src/window.vala:114
+msgid "No Virtual Machines"
+msgstr "Žádné virtuální počítače"
+
+#: /workspace/src/window.vala:115
+msgid "Click the + button above to register your first virtual machine"
+msgstr "Klikněte na tlačítko + pro přidání prvního virtuálního počítače"
+
+#: /workspace/src/window.vala:150
+#, c-format
+msgid "Registered '%s'"
+msgstr "Zaregistrováno '%s'"
+
+#: /workspace/src/window.vala:170
+msgid "Select ISO Disk Image"
+msgstr "Vybrat obraz disku ISO"
+
+#: /workspace/src/window.vala:173
+msgid "Disk Images (*.iso)"
+msgstr "Obrazy disků (*.iso)"
+
+#: /workspace/src/window.vala:197
+#, c-format
+msgid "Inserted '%s' into %s"
+msgstr "Vloženo '%s' do %s"
+
+#: /workspace/src/window.vala:215
+#, c-format
+msgid "Ejected optical media from %s"
+msgstr "Médium vysunuto z %s"
+
+#: /workspace/src/window.vala:220
+#, c-format
+msgid "Starting %s…"
+msgstr "Spouštění %s…"
+
+#: /workspace/src/window.vala:230
+#, c-format
+msgid "Stopping %s…"
+msgstr "Zastavování %s…"
+
+#: /workspace/src/window.vala:248
+#, c-format
+msgid "Remove '%s'?"
+msgstr "Odebrat '%s'?"
+
+#: /workspace/src/window.vala:249
+msgid ""
+"The virtual machine will be removed from Rigs. Your files and VM disk on the "
+"host will remain untouched."
+msgstr "Virtuální počítač bude odebrán z Rigs. Soubory a disk na hostiteli zůstanou nedotčeny."
+
+#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+msgid "Cancel"
+msgstr "Zrušit"
+
+#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+msgid "Remove"
+msgstr "Odebrat"
+
+#: /workspace/src/window.vala:288
+#, c-format
+msgid "Removed '%s'"
+msgstr "Odebráno '%s'"
+
+#: /workspace/src/window.vala:289
+msgid "Undo"
+msgstr "Zpět"
+
+#: /workspace/src/window.vala:301
+#, c-format
+msgid "Host CPU load: %.1f%%"
+msgstr "Zatížení procesoru: %.1f%%"
+
+#: /workspace/src/window.vala:304
+#, c-format
+msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
+msgstr "RAM hostitele: %.2f / %.1f GB (%.0f%%)"
+
+#: /workspace/src/vm_card.vala:36 /workspace/src/vm_card.vala:152
+msgid "STOPPED"
+msgstr "ZASTAVENO"
+
+#: /workspace/src/vm_card.vala:45
+msgid "Start"
+msgstr "Spustit"
+
+#: /workspace/src/vm_card.vala:51
+msgid "Connect"
+msgstr "Připojit"
+
+#: /workspace/src/vm_card.vala:59
+msgid "Stop"
+msgstr "Zastavit"
+
+#: /workspace/src/vm_card.vala:70
+msgid "VM CPU Usage"
+msgstr "Využití procesoru VM"
+
+#: /workspace/src/vm_card.vala:78
+msgid "Host RAM Usage"
+msgstr "Využití RAM hostitele"
+
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "Optická mechanika (ISO)"
+
+#: /workspace/src/vm_card.vala:92
+msgid "Insert…"
+msgstr "Vložit…"
+
+#: /workspace/src/vm_card.vala:98
+msgid "Eject"
+msgstr "Vysunout"
+
+#: /workspace/src/vm_card.vala:111
+msgid "Services and Ports"
+msgstr "Služby a porty"
+
+#: /workspace/src/vm_card.vala:112 /workspace/src/vm_card.vala:118
+msgid "None"
+msgstr "Žádné"
+
+#: /workspace/src/vm_card.vala:117 /workspace/src/add_dialog.vala:74
+msgid "Working Directory"
+msgstr "Pracovní adresář"
+
+#: /workspace/src/vm_card.vala:123
+msgid "Remove from Rigs"
+msgstr "Odebrat z Rigs"
+
+#: /workspace/src/vm_card.vala:137
+msgid "[ No Media / Ejected ]"
+msgstr "[ Žádné médium / Vysunuto ]"
+
+#: /workspace/src/vm_card.vala:144
+msgid "RUNNING"
+msgstr "BĚŽÍ"
+
+#: /workspace/src/vm_card.vala:161
+#, c-format
+msgid "CPU: %.1f%%"
+msgstr "CPU: %.1f%%"
+
+#: /workspace/src/vm_card.vala:163
+#, c-format
+msgid "Memory: %s"
+msgstr "Paměť: %s"
+
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "Přidat virtuální počítač"
+
+#: /workspace/src/add_dialog.vala:40
+msgid "Add"
+msgstr "Přidat"
+
+#: /workspace/src/add_dialog.vala:53
+msgid "Machine Details"
+msgstr "Podrobnosti o počítači"
+
+#: /workspace/src/add_dialog.vala:54
+msgid "Configure your virtual machine or container"
+msgstr "Nastavení virtuálního počítače nebo kontejneru"
+
+#: /workspace/src/add_dialog.vala:58
+msgid "VM Name"
+msgstr "Název VM"
+
+#: /workspace/src/add_dialog.vala:62
+msgid "Subtitle / OS"
+msgstr "Podtitul / OS"
+
+#: /workspace/src/add_dialog.vala:63
+msgid "Linux • Custom VM"
+msgstr "Linux • Vlastní VM"
+
+#: /workspace/src/add_dialog.vala:67
+msgid "Type"
+msgstr "Typ"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Podman / Docker Compose"
+msgstr "Podman / Docker Compose"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Direct QEMU Script"
+msgstr "Přímý skript QEMU"
+
+#: /workspace/src/add_dialog.vala:78
+msgid "Browse Directory"
+msgstr "Procházet adresář"
+
+#: /workspace/src/add_dialog.vala:84 /workspace/src/add_dialog.vala:158
+msgid "Container Name"
+msgstr "Název kontejneru"
+
+#: /workspace/src/add_dialog.vala:88
+msgid "Start Command"
+msgstr "Příkaz pro spuštění"
+
+#: /workspace/src/add_dialog.vala:93
+msgid "Stop Command"
+msgstr "Příkaz pro zastavení"
+
+#: /workspace/src/add_dialog.vala:98
+msgid "Connect Command"
+msgstr "Příkaz pro připojení"
+
+#: /workspace/src/add_dialog.vala:103
+msgid "Ports and Services"
+msgstr "Porty a služby"
+
+#: /workspace/src/add_dialog.vala:110
+msgid "Select VM Directory"
+msgstr "Vyberte adresář VM"
+
+#: /workspace/src/add_dialog.vala:163
+msgid "Process Name"
+msgstr "Název procesu"
+

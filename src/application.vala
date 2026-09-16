@@ -1,5 +1,7 @@
 /* application.vala — Application lifecycle and global actions for Rigs */
 
+using GLib.Intl;
+
 namespace Rigs {
 
     public class Application : Adw.Application {
@@ -62,7 +64,7 @@ namespace Rigs {
             about.application_icon = "utilities-system-monitor";
             about.developer_name = "vovche";
             about.version = "1.0.0";
-            about.comments = "Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala.";
+            about.comments = _("Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala.");
             about.website = "https://github.com/vovche/rigs";
             about.license_type = Gtk.License.APACHE_2_0;
 

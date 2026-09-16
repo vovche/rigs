@@ -1,0 +1,302 @@
+# Slovenian translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Rigs 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-16 00:24+0000\n"
+"PO-Revision-Date: 2026-09-16 00:24+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);\n"
+"n%100==4 ? 2 : 3);\n"
+
+#: /workspace/src/application.vala:67
+msgid ""
+"Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
+msgstr "Bliskovito hitro, domače središče navideznih računalnikov in vsebnikov za GNOME, napisano v Vali."
+
+#: /workspace/src/window.vala:45
+msgid "Rigs"
+msgstr "Rigs"
+
+#: /workspace/src/window.vala:45
+msgid "Virtual Machine and Container Hub"
+msgstr "Središče navideznih računalnikov in vsebnikov"
+
+#: /workspace/src/window.vala:49
+msgid "Add Virtual Machine (Ctrl+N)"
+msgstr "Dodaj navidezni računalnik (Ctrl+N)"
+
+#: /workspace/src/window.vala:54
+msgid "About Rigs"
+msgstr "O programu Rigs"
+
+#: /workspace/src/window.vala:55
+msgid "Quit"
+msgstr "Končaj"
+
+#: /workspace/src/window.vala:59
+msgid "Main Menu"
+msgstr "Glavni meni"
+
+#: /workspace/src/window.vala:85
+msgid "Host Overview"
+msgstr "Pregled gostitelja"
+
+#: /workspace/src/window.vala:86
+msgid "Overall CPU and RAM usage on your host machine"
+msgstr "Splošna poraba procesorja in pomnilnika gostiteljskega sistema"
+
+#: /workspace/src/window.vala:91
+msgid "CPU Usage"
+msgstr "Poraba procesorja"
+
+#: /workspace/src/window.vala:92
+msgid "Host CPU load: --%"
+msgstr "Obremenitev procesorja gostitelja: --%"
+
+#: /workspace/src/window.vala:100
+msgid "Memory (RAM)"
+msgstr "Delovni pomnilnik (RAM)"
+
+#: /workspace/src/window.vala:101
+msgid "Host RAM: -- / -- GB"
+msgstr "RAM gostitelja: -- / -- GB"
+
+#: /workspace/src/window.vala:109
+msgid "Virtual Machines"
+msgstr "Navidezni računalniki"
+
+#: /workspace/src/window.vala:110
+msgid "Status, resource consumption and controls"
+msgstr "Stanje, poraba virov in nadzor"
+
+#: /workspace/src/window.vala:114
+msgid "No Virtual Machines"
+msgstr "Ni navideznih računalnikov"
+
+#: /workspace/src/window.vala:115
+msgid "Click the + button above to register your first virtual machine"
+msgstr "Kliknite zgornji gumb + za dodajanje prvega navideznega računalnika"
+
+#: /workspace/src/window.vala:150
+#, c-format
+msgid "Registered '%s'"
+msgstr "Registrirano '%s'"
+
+#: /workspace/src/window.vala:170
+msgid "Select ISO Disk Image"
+msgstr "Izberite sliko diska ISO"
+
+#: /workspace/src/window.vala:173
+msgid "Disk Images (*.iso)"
+msgstr "Slike diskov (*.iso)"
+
+#: /workspace/src/window.vala:197
+#, c-format
+msgid "Inserted '%s' into %s"
+msgstr "Vstavljeno '%s' v %s"
+
+#: /workspace/src/window.vala:215
+#, c-format
+msgid "Ejected optical media from %s"
+msgstr "Medij izvržen iz %s"
+
+#: /workspace/src/window.vala:220
+#, c-format
+msgid "Starting %s…"
+msgstr "Zagon %s…"
+
+#: /workspace/src/window.vala:230
+#, c-format
+msgid "Stopping %s…"
+msgstr "Ustavljanje %s…"
+
+#: /workspace/src/window.vala:248
+#, c-format
+msgid "Remove '%s'?"
+msgstr "Odstrani '%s'?"
+
+#: /workspace/src/window.vala:249
+msgid ""
+"The virtual machine will be removed from Rigs. Your files and VM disk on the "
+"host will remain untouched."
+msgstr "Navidezni računalnik bo odstranjen iz Rigs. Vaše datoteke in disk na gostitelju bodo ostali nedotaknjeni."
+
+#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+msgid "Cancel"
+msgstr "Prekliči"
+
+#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+msgid "Remove"
+msgstr "Odstrani"
+
+#: /workspace/src/window.vala:288
+#, c-format
+msgid "Removed '%s'"
+msgstr "Odstranjeno '%s'"
+
+#: /workspace/src/window.vala:289
+msgid "Undo"
+msgstr "Razveljavi"
+
+#: /workspace/src/window.vala:301
+#, c-format
+msgid "Host CPU load: %.1f%%"
+msgstr "Obremenitev procesorja gostitelja: %.1f%%"
+
+#: /workspace/src/window.vala:304
+#, c-format
+msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
+msgstr "RAM gostitelja: %.2f / %.1f GB (%.0f%%)"
+
+#: /workspace/src/vm_card.vala:36 /workspace/src/vm_card.vala:152
+msgid "STOPPED"
+msgstr "USTAVLJENO"
+
+#: /workspace/src/vm_card.vala:45
+msgid "Start"
+msgstr "Zaženi"
+
+#: /workspace/src/vm_card.vala:51
+msgid "Connect"
+msgstr "Poveži"
+
+#: /workspace/src/vm_card.vala:59
+msgid "Stop"
+msgstr "Ustavi"
+
+#: /workspace/src/vm_card.vala:70
+msgid "VM CPU Usage"
+msgstr "Poraba procesorja VM"
+
+#: /workspace/src/vm_card.vala:78
+msgid "Host RAM Usage"
+msgstr "Poraba RAM gostitelja"
+
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "Optični pogon (ISO)"
+
+#: /workspace/src/vm_card.vala:92
+msgid "Insert…"
+msgstr "Vstavi…"
+
+#: /workspace/src/vm_card.vala:98
+msgid "Eject"
+msgstr "Izvrzi"
+
+#: /workspace/src/vm_card.vala:111
+msgid "Services and Ports"
+msgstr "Storitve in vrata"
+
+#: /workspace/src/vm_card.vala:112 /workspace/src/vm_card.vala:118
+msgid "None"
+msgstr "Brez"
+
+#: /workspace/src/vm_card.vala:117 /workspace/src/add_dialog.vala:74
+msgid "Working Directory"
+msgstr "Delovna mapa"
+
+#: /workspace/src/vm_card.vala:123
+msgid "Remove from Rigs"
+msgstr "Odstrani iz Rigs"
+
+#: /workspace/src/vm_card.vala:137
+msgid "[ No Media / Ejected ]"
+msgstr "[ Brez medija / Izvrženo ]"
+
+#: /workspace/src/vm_card.vala:144
+msgid "RUNNING"
+msgstr "DELUJE"
+
+#: /workspace/src/vm_card.vala:161
+#, c-format
+msgid "CPU: %.1f%%"
+msgstr "CPU: %.1f%%"
+
+#: /workspace/src/vm_card.vala:163
+#, c-format
+msgid "Memory: %s"
+msgstr "Pomnilnik: %s"
+
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "Dodaj navidezni računalnik"
+
+#: /workspace/src/add_dialog.vala:40
+msgid "Add"
+msgstr "Dodaj"
+
+#: /workspace/src/add_dialog.vala:53
+msgid "Machine Details"
+msgstr "Podrobnosti računalnika"
+
+#: /workspace/src/add_dialog.vala:54
+msgid "Configure your virtual machine or container"
+msgstr "Nastavite navidezni računalnik ali vsebnik"
+
+#: /workspace/src/add_dialog.vala:58
+msgid "VM Name"
+msgstr "Ime navideznega računalnika"
+
+#: /workspace/src/add_dialog.vala:62
+msgid "Subtitle / OS"
+msgstr "Podnaslov / OS"
+
+#: /workspace/src/add_dialog.vala:63
+msgid "Linux • Custom VM"
+msgstr "Linux • Prilagojeni VM"
+
+#: /workspace/src/add_dialog.vala:67
+msgid "Type"
+msgstr "Vrsta"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Podman / Docker Compose"
+msgstr "Podman / Docker Compose"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Direct QEMU Script"
+msgstr "Neposredna skripta QEMU"
+
+#: /workspace/src/add_dialog.vala:78
+msgid "Browse Directory"
+msgstr "Prebrskaj mapo"
+
+#: /workspace/src/add_dialog.vala:84 /workspace/src/add_dialog.vala:158
+msgid "Container Name"
+msgstr "Ime vsebnika"
+
+#: /workspace/src/add_dialog.vala:88
+msgid "Start Command"
+msgstr "Ukaz za zagon"
+
+#: /workspace/src/add_dialog.vala:93
+msgid "Stop Command"
+msgstr "Ukaz za ustavitev"
+
+#: /workspace/src/add_dialog.vala:98
+msgid "Connect Command"
+msgstr "Ukaz za povezavo"
+
+#: /workspace/src/add_dialog.vala:103
+msgid "Ports and Services"
+msgstr "Vrata in storitve"
+
+#: /workspace/src/add_dialog.vala:110
+msgid "Select VM Directory"
+msgstr "Izberite mapo VM"
+
+#: /workspace/src/add_dialog.vala:163
+msgid "Process Name"
+msgstr "Ime opravila"
+

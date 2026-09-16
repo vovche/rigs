@@ -1,0 +1,302 @@
+# Ukrainian translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Rigs 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-16 00:24+0000\n"
+"PO-Revision-Date: 2026-09-16 00:24+0000\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: /workspace/src/application.vala:67
+msgid ""
+"Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
+msgstr "Швидкий нативний центр віртуальних машин та контейнерів для GNOME, написаний на Vala."
+
+#: /workspace/src/window.vala:45
+msgid "Rigs"
+msgstr "Rigs"
+
+#: /workspace/src/window.vala:45
+msgid "Virtual Machine and Container Hub"
+msgstr "Центр віртуальних машин і контейнерів"
+
+#: /workspace/src/window.vala:49
+msgid "Add Virtual Machine (Ctrl+N)"
+msgstr "Додати віртуальну машину (Ctrl+N)"
+
+#: /workspace/src/window.vala:54
+msgid "About Rigs"
+msgstr "Про Rigs"
+
+#: /workspace/src/window.vala:55
+msgid "Quit"
+msgstr "Вийти"
+
+#: /workspace/src/window.vala:59
+msgid "Main Menu"
+msgstr "Головне меню"
+
+#: /workspace/src/window.vala:85
+msgid "Host Overview"
+msgstr "Огляд хоста"
+
+#: /workspace/src/window.vala:86
+msgid "Overall CPU and RAM usage on your host machine"
+msgstr "Загальне використання CPU та пам'яті хостової системи"
+
+#: /workspace/src/window.vala:91
+msgid "CPU Usage"
+msgstr "Використання CPU"
+
+#: /workspace/src/window.vala:92
+msgid "Host CPU load: --%"
+msgstr "Навантаження CPU хоста: --%"
+
+#: /workspace/src/window.vala:100
+msgid "Memory (RAM)"
+msgstr "Оперативна пам'ять (RAM)"
+
+#: /workspace/src/window.vala:101
+msgid "Host RAM: -- / -- GB"
+msgstr "RAM хоста: -- / -- ГБ"
+
+#: /workspace/src/window.vala:109
+msgid "Virtual Machines"
+msgstr "Віртуальні машини"
+
+#: /workspace/src/window.vala:110
+msgid "Status, resource consumption and controls"
+msgstr "Стан, споживання ресурсів та керування"
+
+#: /workspace/src/window.vala:114
+msgid "No Virtual Machines"
+msgstr "Немає віртуальних машин"
+
+#: /workspace/src/window.vala:115
+msgid "Click the + button above to register your first virtual machine"
+msgstr "Натисніть кнопку +, щоб додати першу віртуальну машину"
+
+#: /workspace/src/window.vala:150
+#, c-format
+msgid "Registered '%s'"
+msgstr "Зареєстровано '%s'"
+
+#: /workspace/src/window.vala:170
+msgid "Select ISO Disk Image"
+msgstr "Вибрати образ диска ISO"
+
+#: /workspace/src/window.vala:173
+msgid "Disk Images (*.iso)"
+msgstr "Образи дисків (*.iso)"
+
+#: /workspace/src/window.vala:197
+#, c-format
+msgid "Inserted '%s' into %s"
+msgstr "Вставлено '%s' у %s"
+
+#: /workspace/src/window.vala:215
+#, c-format
+msgid "Ejected optical media from %s"
+msgstr "Витягнуто оптичний диск із %s"
+
+#: /workspace/src/window.vala:220
+#, c-format
+msgid "Starting %s…"
+msgstr "Запуск %s…"
+
+#: /workspace/src/window.vala:230
+#, c-format
+msgid "Stopping %s…"
+msgstr "Зупинка %s…"
+
+#: /workspace/src/window.vala:248
+#, c-format
+msgid "Remove '%s'?"
+msgstr "Вилучити '%s'?"
+
+#: /workspace/src/window.vala:249
+msgid ""
+"The virtual machine will be removed from Rigs. Your files and VM disk on the "
+"host will remain untouched."
+msgstr "Віртуальну машину буде вилучено з Rigs. Ваші файли та диск VM на хості залишаться недоторканими."
+
+#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+msgid "Remove"
+msgstr "Вилучити"
+
+#: /workspace/src/window.vala:288
+#, c-format
+msgid "Removed '%s'"
+msgstr "Вилучено '%s'"
+
+#: /workspace/src/window.vala:289
+msgid "Undo"
+msgstr "Повернути"
+
+#: /workspace/src/window.vala:301
+#, c-format
+msgid "Host CPU load: %.1f%%"
+msgstr "Навантаження CPU хоста: %.1f%%"
+
+#: /workspace/src/window.vala:304
+#, c-format
+msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
+msgstr "RAM хоста: %.2f / %.1f ГБ (%.0f%%)"
+
+#: /workspace/src/vm_card.vala:36 /workspace/src/vm_card.vala:152
+msgid "STOPPED"
+msgstr "ЗУПИНЕНО"
+
+#: /workspace/src/vm_card.vala:45
+msgid "Start"
+msgstr "Запустити"
+
+#: /workspace/src/vm_card.vala:51
+msgid "Connect"
+msgstr "Під'єднатися"
+
+#: /workspace/src/vm_card.vala:59
+msgid "Stop"
+msgstr "Зупинити"
+
+#: /workspace/src/vm_card.vala:70
+msgid "VM CPU Usage"
+msgstr "Використання CPU VM"
+
+#: /workspace/src/vm_card.vala:78
+msgid "Host RAM Usage"
+msgstr "Використання RAM хоста"
+
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "Оптичний привід (ISO)"
+
+#: /workspace/src/vm_card.vala:92
+msgid "Insert…"
+msgstr "Вставити…"
+
+#: /workspace/src/vm_card.vala:98
+msgid "Eject"
+msgstr "Витягти"
+
+#: /workspace/src/vm_card.vala:111
+msgid "Services and Ports"
+msgstr "Служби та порти"
+
+#: /workspace/src/vm_card.vala:112 /workspace/src/vm_card.vala:118
+msgid "None"
+msgstr "Немає"
+
+#: /workspace/src/vm_card.vala:117 /workspace/src/add_dialog.vala:74
+msgid "Working Directory"
+msgstr "Робочий каталог"
+
+#: /workspace/src/vm_card.vala:123
+msgid "Remove from Rigs"
+msgstr "Вилучити з Rigs"
+
+#: /workspace/src/vm_card.vala:137
+msgid "[ No Media / Ejected ]"
+msgstr "[ Немає носія / Витягнуто ]"
+
+#: /workspace/src/vm_card.vala:144
+msgid "RUNNING"
+msgstr "ПРАЦЮЄ"
+
+#: /workspace/src/vm_card.vala:161
+#, c-format
+msgid "CPU: %.1f%%"
+msgstr "CPU: %.1f%%"
+
+#: /workspace/src/vm_card.vala:163
+#, c-format
+msgid "Memory: %s"
+msgstr "Пам'ять: %s"
+
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "Додати віртуальну машину"
+
+#: /workspace/src/add_dialog.vala:40
+msgid "Add"
+msgstr "Додати"
+
+#: /workspace/src/add_dialog.vala:53
+msgid "Machine Details"
+msgstr "Параметри машини"
+
+#: /workspace/src/add_dialog.vala:54
+msgid "Configure your virtual machine or container"
+msgstr "Налаштуйте параметри віртуальної машини або контейнера"
+
+#: /workspace/src/add_dialog.vala:58
+msgid "VM Name"
+msgstr "Назва VM"
+
+#: /workspace/src/add_dialog.vala:62
+msgid "Subtitle / OS"
+msgstr "Підзаголовок / ОС"
+
+#: /workspace/src/add_dialog.vala:63
+msgid "Linux • Custom VM"
+msgstr "Linux • Користувацька VM"
+
+#: /workspace/src/add_dialog.vala:67
+msgid "Type"
+msgstr "Тип"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Podman / Docker Compose"
+msgstr "Podman / Docker Compose"
+
+#: /workspace/src/add_dialog.vala:68
+msgid "Direct QEMU Script"
+msgstr "Прямий скрипт QEMU"
+
+#: /workspace/src/add_dialog.vala:78
+msgid "Browse Directory"
+msgstr "Вибрати каталог"
+
+#: /workspace/src/add_dialog.vala:84 /workspace/src/add_dialog.vala:158
+msgid "Container Name"
+msgstr "Назва контейнера"
+
+#: /workspace/src/add_dialog.vala:88
+msgid "Start Command"
+msgstr "Команда запуску"
+
+#: /workspace/src/add_dialog.vala:93
+msgid "Stop Command"
+msgstr "Команда зупинки"
+
+#: /workspace/src/add_dialog.vala:98
+msgid "Connect Command"
+msgstr "Команда підключення"
+
+#: /workspace/src/add_dialog.vala:103
+msgid "Ports and Services"
+msgstr "Порти та служби"
+
+#: /workspace/src/add_dialog.vala:110
+msgid "Select VM Directory"
+msgstr "Виберіть каталог VM"
+
+#: /workspace/src/add_dialog.vala:163
+msgid "Process Name"
+msgstr "Назва процесу"
+

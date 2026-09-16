@@ -10,13 +10,15 @@ namespace Rigs {
         private double g;
         private double b;
         private bool auto_scale;
+        private double min_scale;
 
-        public SmoothSparkline(double r = 0.12, double g = 0.55, double b = 1.0, int max_samples = 25, int width = 120, int height = 34, bool auto_scale = false) {
+        public SmoothSparkline(double r = 0.12, double g = 0.55, double b = 1.0, int max_samples = 25, int width = 120, int height = 34, bool auto_scale = false, double min_scale = 15.0) {
             this.r = r;
             this.g = g;
             this.b = b;
             this.max_samples = max_samples;
             this.auto_scale = auto_scale;
+            this.min_scale = min_scale;
             this.values = new double[max_samples];
             for (int i = 0; i < max_samples; i++) {
                 values[i] = 0.0;
@@ -43,6 +45,24 @@ namespace Rigs {
         private void on_draw(Gtk.DrawingArea area, Cairo.Context cr, int w, int h) {
             if (w <= 0 || h <= 0 || max_samples < 2) return;
 
+            // 1. Draw rounded background container track
+            double corner_r = 6.0;
+            cr.save();
+            cr.new_sub_path();
+            cr.arc(w - corner_r, corner_r, corner_r, -Math.PI / 2.0, 0);
+            cr.arc(w - corner_r, h - corner_r, corner_r, 0, Math.PI / 2.0);
+            cr.arc(corner_r, h - corner_r, corner_r, Math.PI / 2.0, Math.PI);
+            cr.arc(corner_r, corner_r, corner_r, Math.PI, 3.0 * Math.PI / 2.0);
+            cr.close_path();
+
+            cr.set_source_rgba(r, g, b, 0.08);
+            cr.fill_preserve();
+
+            cr.set_source_rgba(r, g, b, 0.18);
+            cr.set_line_width(1.0);
+            cr.stroke();
+            cr.restore();
+
             double pad_y = 4.0;
             double draw_h = (double)h - (pad_y * 2.0);
 
@@ -52,8 +72,19 @@ namespace Rigs {
                 for (int i = 0; i < max_samples; i++) {
                     if (values[i] > peak) peak = values[i];
                 }
-                scale_max = peak * 1.15;
+                double target_scale = peak * 1.25;
+                scale_max = (target_scale > min_scale) ? target_scale : min_scale;
             }
+
+            // Clip wave drawing inside rounded area
+            cr.save();
+            cr.new_sub_path();
+            cr.arc(w - corner_r, corner_r, corner_r, -Math.PI / 2.0, 0);
+            cr.arc(w - corner_r, h - corner_r, corner_r, 0, Math.PI / 2.0);
+            cr.arc(corner_r, h - corner_r, corner_r, Math.PI / 2.0, Math.PI);
+            cr.arc(corner_r, corner_r, corner_r, Math.PI, 3.0 * Math.PI / 2.0);
+            cr.close_path();
+            cr.clip();
 
             // Compute points
             double[] xs = new double[max_samples];
@@ -94,7 +125,8 @@ namespace Rigs {
             cr.set_line_join(Cairo.LineJoin.ROUND);
             cr.stroke();
 
-            cr.restore();
+            cr.restore(); // restore spline save
+            cr.restore(); // restore clip save
         }
     }
 }

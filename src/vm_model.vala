@@ -78,6 +78,28 @@ namespace Rigs {
     }
 
     public class ConfigManager : Object {
+        public static double parse_mem_to_mb(string raw) {
+            string s = raw.strip().up();
+            if (s.length == 0) return 0.0;
+            try {
+                if (s.has_suffix("GIB") || s.has_suffix("GB")) {
+                    return double.parse(s.replace("GIB", "").replace("GB", "").strip()) * 1024.0;
+                } else if (s.has_suffix("MIB") || s.has_suffix("MB")) {
+                    return double.parse(s.replace("MIB", "").replace("MB", "").strip());
+                } else if (s.has_suffix("KIB") || s.has_suffix("KB")) {
+                    return double.parse(s.replace("KIB", "").replace("KB", "").strip()) / 1024.0;
+                } else if (s.has_suffix("G")) {
+                    return double.parse(s.replace("G", "").strip()) * 1024.0;
+                } else if (s.has_suffix("M")) {
+                    return double.parse(s.replace("M", "").strip());
+                } else {
+                    return double.parse(s);
+                }
+            } catch (Error e) {
+                return 0.0;
+            }
+        }
+
         public static string get_config_dir() {
             return Path.build_filename(Environment.get_user_config_dir(), "rigs");
         }

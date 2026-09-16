@@ -258,13 +258,18 @@ msgstr "ПРАЦЮЄ"
 
 #: /workspace/src/vm_card.vala:161
 #, c-format
-msgid "CPU: %.1f%%"
-msgstr "CPU: %.1f%%"
+msgid "CPU: %.1f%% (host)"
+msgstr "CPU: %.1f%% (хост)"
 
 #: /workspace/src/vm_card.vala:163
 #, c-format
 msgid "Memory: %s"
 msgstr "Пам'ять: %s"
+
+#: /workspace/src/vm_card.vala:165
+#, c-format
+msgid "Memory: %s (%.1f%%)"
+msgstr "Пам'ять: %s (%.1f%%)"
 
 #: /workspace/src/add_dialog.vala:40
 msgid "Add"

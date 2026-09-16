@@ -58,36 +58,52 @@ namespace Rigs {
             int exit_status;
 
             try {
-                // Authoritative running state inspection
+                // Authoritative running state and VM allocated RAM inspection
                 Process.spawn_command_line_sync(
-                    "podman inspect -f {{.State.Running}} " + vm.container_name,
+                    "podman inspect -f '{{.State.Running}}|{{.HostConfig.Memory}}|{{range .Config.Env}}{{if eq (slice . 0 9) \"RAM_SIZE=\"}}{{slice . 9}}{{end}}{{end}}' " + vm.container_name,
                     out stdout, out stderr, out exit_status
                 );
-                if (exit_status == 0 && stdout.strip().down() == "true") {
-                    st.running = true;
+                if (exit_status == 0 && stdout.strip().length > 0) {
+                    string[] insp_parts = stdout.strip().split("|");
+                    if (insp_parts.length > 0 && insp_parts[0].down() == "true") {
+                        st.running = true;
 
-                    // Query container stats
-                    string s_out;
-                    Process.spawn_command_line_sync(
-                        "podman stats --no-stream --format json " + vm.container_name,
-                        out s_out, out stderr, out exit_status
-                    );
-                    if (exit_status == 0 && s_out.strip().length > 0) {
-                        var parser = new Json.Parser();
-                        parser.load_from_data(s_out);
-                        var root = parser.get_root();
-                        if (root != null && root.get_node_type() == Json.NodeType.ARRAY) {
-                            var arr = root.get_array();
-                            if (arr.get_length() > 0) {
-                                var item = arr.get_object_element(0);
-                                if (item.has_member("pids") && item.get_string_member("pids") != "0") {
-                                    string cpu_str = item.get_string_member("cpu_percent").replace("%", "").strip();
-                                    st.cpu_pct = double.parse(cpu_str);
-                                    string mem_full = item.get_string_member("mem_usage");
-                                    st.ram_str = mem_full.split("/")[0].strip();
-                                    if (item.has_member("mem_percent")) {
-                                        string mem_pct_str = item.get_string_member("mem_percent").replace("%", "").strip();
-                                        st.ram_pct = double.parse(mem_pct_str);
+                        double limit_mb = 0.0;
+                        if (insp_parts.length > 1 && uint64.parse(insp_parts[1]) > 0) {
+                            limit_mb = (double)(uint64.parse(insp_parts[1]) / (1024 * 1024));
+                        } else if (insp_parts.length > 2 && insp_parts[2].strip().length > 0) {
+                            limit_mb = ConfigManager.parse_mem_to_mb(insp_parts[2].strip());
+                        }
+
+                        // Query container stats
+                        string s_out;
+                        Process.spawn_command_line_sync(
+                            "podman stats --no-stream --format json " + vm.container_name,
+                            out s_out, out stderr, out exit_status
+                        );
+                        if (exit_status == 0 && s_out.strip().length > 0) {
+                            var parser = new Json.Parser();
+                            parser.load_from_data(s_out);
+                            var root = parser.get_root();
+                            if (root != null && root.get_node_type() == Json.NodeType.ARRAY) {
+                                var arr = root.get_array();
+                                if (arr.get_length() > 0) {
+                                    var item = arr.get_object_element(0);
+                                    if (item.has_member("pids") && item.get_string_member("pids") != "0") {
+                                        string cpu_str = item.get_string_member("cpu_percent").replace("%", "").strip();
+                                        st.cpu_pct = double.parse(cpu_str);
+                                        string mem_full = item.get_string_member("mem_usage");
+                                        string used_raw = mem_full.split("/")[0].strip();
+                                        double used_mb = ConfigManager.parse_mem_to_mb(used_raw);
+
+                                        if (limit_mb > 0.0) {
+                                            st.ram_pct = ((double)used_mb / (double)limit_mb) * 100.0;
+                                            if (st.ram_pct > 100.0) st.ram_pct = 100.0;
+                                            st.ram_str = "%.2f GB / %.1f GB".printf(used_mb / 1024.0, limit_mb / 1024.0);
+                                        } else {
+                                            st.ram_str = used_raw;
+                                            st.ram_pct = 0.0;
+                                        }
                                     }
                                 }
                             }

@@ -66,11 +66,11 @@ namespace Rigs {
             this.add_suffix(btn_box);
 
             // Child rows when expanded
-            // 1. CPU with Resources-style sparkline (Vivid Blue)
+            // 1. CPU with Resources-style sparkline (Vivid Blue, dynamic auto-scale with 15% min floor)
             cpu_row = new Adw.ActionRow();
             cpu_row.title = _("VM CPU Usage");
             cpu_row.subtitle = "0.0%";
-            cpu_sparkline = new SmoothSparkline(0.12, 0.55, 1.0, 25, 130, 32);
+            cpu_sparkline = new SmoothSparkline(0.12, 0.55, 1.0, 25, 130, 32, true, 15.0);
             cpu_row.add_suffix(cpu_sparkline);
             this.add_row(cpu_row);
 
@@ -160,7 +160,7 @@ namespace Rigs {
                 stop_btn.visible = false;
             }
 
-            cpu_row.subtitle = _("CPU: %.1f%%").printf(status.cpu_pct);
+            cpu_row.subtitle = _("CPU: %.1f%% (host)").printf(status.cpu_pct);
             cpu_sparkline.add_value(status.running ? status.cpu_pct : 0.0);
 
             if (status.running && status.ram_pct > 0.0) {

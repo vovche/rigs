@@ -138,6 +138,40 @@ namespace Rigs {
                             }
                         } catch (Error e) { }
 
+                        // Extract VM's allocated RAM limit from cmdline (-m flag)
+                        double limit_mb = 0.0;
+                        try {
+                            string cmdline;
+                            FileUtils.get_contents("/proc/" + pid + "/cmdline", out cmdline);
+                            string[] cmd_parts = cmdline.split("\0");
+                            for (int ci = 0; ci < cmd_parts.length; ci++) {
+                                if (cmd_parts[ci] == "-m" && ci + 1 < cmd_parts.length) {
+                                    limit_mb = ConfigManager.parse_mem_to_mb(cmd_parts[ci + 1]);
+                                    break;
+                                }
+                            }
+                        } catch (Error ce) { }
+
+                        // Fallback: check run-vm.sh in vm.dir if cmdline didn't yield -m
+                        if (limit_mb <= 0.0 && vm.dir.length > 0) {
+                            try {
+                                string run_script;
+                                string script_path = Path.build_filename(vm.dir, "run-vm.sh");
+                                if (FileUtils.test(script_path, FileTest.EXISTS)) {
+                                    FileUtils.get_contents(script_path, out run_script);
+                                    string[] s_lines = run_script.split("\n");
+                                    foreach (string sl in s_lines) {
+                                        string trimmed = sl.strip();
+                                        if (trimmed.has_prefix("-m ") || trimmed.has_prefix("-m\t")) {
+                                            string val = trimmed.substring(3).replace("\\", "").strip();
+                                            limit_mb = ConfigManager.parse_mem_to_mb(val);
+                                            break;
+                                        }
+                                    }
+                                }
+                            } catch (Error se) { }
+                        }
+
                         // --- RAM via /proc/[pid]/statm ---
                         try {
                             string statm;
@@ -146,26 +180,18 @@ namespace Rigs {
                             if (parts.length > 1) {
                                 uint64 resident_pages = uint64.parse(parts[1]);
                                 uint64 ram_mb = (resident_pages * 4096) / (1024 * 1024);
-                                if (ram_mb > 1024) {
-                                    st.ram_str = "%.2f GB".printf((double)ram_mb / 1024.0);
+                                if (limit_mb > 0.0) {
+                                    st.ram_pct = ((double)ram_mb / (double)limit_mb) * 100.0;
+                                    if (st.ram_pct > 100.0) st.ram_pct = 100.0;
+                                    st.ram_str = "%.2f GB / %.1f GB".printf((double)ram_mb / 1024.0, limit_mb / 1024.0);
                                 } else {
-                                    st.ram_str = "%lu MB".printf((ulong)ram_mb);
-                                }
-
-                                // Calculate ram_pct relative to host total memory
-                                try {
-                                    string meminfo;
-                                    FileUtils.get_contents("/proc/meminfo", out meminfo);
-                                    string first_mem = meminfo.split("\n")[0];
-                                    string[] mem_parts = first_mem.split(":");
-                                    if (mem_parts.length > 1) {
-                                        uint64 total_kb = uint64.parse(mem_parts[1].strip().split(" ")[0].strip());
-                                        if (total_kb > 0) {
-                                            uint64 host_ram_mb = total_kb / 1024;
-                                            st.ram_pct = ((double)ram_mb / (double)host_ram_mb) * 100.0;
-                                        }
+                                    if (ram_mb > 1024) {
+                                        st.ram_str = "%.2f GB".printf((double)ram_mb / 1024.0);
+                                    } else {
+                                        st.ram_str = "%lu MB".printf((ulong)ram_mb);
                                     }
-                                } catch (Error me) { }
+                                    st.ram_pct = 0.0;
+                                }
                             }
                         } catch (Error e) { }
                         break;

@@ -9,6 +9,8 @@ namespace Rigs {
         public signal void stop_requested(VmModel vm);
         public signal void connect_requested(VmModel vm);
         public signal void remove_requested(VmModel vm);
+        public signal void insert_iso_requested(VmModel vm);
+        public signal void eject_iso_requested(VmModel vm);
 
         private Gtk.Label status_lbl;
         private Gtk.Button start_btn;
@@ -16,8 +18,10 @@ namespace Rigs {
         private Gtk.Button stop_btn;
 
         private Adw.ActionRow cpu_row;
-        private Gtk.ProgressBar cpu_progress;
+        private SmoothSparkline cpu_sparkline;
         private Adw.ActionRow ram_row;
+        private Adw.ActionRow iso_row;
+        private Gtk.Button eject_btn;
 
         public VmCard(VmModel vm) {
             Object(vm: vm);
@@ -61,32 +65,60 @@ namespace Rigs {
             this.add_suffix(btn_box);
 
             // Child rows when expanded
+            // 1. CPU with Resources-style sparkline
             cpu_row = new Adw.ActionRow();
             cpu_row.title = "VM CPU Usage";
             cpu_row.subtitle = "0.0%";
-            cpu_progress = new Gtk.ProgressBar();
-            cpu_progress.valign = Gtk.Align.CENTER;
-            cpu_progress.hexpand = true;
-            cpu_progress.set_size_request(120, -1);
-            cpu_row.add_suffix(cpu_progress);
+            cpu_sparkline = new SmoothSparkline(0.18, 0.58, 0.95, 25, 130, 32);
+            cpu_row.add_suffix(cpu_sparkline);
             this.add_row(cpu_row);
 
+            // 2. RAM
             ram_row = new Adw.ActionRow();
             ram_row.title = "Host RAM Usage";
             ram_row.subtitle = "0 MB";
             ram_row.add_suffix(new Gtk.Image.from_icon_name("media-memory-symbolic"));
             this.add_row(ram_row);
 
+            // 3. Optical Drive (ISO)
+            iso_row = new Adw.ActionRow();
+            iso_row.title = "Optical Drive (ISO)";
+            iso_row.add_prefix(new Gtk.Image.from_icon_name("media-optical-symbolic"));
+            update_iso_subtitle();
+
+            var iso_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
+            iso_box.valign = Gtk.Align.CENTER;
+
+            var insert_btn = new Gtk.Button.with_label("Insert…");
+            insert_btn.icon_name = "media-optical-symbolic";
+            insert_btn.add_css_class("flat");
+            insert_btn.clicked.connect(() => { insert_iso_requested(vm); });
+            iso_box.append(insert_btn);
+
+            eject_btn = new Gtk.Button.with_label("Eject");
+            eject_btn.icon_name = "media-eject-symbolic";
+            eject_btn.add_css_class("destructive-action");
+            eject_btn.add_css_class("flat");
+            eject_btn.visible = (vm.attached_iso.length > 0);
+            eject_btn.clicked.connect(() => { eject_iso_requested(vm); });
+            iso_box.append(eject_btn);
+
+            iso_row.add_suffix(iso_box);
+            this.add_row(iso_row);
+
+            // 4. Ports & Endpoints
             var endpoint_row = new Adw.ActionRow();
             endpoint_row.title = "Services and Ports";
             endpoint_row.subtitle = (vm.details.length > 0) ? vm.details : "None";
             this.add_row(endpoint_row);
 
+            // 5. Directory
             var dir_row = new Adw.ActionRow();
             dir_row.title = "Working Directory";
             dir_row.subtitle = (vm.dir.length > 0) ? vm.dir : "None";
             this.add_row(dir_row);
 
+            // 6. Remove VM
             var remove_row = new Adw.ActionRow();
             remove_row.title = "Remove from Rigs";
             var remove_btn = new Gtk.Button.with_label("Remove");
@@ -95,6 +127,16 @@ namespace Rigs {
             remove_btn.clicked.connect(() => { remove_requested(vm); });
             remove_row.add_suffix(remove_btn);
             this.add_row(remove_row);
+        }
+
+        public void update_iso_subtitle() {
+            if (vm.attached_iso.length > 0 && FileUtils.test(vm.attached_iso, FileTest.EXISTS)) {
+                iso_row.subtitle = Path.get_basename(vm.attached_iso);
+                if (eject_btn != null) eject_btn.visible = true;
+            } else {
+                iso_row.subtitle = "[ No Media / Ejected ]";
+                if (eject_btn != null) eject_btn.visible = false;
+            }
         }
 
         public void update_status(VmStatus status) {
@@ -117,7 +159,7 @@ namespace Rigs {
             }
 
             cpu_row.subtitle = "CPU: %.1f%%".printf(status.cpu_pct);
-            cpu_progress.fraction = (status.cpu_pct / 100.0).clamp(0.0, 1.0);
+            cpu_sparkline.add_value(status.running ? status.cpu_pct : 0.0);
             ram_row.subtitle = "Memory: " + status.ram_str;
         }
     }

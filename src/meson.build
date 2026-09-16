@@ -3,6 +3,7 @@ rigs_sources = [
   'application.vala',
   'window.vala',
   'vm_card.vala',
+  'sparkline.vala',
   'add_dialog.vala',
   'vm_model.vala',
   'monitor.vala',

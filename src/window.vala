@@ -10,12 +10,10 @@ namespace Rigs {
         private Adw.ToastOverlay toast_overlay;
         private Adw.PreferencesGroup vm_group;
         private Adw.ActionRow host_cpu_row;
-        private Gtk.ProgressBar host_cpu_progress;
+        private SmoothSparkline host_cpu_sparkline;
         private Adw.ActionRow host_ram_row;
-        private Gtk.ProgressBar host_ram_progress;
+        private SmoothSparkline host_ram_sparkline;
         private Adw.ActionRow empty_status_row;
-
-        private bool monitor_active = true;
 
         public Window(Adw.Application app) {
             Object(application: app);
@@ -82,32 +80,28 @@ namespace Rigs {
             var page = new Adw.PreferencesPage();
             clamp.set_child(page);
 
-            // Host Group
+            // Host Group with Resources-style Bezier sparklines
             var host_group = new Adw.PreferencesGroup();
             host_group.title = "Host Overview";
             host_group.description = "Overall CPU and RAM usage on your host machine";
             page.add(host_group);
 
+            // CPU Sparkline (Blue)
             host_cpu_row = new Adw.ActionRow();
             host_cpu_row.title = "CPU Usage";
             host_cpu_row.subtitle = "Host CPU load: --%";
             host_cpu_row.add_prefix(new Gtk.Image.from_icon_name("computer-symbolic"));
-            host_cpu_progress = new Gtk.ProgressBar();
-            host_cpu_progress.valign = Gtk.Align.CENTER;
-            host_cpu_progress.hexpand = true;
-            host_cpu_progress.set_size_request(120, -1);
-            host_cpu_row.add_suffix(host_cpu_progress);
+            host_cpu_sparkline = new SmoothSparkline(0.208, 0.518, 0.894, 25, 120, 34);
+            host_cpu_row.add_suffix(host_cpu_sparkline);
             host_group.add(host_cpu_row);
 
+            // RAM Sparkline (Purple)
             host_ram_row = new Adw.ActionRow();
             host_ram_row.title = "Memory (RAM)";
             host_ram_row.subtitle = "Host RAM: -- / -- GB";
             host_ram_row.add_prefix(new Gtk.Image.from_icon_name("drive-harddisk-symbolic"));
-            host_ram_progress = new Gtk.ProgressBar();
-            host_ram_progress.valign = Gtk.Align.CENTER;
-            host_ram_progress.hexpand = true;
-            host_ram_progress.set_size_request(120, -1);
-            host_ram_row.add_suffix(host_ram_progress);
+            host_ram_sparkline = new SmoothSparkline(0.569, 0.255, 0.675, 25, 120, 34);
+            host_ram_row.add_suffix(host_ram_sparkline);
             host_group.add(host_ram_row);
 
             // VM Group
@@ -135,6 +129,8 @@ namespace Rigs {
             card.stop_requested.connect((v) => { stop_vm(v); });
             card.connect_requested.connect((v) => { connect_vm(v); });
             card.remove_requested.connect((v) => { prompt_remove_vm(v); });
+            card.insert_iso_requested.connect((v) => { choose_and_insert_iso(v, card); });
+            card.eject_iso_requested.connect((v) => { eject_iso(v, card); });
 
             card.notify["expanded"].connect(() => { save_window_state(); });
 
@@ -169,6 +165,65 @@ namespace Rigs {
             }
         }
 
+        private void choose_and_insert_iso(VmModel vm, VmCard card) {
+            var dialog = new Gtk.FileDialog();
+            dialog.title = "Select ISO Disk Image";
+
+            var filter = new Gtk.FileFilter();
+            filter.name = "Disk Images (*.iso)";
+            filter.add_pattern("*.iso");
+            filter.add_pattern("*.ISO");
+
+            var store = new ListStore(typeof(Gtk.FileFilter));
+            store.append(filter);
+            dialog.filters = store;
+            dialog.default_filter = filter;
+
+            dialog.open.begin(this, null, (obj, res) => {
+                try {
+                    var file = dialog.open.end(res);
+                    if (file != null) {
+                        string iso_path = file.get_path();
+                        vm.attached_iso = iso_path;
+                        ConfigManager.save_vms(vms);
+                        card.update_iso_subtitle();
+
+                        // Hot-swap via QEMU monitor socket
+                        if (vm.vm_type == "qemu" && vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
+                            new Thread<void*>("qemu-iso-swap", () => {
+                                try {
+                                    Process.spawn_command_line_sync("echo 'change cdrom " + iso_path + "' | socat - UNIX-CONNECT:" + vm.monitor_socket);
+                                } catch (Error e) {}
+                                return null;
+                            });
+                        }
+
+                        var toast = new Adw.Toast("Inserted '%s' into %s".printf(Path.get_basename(iso_path), vm.name));
+                        toast_overlay.add_toast(toast);
+                    }
+                } catch (Error e) {}
+            });
+        }
+
+        private void eject_iso(VmModel vm, VmCard card) {
+            vm.attached_iso = "";
+            ConfigManager.save_vms(vms);
+            card.update_iso_subtitle();
+
+            // Hot-eject via QEMU socket
+            if (vm.vm_type == "qemu" && vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
+                new Thread<void*>("qemu-iso-eject", () => {
+                    try {
+                        Process.spawn_command_line_sync("echo 'eject -f cdrom' | socat - UNIX-CONNECT:" + vm.monitor_socket);
+                    } catch (Error e) {}
+                    return null;
+                });
+            }
+
+            var toast = new Adw.Toast("Ejected optical media from %s".printf(vm.name));
+            toast_overlay.add_toast(toast);
+        }
+
         private void start_vm(VmModel vm) {
             var toast = new Adw.Toast("Starting %s…".printf(vm.name));
             toast_overlay.add_toast(toast);
@@ -193,7 +248,6 @@ namespace Rigs {
                         Process.spawn_command_line_sync(vm.stop_cmd);
                     } else if (vm.vm_type == "qemu") {
                         if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                            // Socket powerdown
                             Process.spawn_command_line_sync("echo system_powerdown | socat - UNIX-CONNECT:" + vm.monitor_socket);
                         }
                         Process.spawn_command_line_sync("pkill -f " + vm.process_name);
@@ -271,10 +325,10 @@ namespace Rigs {
 
         private void on_monitor_updated(HostStatus host, HashTable<string, VmStatus?> vm_statuses) {
             host_cpu_row.subtitle = "Host CPU load: %.1f%%".printf(host.cpu_pct);
-            host_cpu_progress.fraction = (host.cpu_pct / 100.0).clamp(0.0, 1.0);
+            host_cpu_sparkline.add_value(host.cpu_pct);
 
             host_ram_row.subtitle = "Host RAM: %.2f / %.1f GB (%.0f%%)".printf(host.ram_used_gb, host.ram_total_gb, host.ram_pct);
-            host_ram_progress.fraction = (host.ram_pct / 100.0).clamp(0.0, 1.0);
+            host_ram_sparkline.add_value(host.ram_pct);
 
             vm_statuses.foreach((id, status) => {
                 VmCard card = cards.lookup(id);
@@ -287,7 +341,7 @@ namespace Rigs {
         private void load_window_state() {
             string state_path = ConfigManager.get_state_file();
             int w = 580;
-            int h = 720;
+            int h = 740;
             bool max = false;
 
             if (FileUtils.test(state_path, FileTest.EXISTS)) {

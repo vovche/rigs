@@ -16,6 +16,7 @@ namespace Rigs {
         public string container_name { get; set; default = ""; }
         public string process_name { get; set; default = ""; }
         public string monitor_socket { get; set; default = ""; }
+        public string attached_iso { get; set; default = ""; }
 
         public static VmModel from_json_node(Json.Node node) {
             var model = new VmModel();
@@ -37,6 +38,7 @@ namespace Rigs {
             if (obj.has_member("container_name")) model.container_name = obj.get_string_member("container_name");
             if (obj.has_member("process_name")) model.process_name = obj.get_string_member("process_name");
             if (obj.has_member("monitor_socket")) model.monitor_socket = obj.get_string_member("monitor_socket");
+            if (obj.has_member("attached_iso")) model.attached_iso = obj.get_string_member("attached_iso");
 
             return model;
         }
@@ -56,6 +58,7 @@ namespace Rigs {
             if (container_name.length > 0) obj.set_string_member("container_name", container_name);
             if (process_name.length > 0) obj.set_string_member("process_name", process_name);
             if (monitor_socket.length > 0) obj.set_string_member("monitor_socket", monitor_socket);
+            if (attached_iso.length > 0) obj.set_string_member("attached_iso", attached_iso);
             return obj;
         }
     }

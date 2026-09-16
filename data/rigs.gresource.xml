@@ -2,5 +2,6 @@
 <gresources>
   <gresource prefix="/io/github/vovche/Rigs">
     <file>style.css</file>
+    <file compressed="true">shortcuts.ui</file>
   </gresource>
 </gresources>

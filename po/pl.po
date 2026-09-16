@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Rigs 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 00:32+0000\n"
-"PO-Revision-Date: 2026-09-16 00:32+0000\n"
+"POT-Creation-Date: 2026-09-16 00:39+0000\n"
+"PO-Revision-Date: 2026-09-16 00:39+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: pl\n"
@@ -18,146 +18,184 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: /workspace/src/application.vala:76
+#: /workspace/src/application.vala:78
 msgid ""
 "Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
 msgstr "Błyskawiczne, natywne centrum maszyn wirtualnych i kontenerów dla GNOME napisane w Vala."
 
-#: /workspace/src/window.vala:45
+#: /workspace/src/window.vala:68
 msgid "Rigs"
 msgstr "Rigs"
 
-#: /workspace/src/window.vala:45
+#: /workspace/src/window.vala:68
 msgid "Virtual Machine and Container Hub"
 msgstr "Centrum maszyn wirtualnych i kontenerów"
 
-#: /workspace/src/window.vala:49
+#: /workspace/src/window.vala:72
 msgid "Add Virtual Machine (Ctrl+N)"
 msgstr "Dodaj maszynę wirtualną (Ctrl+N)"
 
-#: /workspace/src/window.vala:54
+#: /workspace/src/window.vala:73 /workspace/src/window.vala:157
+#: /workspace/src/add_dialog.vala:22
+msgid "Add Virtual Machine"
+msgstr "Dodaj maszynę wirtualną"
+
+#: /workspace/src/window.vala:78 /workspace/src/window.vala:94
+msgid "Search Virtual Machines"
+msgstr "Szukaj maszyn wirtualnych"
+
+#: /workspace/src/window.vala:79
+msgid "Keyboard Shortcuts"
+msgstr "Skróty klawiszowe"
+
+#: /workspace/src/window.vala:80
 msgid "Report an Issue"
 msgstr "Zgłoś problem"
 
-#: /workspace/src/window.vala:55
+#: /workspace/src/window.vala:81
 msgid "About Rigs"
 msgstr "O programie Rigs"
 
-#: /workspace/src/window.vala:56
+#: /workspace/src/window.vala:82
 msgid "Quit"
 msgstr "Zakończ"
 
-#: /workspace/src/window.vala:60
+#: /workspace/src/window.vala:86 /workspace/src/window.vala:87
 msgid "Main Menu"
 msgstr "Menu główne"
 
-#: /workspace/src/window.vala:86
+#: /workspace/src/window.vala:93
+msgid "Search Virtual Machines (Ctrl+F)"
+msgstr "Szukaj maszyn wirtualnych (Ctrl+F)"
+
+#: /workspace/src/window.vala:102
+msgid "Search virtual machines by name, type, or ports…"
+msgstr "Szukaj maszyn wirtualnych według nazwy, typu lub portów…"
+
+#: /workspace/src/window.vala:129
 msgid "Host Overview"
 msgstr "Przegląd komputera głównego"
 
-#: /workspace/src/window.vala:87
+#: /workspace/src/window.vala:130
 msgid "Overall CPU and RAM usage on your host machine"
 msgstr "Ogólne użycie procesora i pamięci RAM"
 
-#: /workspace/src/window.vala:92
+#: /workspace/src/window.vala:135
 msgid "CPU Usage"
 msgstr "Użycie procesora"
 
-#: /workspace/src/window.vala:93
+#: /workspace/src/window.vala:136
 msgid "Host CPU load: --%"
 msgstr "Obciążenie procesora: --%"
 
-#: /workspace/src/window.vala:101
+#: /workspace/src/window.vala:144
 msgid "Memory (RAM)"
 msgstr "Pamięć (RAM)"
 
-#: /workspace/src/window.vala:102
+#: /workspace/src/window.vala:145
 msgid "Host RAM: -- / -- GB"
 msgstr "Pamięć RAM: -- / -- GB"
 
-#: /workspace/src/window.vala:110
-msgid "Virtual Machines"
-msgstr "Maszyny wirtualne"
-
-#: /workspace/src/window.vala:111
-msgid "Status, resource consumption and controls"
-msgstr "Stan, zużycie zasobów i sterowanie"
-
-#: /workspace/src/window.vala:115
+#: /workspace/src/window.vala:154
 msgid "No Virtual Machines"
 msgstr "Brak maszyn wirtualnych"
 
-#: /workspace/src/window.vala:116
-msgid "Click the + button above to register your first virtual machine"
-msgstr "Kliknij przycisk +, aby zarejestrować pierwszą maszynę wirtualną"
+#: /workspace/src/window.vala:155
+msgid "Register a QEMU micro-VM or Docker/Podman container to get started"
+msgstr "Zarejestruj mikro-VM QEMU lub kontener Docker/Podman, aby rozpocząć"
 
-#: /workspace/src/window.vala:151
+#: /workspace/src/window.vala:167
+msgid "Virtual Machines"
+msgstr "Maszyny wirtualne"
+
+#: /workspace/src/window.vala:168
+msgid "Status, resource consumption and controls"
+msgstr "Stan, zużycie zasobów i sterowanie"
+
+#: /workspace/src/window.vala:172
+msgid "No matching virtual machines found"
+msgstr "Nie znaleziono pasujących maszyn wirtualnych"
+
+#: /workspace/src/window.vala:209
 #, c-format
 msgid "Registered '%s'"
 msgstr "Zarejestrowano '%s'"
 
-#: /workspace/src/window.vala:171
+#: /workspace/src/window.vala:255
 msgid "Select ISO Disk Image"
 msgstr "Wybierz obraz dysku ISO"
 
-#: /workspace/src/window.vala:174
+#: /workspace/src/window.vala:258
 msgid "Disk Images (*.iso)"
 msgstr "Obrazy dysków (*.iso)"
 
-#: /workspace/src/window.vala:198
+#: /workspace/src/window.vala:282 /workspace/src/window.vala:284
 #, c-format
 msgid "Inserted '%s' into %s"
 msgstr "Włożono '%s' do %s"
 
-#: /workspace/src/window.vala:216
+#: /workspace/src/window.vala:284 /workspace/src/window.vala:303
+#: /workspace/src/vm_card.vala:85
+msgid "Optical Drive (ISO)"
+msgstr "Napęd optyczny (ISO)"
+
+#: /workspace/src/window.vala:301 /workspace/src/window.vala:303
 #, c-format
 msgid "Ejected optical media from %s"
 msgstr "Wysunięto nośnik z %s"
 
-#: /workspace/src/window.vala:221
+#: /workspace/src/window.vala:307 /workspace/src/window.vala:309
 #, c-format
 msgid "Starting %s…"
 msgstr "Uruchamianie %s…"
 
-#: /workspace/src/window.vala:231
+#: /workspace/src/window.vala:309
+msgid "Virtual machine initialization requested"
+msgstr "Zażądano uruchomienia maszyny wirtualnej"
+
+#: /workspace/src/window.vala:318 /workspace/src/window.vala:320
 #, c-format
 msgid "Stopping %s…"
 msgstr "Zatrzymywanie %s…"
 
-#: /workspace/src/window.vala:249
+#: /workspace/src/window.vala:320
+msgid "Virtual machine shutdown requested"
+msgstr "Zażądano zatrzymania maszyny wirtualnej"
+
+#: /workspace/src/window.vala:337
 #, c-format
 msgid "Remove '%s'?"
 msgstr "Usunąć '%s'?"
 
-#: /workspace/src/window.vala:250
+#: /workspace/src/window.vala:338
 msgid ""
 "The virtual machine will be removed from Rigs. Your files and VM disk on the "
 "host will remain untouched."
 msgstr "Maszyna wirtualna zostanie usunięta z Rigs. Pliki i dysk maszyny na hoście pozostaną nienaruszone."
 
-#: /workspace/src/window.vala:252 /workspace/src/add_dialog.vala:36
+#: /workspace/src/window.vala:340 /workspace/src/add_dialog.vala:36
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: /workspace/src/window.vala:253 /workspace/src/vm_card.vala:124
+#: /workspace/src/window.vala:341 /workspace/src/vm_card.vala:124
 msgid "Remove"
 msgstr "Usuń"
 
-#: /workspace/src/window.vala:289
+#: /workspace/src/window.vala:377
 #, c-format
 msgid "Removed '%s'"
 msgstr "Usunięto '%s'"
 
-#: /workspace/src/window.vala:290
+#: /workspace/src/window.vala:378
 msgid "Undo"
 msgstr "Cofnij"
 
-#: /workspace/src/window.vala:302
+#: /workspace/src/window.vala:390
 #, c-format
 msgid "Host CPU load: %.1f%%"
 msgstr "Obciążenie procesora: %.1f%%"
 
-#: /workspace/src/window.vala:305
+#: /workspace/src/window.vala:393
 #, c-format
 msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
 msgstr "Pamięć RAM: %.2f / %.1f GB (%.0f%%)"
@@ -185,10 +223,6 @@ msgstr "Użycie procesora maszyny"
 #: /workspace/src/vm_card.vala:78
 msgid "Host RAM Usage"
 msgstr "Użycie RAM komputera"
-
-#: /workspace/src/vm_card.vala:85
-msgid "Optical Drive (ISO)"
-msgstr "Napęd optyczny (ISO)"
 
 #: /workspace/src/vm_card.vala:92
 msgid "Insert…"
@@ -231,10 +265,6 @@ msgstr "CPU: %.1f%%"
 #, c-format
 msgid "Memory: %s"
 msgstr "Pamięć: %s"
-
-#: /workspace/src/add_dialog.vala:22
-msgid "Add Virtual Machine"
-msgstr "Dodaj maszynę wirtualną"
 
 #: /workspace/src/add_dialog.vala:40
 msgid "Add"

@@ -13,7 +13,12 @@ namespace Rigs {
         private SmoothSparkline host_cpu_sparkline;
         private Adw.ActionRow host_ram_row;
         private SmoothSparkline host_ram_sparkline;
-        private Adw.ActionRow empty_status_row;
+        private Adw.PreferencesGroup empty_group;
+        private Adw.StatusPage empty_status_page;
+        private Adw.ActionRow no_search_results_row;
+        private Gtk.SearchBar search_bar;
+        private Gtk.SearchEntry search_entry;
+        private Gtk.ToggleButton search_toggle_btn;
 
         public Window(Adw.Application app) {
             Object(application: app);
@@ -38,6 +43,21 @@ namespace Rigs {
         }
 
         private void build_ui() {
+            var builder = new Gtk.Builder.from_resource("/io/github/vovche/Rigs/shortcuts.ui");
+            var overlay = builder.get_object("help_overlay") as Gtk.ShortcutsWindow;
+            if (overlay != null) {
+                this.set_help_overlay(overlay);
+            }
+
+            var search_action = new SimpleAction("search", null);
+            search_action.activate.connect(() => {
+                search_toggle_btn.active = !search_toggle_btn.active;
+                if (search_toggle_btn.active) {
+                    search_entry.grab_focus();
+                }
+            });
+            this.add_action(search_action);
+
             var root = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
             this.set_content(root);
 
@@ -52,6 +72,8 @@ namespace Rigs {
             header.pack_start(add_btn);
 
             var menu = new Menu();
+            menu.append(_("Search Virtual Machines"), "win.search");
+            menu.append(_("Keyboard Shortcuts"), "win.show-help-overlay");
             menu.append(_("Report an Issue"), "app.report-issue");
             menu.append(_("About Rigs"), "app.about");
             menu.append(_("Quit"), "app.quit");
@@ -63,7 +85,23 @@ namespace Rigs {
             menu_btn.menu_model = menu;
             header.pack_end(menu_btn);
 
+            search_toggle_btn = new Gtk.ToggleButton();
+            search_toggle_btn.icon_name = "edit-find-symbolic";
+            search_toggle_btn.tooltip_text = _("Search Virtual Machines (Ctrl+F)");
+            search_toggle_btn.update_property(Gtk.AccessibleProperty.LABEL, _("Search Virtual Machines"));
+            header.pack_end(search_toggle_btn);
+
             root.append(header);
+
+            search_bar = new Gtk.SearchBar();
+            search_entry = new Gtk.SearchEntry();
+            search_entry.hexpand = true;
+            search_entry.placeholder_text = _("Search virtual machines by name, type, or ports…");
+            search_bar.set_child(search_entry);
+            search_bar.connect_entry(search_entry);
+            search_bar.bind_property("search-mode-enabled", search_toggle_btn, "active", BindingFlags.BIDIRECTIONAL);
+            search_entry.search_changed.connect(on_search_changed);
+            root.append(search_bar);
 
             toast_overlay = new Adw.ToastOverlay();
             toast_overlay.vexpand = true;
@@ -107,16 +145,33 @@ namespace Rigs {
             host_ram_row.add_suffix(host_ram_sparkline);
             host_group.add(host_ram_row);
 
+            // Empty State
+            empty_group = new Adw.PreferencesGroup();
+            empty_status_page = new Adw.StatusPage();
+            empty_status_page.icon_name = "utilities-system-monitor-symbolic";
+            empty_status_page.title = _("No Virtual Machines");
+            empty_status_page.description = _("Register a QEMU micro-VM or Docker/Podman container to get started");
+
+            var empty_add_btn = new Gtk.Button.with_label(_("Add Virtual Machine"));
+            empty_add_btn.add_css_class("suggested-action");
+            empty_add_btn.add_css_class("pill");
+            empty_add_btn.halign = Gtk.Align.CENTER;
+            empty_add_btn.clicked.connect(open_add_dialog);
+            empty_status_page.set_child(empty_add_btn);
+            empty_group.add(empty_status_page);
+            page.add(empty_group);
+
             // VM Group
             vm_group = new Adw.PreferencesGroup();
             vm_group.title = _("Virtual Machines");
             vm_group.description = _("Status, resource consumption and controls");
             page.add(vm_group);
 
-            empty_status_row = new Adw.ActionRow();
-            empty_status_row.title = _("No Virtual Machines");
-            empty_status_row.subtitle = _("Click the + button above to register your first virtual machine");
-            empty_status_row.add_prefix(new Gtk.Image.from_icon_name("utilities-system-monitor-symbolic"));
+            no_search_results_row = new Adw.ActionRow();
+            no_search_results_row.title = _("No matching virtual machines found");
+            no_search_results_row.add_prefix(new Gtk.Image.from_icon_name("system-search-symbolic"));
+            no_search_results_row.visible = false;
+            vm_group.add(no_search_results_row);
 
             for (int i = 0; i < vms.length; i++) {
                 render_vm_card(vms[i]);
@@ -157,14 +212,40 @@ namespace Rigs {
         }
 
         private void update_empty_state() {
-            if (vms.length == 0) {
-                if (empty_status_row.get_parent() == null) {
-                    vm_group.add(empty_status_row);
+            bool empty = (vms.length == 0);
+            empty_group.visible = empty;
+            vm_group.visible = !empty;
+            search_toggle_btn.sensitive = !empty;
+            if (empty && search_bar.search_mode_enabled) {
+                search_bar.search_mode_enabled = false;
+            }
+        }
+
+        private void on_search_changed() {
+            string q = search_entry.get_text().strip().down();
+            int match_count = 0;
+            cards.foreach((id, card) => {
+                var c = card as VmCard;
+                if (c != null) {
+                    bool match = (q.length == 0) ||
+                        (c.vm.name.down().contains(q)) ||
+                        (c.vm.subtitle.down().contains(q)) ||
+                        (c.vm.details.down().contains(q)) ||
+                        (c.vm.vm_type.down().contains(q));
+                    c.visible = match;
+                    if (match) match_count++;
                 }
-            } else {
-                if (empty_status_row.get_parent() != null) {
-                    vm_group.remove(empty_status_row);
-                }
+            });
+            no_search_results_row.visible = (q.length > 0 && match_count == 0);
+        }
+
+        private void notify_user(string title, string body) {
+            var notif = new Notification(title);
+            notif.set_body(body);
+            notif.set_default_action("app.activate");
+            var app = this.application as Adw.Application;
+            if (app != null) {
+                app.send_notification("rigs-vm-event", notif);
             }
         }
 
@@ -199,6 +280,7 @@ namespace Rigs {
 
                         var toast = new Adw.Toast(_("Inserted '%s' into %s").printf(Path.get_basename(iso_path), vm.name));
                         toast_overlay.add_toast(toast);
+                        notify_user(_("Optical Drive (ISO)"), _("Inserted '%s' into %s").printf(Path.get_basename(iso_path), vm.name));
                     }
                 } catch (Error e) {}
             });
@@ -217,11 +299,13 @@ namespace Rigs {
 
             var toast = new Adw.Toast(_("Ejected optical media from %s").printf(vm.name));
             toast_overlay.add_toast(toast);
+            notify_user(_("Optical Drive (ISO)"), _("Ejected optical media from %s").printf(vm.name));
         }
 
         private void start_vm(VmModel vm) {
             var toast = new Adw.Toast(_("Starting %s…").printf(vm.name));
             toast_overlay.add_toast(toast);
+            notify_user(_("Starting %s…").printf(vm.name), _("Virtual machine initialization requested"));
 
             Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
             if (driver != null) {
@@ -232,6 +316,7 @@ namespace Rigs {
         private void stop_vm(VmModel vm) {
             var toast = new Adw.Toast(_("Stopping %s…").printf(vm.name));
             toast_overlay.add_toast(toast);
+            notify_user(_("Stopping %s…").printf(vm.name), _("Virtual machine shutdown requested"));
 
             Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
             if (driver != null) {

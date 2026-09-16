@@ -60,6 +60,8 @@ namespace Rigs {
             this.set_accels_for_action("app.about", { "F1" });
             this.set_accels_for_action("app.add-vm", { "<Control>n" });
             this.set_accels_for_action("app.quit", { "<Control>q", "<Control>w" });
+            this.set_accels_for_action("win.search", { "<Control>f" });
+            this.set_accels_for_action("win.show-help-overlay", { "<Control>question" });
         }
 
         private void open_report_issue() {

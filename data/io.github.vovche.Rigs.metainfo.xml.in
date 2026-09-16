@@ -2,7 +2,7 @@
 <component type="desktop-application">
   <id>io.github.vovche.Rigs</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0-or-later</project_license>
+  <project_license>Apache-2.0</project_license>
   <name>Rigs</name>
   <summary>Manage and monitor virtual machines and containers</summary>
   <description>
@@ -22,7 +22,13 @@
   <url type="homepage">https://github.com/vovche/rigs</url>
   <url type="bugtracker">https://github.com/vovche/rigs/issues</url>
   <url type="vcs-browser">https://github.com/vovche/rigs</url>
-  <developer_name>Volodymyr</developer_name>
+  <developer id="io.github.vovche">
+    <name>Volodymyr Lyshenko</name>
+  </developer>
+  <branding>
+    <color type="primary" scheme_preference="light">#3584e4</color>
+    <color type="primary" scheme_preference="dark">#1c71d8</color>
+  </branding>
   <content_rating type="oars-1.1" />
   <releases>
     <release version="1.0.0" date="2026-09-16">

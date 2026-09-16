@@ -19,5 +19,10 @@ int main(string[] args) {
 
     Test.add_func("/diagnostics/report", TestDiagnostics.test_diagnostics_report);
 
+    Test.add_func("/search/initial_by_name", TestSearchProvider.test_initial_search_by_name);
+    Test.add_func("/search/initial_by_port_and_type", TestSearchProvider.test_initial_search_by_port_and_type);
+    Test.add_func("/search/subsearch", TestSearchProvider.test_subsearch);
+    Test.add_func("/search/result_metas", TestSearchProvider.test_result_metas);
+
     return Test.run();
 }

@@ -62,6 +62,13 @@ fi
 gtk-update-icon-cache -q -f "${INSTALL_PREFIX}/share/icons/hicolor" 2>/dev/null || true
 update-desktop-database "${INSTALL_PREFIX}/share/applications" 2>/dev/null || true
 
+echo "=== Installing GNOME Shell search provider and D-Bus service ==="
+mkdir -p "${INSTALL_PREFIX}/share/gnome-shell/search-providers"
+cp "${SCRIPT_DIR}/data/io.github.vovche.Rigs.search-provider.ini" "${INSTALL_PREFIX}/share/gnome-shell/search-providers/io.github.vovche.Rigs.search-provider.ini"
+
+mkdir -p "${INSTALL_PREFIX}/share/dbus-1/services"
+sed "s|@bindir@|${INSTALL_PREFIX}/bin|g" "${SCRIPT_DIR}/data/io.github.vovche.Rigs.service.in" > "${INSTALL_PREFIX}/share/dbus-1/services/io.github.vovche.Rigs.service"
+
 echo "=== Installing translations to ${INSTALL_PREFIX}/share/locale ==="
 for mo in "${BUILD_DIR}"/po/*/LC_MESSAGES/rigs.mo; do
     lang="$(basename "$(dirname "$(dirname "${mo}")")")"

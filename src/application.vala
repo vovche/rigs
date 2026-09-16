@@ -4,8 +4,11 @@ using GLib.Intl;
 
 namespace Rigs {
 
-    public class Application : Adw.Application {
+    public class Application : Adw.Application, SearchTarget {
         public const string APP_ID = "io.github.vovche.Rigs";
+
+        private SearchProvider search_provider;
+        private uint search_provider_id = 0;
 
         public Application() {
             Object(
@@ -14,8 +17,34 @@ namespace Rigs {
             );
         }
 
-        protected override void activate() {
-            base.activate();
+        public GenericArray<VmModel> get_vms() {
+            var win = this.active_window as Window;
+            if (win != null) {
+                return win.get_vms();
+            }
+            return ConfigManager.load_vms();
+        }
+
+        public void focus_vm(string id) {
+            var win = this.active_window as Window;
+            if (win == null) {
+                win = new Window(this);
+            }
+            win.present();
+            win.focus_vm(id);
+        }
+
+        public void set_search_query(string query) {
+            var win = this.active_window as Window;
+            if (win == null) {
+                win = new Window(this);
+            }
+            win.present();
+            win.set_search_query(query);
+        }
+
+        protected override void startup() {
+            base.startup();
 
             // Load CSS
             var provider = new Gtk.CssProvider();
@@ -27,6 +56,40 @@ namespace Rigs {
             );
 
             setup_actions();
+            this.set_inactivity_timeout(10000);
+        }
+
+        protected override bool dbus_register(DBusConnection connection, string object_path) throws GLib.Error {
+            if (!base.dbus_register(connection, object_path)) {
+                return false;
+            }
+
+            if (search_provider == null) {
+                search_provider = new SearchProvider(this);
+            }
+
+            try {
+                search_provider_id = connection.register_object(
+                    "/io/github/vovche/Rigs/SearchProvider",
+                    search_provider
+                );
+            } catch (IOError e) {
+                warning("Failed to register GNOME Shell Search Provider on D-Bus: %s", e.message);
+            }
+
+            return true;
+        }
+
+        protected override void dbus_unregister(DBusConnection connection, string object_path) {
+            if (search_provider_id != 0) {
+                connection.unregister_object(search_provider_id);
+                search_provider_id = 0;
+            }
+            base.dbus_unregister(connection, object_path);
+        }
+
+        protected override void activate() {
+            base.activate();
 
             var win = this.active_window as Window;
             if (win == null) {

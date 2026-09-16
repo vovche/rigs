@@ -68,3 +68,4 @@ Keywords[he]=vm;וירטואלי;מכונה;qemu;kvm;podman;docker;קונטיי�
 Keywords[en_GB]=vm;virtual;machine;qemu;kvm;podman;docker;container;monitor;iso;
 StartupNotify=true
 SingleMainWindow=true
+DBusActivatable=true

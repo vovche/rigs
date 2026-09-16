@@ -212,6 +212,30 @@ namespace Rigs {
             dialog.present(this);
         }
 
+        public GenericArray<VmModel> get_vms() {
+            return this.vms;
+        }
+
+        public void focus_vm(string id) {
+            if (search_bar.search_mode_enabled) {
+                search_entry.set_text("");
+                search_bar.search_mode_enabled = false;
+            }
+
+            VmCard card = cards.lookup(id);
+            if (card != null) {
+                card.visible = true;
+                card.expanded = true;
+                card.grab_focus();
+            }
+        }
+
+        public void set_search_query(string query) {
+            search_bar.search_mode_enabled = true;
+            search_entry.set_text(query);
+            search_entry.grab_focus();
+        }
+
         private void update_empty_state() {
             bool empty = (vms.length == 0);
             empty_group.visible = empty;

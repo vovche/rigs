@@ -19,6 +19,21 @@ install_data(
 )
 
 install_data(
+  'io.github.vovche.Rigs.search-provider.ini',
+  install_dir: get_option('datadir') / 'gnome-shell/search-providers'
+)
+
+service_conf = configuration_data()
+service_conf.set('bindir', get_option('prefix') / get_option('bindir'))
+
+configure_file(
+  input: 'io.github.vovche.Rigs.service.in',
+  output: 'io.github.vovche.Rigs.service',
+  configuration: service_conf,
+  install_dir: get_option('datadir') / 'dbus-1/services',
+)
+
+install_data(
   'icons/hicolor/scalable/apps/io.github.vovche.Rigs.svg',
   install_dir: get_option('datadir') / 'icons/hicolor/scalable/apps'
 )

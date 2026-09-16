@@ -12,6 +12,7 @@ rigs_sources = [
   'drivers/compose_driver.vala',
   'drivers/driver_registry.vala',
   'system_diagnostics.vala',
+  'search_provider.vala',
   config_vala,
 ]
 

@@ -11,9 +11,7 @@ namespace Rigs {
                     string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
                     string cmd = (vm.start_cmd.length > 0) ? vm.start_cmd : "docker compose up -d";
                     string[] argv = { "/bin/bash", "-c", cmd };
-                    Pid pid;
-                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out pid);
-                    Process.close_pid(pid);
+                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH, null, null);
                 } catch (Error e) {
                     warning("Failed to start Compose VM: %s", e.message);
                 }
@@ -40,9 +38,7 @@ namespace Rigs {
                 try {
                     string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
                     string[] argv = { "/bin/bash", "-c", vm.connect_cmd };
-                    Pid pid;
-                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out pid);
-                    Process.close_pid(pid);
+                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH, null, null);
                 } catch (Error e) {
                     warning("Failed to connect Compose VM: %s", e.message);
                 }

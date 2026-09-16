@@ -11,9 +11,7 @@ namespace Rigs {
                     string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
                     string cmd = (vm.start_cmd.length > 0) ? vm.start_cmd : "./run-vm.sh";
                     string[] argv = { "/bin/bash", "-c", cmd };
-                    Pid pid;
-                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out pid);
-                    Process.close_pid(pid);
+                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH, null, null);
                 } catch (Error e) {
                     warning("Failed to start QEMU VM: %s", e.message);
                 }
@@ -25,9 +23,10 @@ namespace Rigs {
             new Thread<void*>("qemu-stopper", () => {
                 try {
                     if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                        string[] argv = { "/bin/bash", "-c", "echo system_powerdown | socat - UNIX-CONNECT:" + vm.monitor_socket };
+                        string py_cmd = "python3 -c \"import socket; s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM); s.connect('" + vm.monitor_socket + "'); s.sendall(b'system_powerdown\\n'); s.close()\" 2>/dev/null || true";
+                        string[] argv = { "/bin/bash", "-c", py_cmd };
                         Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
-                        Thread.usleep(1000 * 1000);
+                        Thread.usleep(1500 * 1000);
                     }
                     if (vm.process_name.length > 0) {
                         string[] argv = { "/bin/bash", "-c", "pkill -f " + vm.process_name };
@@ -45,9 +44,7 @@ namespace Rigs {
                 try {
                     string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
                     string[] argv = { "/bin/bash", "-c", vm.connect_cmd };
-                    Pid pid;
-                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out pid);
-                    Process.close_pid(pid);
+                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH, null, null);
                 } catch (Error e) {
                     warning("Failed to connect QEMU VM: %s", e.message);
                 }
@@ -71,21 +68,40 @@ namespace Rigs {
                     out stdout, out stderr, out exit_status
                 );
                 if (exit_status == 0 && stdout.strip().length > 0) {
-                    st.running = true;
-                    string pid = stdout.strip().split("\n")[0].strip();
+                    string[] pids = stdout.strip().split("\n");
+                    foreach (string raw_pid in pids) {
+                        string pid = raw_pid.strip();
+                        if (pid.length == 0) continue;
 
-                    // Query /proc/[pid]/statm for RSS memory (resident pages * 4096)
-                    string statm;
-                    FileUtils.get_contents("/proc/" + pid + "/statm", out statm);
-                    string[] parts = statm.split(" ");
-                    if (parts.length > 1) {
-                        uint64 resident_pages = uint64.parse(parts[1]);
-                        uint64 ram_mb = (resident_pages * 4096) / (1024 * 1024);
-                        if (ram_mb > 1024) {
-                            st.ram_str = "%.2f GB".printf((double)ram_mb / 1024.0);
-                        } else {
-                            st.ram_str = "%llu MB".printf(ram_mb);
+                        // Check process state in /proc/[pid]/status to skip zombies
+                        string proc_status;
+                        try {
+                            FileUtils.get_contents("/proc/" + pid + "/status", out proc_status);
+                            if (proc_status.contains("State:\tZ") || proc_status.contains("State: Z")) {
+                                continue;
+                            }
+                        } catch (Error e) {
+                            continue;
                         }
+
+                        st.running = true;
+
+                        // Query /proc/[pid]/statm for RSS memory (resident pages * 4096)
+                        string statm;
+                        try {
+                            FileUtils.get_contents("/proc/" + pid + "/statm", out statm);
+                            string[] parts = statm.split(" ");
+                            if (parts.length > 1) {
+                                uint64 resident_pages = uint64.parse(parts[1]);
+                                uint64 ram_mb = (resident_pages * 4096) / (1024 * 1024);
+                                if (ram_mb > 1024) {
+                                    st.ram_str = "%.2f GB".printf((double)ram_mb / 1024.0);
+                                } else {
+                                    st.ram_str = "%llu MB".printf(ram_mb);
+                                }
+                            }
+                        } catch (Error e) { }
+                        break;
                     }
                 }
             } catch (Error e) {

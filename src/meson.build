@@ -7,6 +7,10 @@ rigs_sources = [
   'add_dialog.vala',
   'vm_model.vala',
   'monitor.vala',
+  'drivers/driver.vala',
+  'drivers/qemu_driver.vala',
+  'drivers/compose_driver.vala',
+  'drivers/driver_registry.vala',
 ]
 
 executable('rigs',

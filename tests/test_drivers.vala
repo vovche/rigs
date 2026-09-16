@@ -1,0 +1,63 @@
+/* test_drivers.vala — GLib.Test suite for DriverRegistry and Drivers */
+
+using Rigs;
+
+namespace Rigs.Tests {
+
+    public class TestDrivers {
+        public static void test_registry_singleton() {
+            var r1 = DriverRegistry.get_default();
+            var r2 = DriverRegistry.get_default();
+            assert(r1 != null);
+            assert(r1 == r2);
+        }
+
+        public static void test_qemu_driver_lookup() {
+            var registry = DriverRegistry.get_default();
+            var driver = registry.get_driver("qemu");
+            assert(driver != null);
+            assert(driver.vm_type == "qemu");
+        }
+
+        public static void test_compose_driver_lookup() {
+            var registry = DriverRegistry.get_default();
+            var driver = registry.get_driver("compose");
+            assert(driver != null);
+            assert(driver.vm_type == "compose");
+        }
+
+        public static void test_fallback_driver_lookup() {
+            var registry = DriverRegistry.get_default();
+            var driver = registry.get_driver("unknown_driver_type");
+            assert(driver != null);
+            // Default fallback is compose
+            assert(driver.vm_type == "compose");
+        }
+
+        public static void test_qemu_stopped_status() {
+            var driver = DriverRegistry.get_default().get_driver("qemu");
+            var vm = new VmModel();
+            vm.id = "non-existent-vm";
+            vm.process_name = "definitely_not_running_process_xyz_12345";
+            vm.vm_type = "qemu";
+
+            var st = driver.check_status(vm);
+            assert(!st.running);
+            assert(st.cpu_pct == 0.0);
+            assert(st.ram_str == "0 MB");
+        }
+
+        public static void test_compose_stopped_status() {
+            var driver = DriverRegistry.get_default().get_driver("compose");
+            var vm = new VmModel();
+            vm.id = "non-existent-compose";
+            vm.container_name = "definitely_not_running_container_xyz_12345";
+            vm.vm_type = "compose";
+
+            var st = driver.check_status(vm);
+            assert(!st.running);
+            assert(st.cpu_pct == 0.0);
+            assert(st.ram_str == "0 MB");
+        }
+    }
+}

@@ -20,3 +20,26 @@ posix_dep = meson.get_compiler('vala').find_library('posix')
 
 subdir('data')
 subdir('src')
+
+test_sources = [
+  'tests/main.vala',
+  'tests/test_models.vala',
+  'tests/test_drivers.vala',
+  'src/vm_model.vala',
+  'src/drivers/driver.vala',
+  'src/drivers/qemu_driver.vala',
+  'src/drivers/compose_driver.vala',
+  'src/drivers/driver_registry.vala',
+]
+
+test_exe = executable('rigs-tests',
+  test_sources,
+  dependencies: [
+    glib_dep,
+    gio_dep,
+    json_dep,
+    posix_dep,
+  ],
+)
+
+test('unit-tests', test_exe)

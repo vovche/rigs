@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.vovche.Rigs</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Rigs</name>
+  <summary>Manage and monitor virtual machines and containers</summary>
+  <description>
+    <p>
+      Rigs is a lightweight, native GNOME control center designed for developers running local virtual machines and containerized operating systems.
+    </p>
+    <p>Key Features:</p>
+    <ul>
+      <li>Instant startup and minimal resource footprint built with Vala and Libadwaita.</li>
+      <li>Real-time CPU and RAM sparkline graphs inspired by GNOME Resources.</li>
+      <li>Pluggable driver architecture supporting standalone QEMU/KVM and Podman/Docker Compose.</li>
+      <li>Runtime optical disc (ISO) hot-swapping and ejecting via QEMU monitor.</li>
+      <li>One-click remote viewer attachment (SPICE, RDP, VNC).</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.vovche.Rigs.desktop</launchable>
+  <url type="homepage">https://github.com/vovche/rigs</url>
+  <url type="bugtracker">https://github.com/vovche/rigs/issues</url>
+  <url type="vcs-browser">https://github.com/vovche/rigs</url>
+  <developer_name>Volodymyr</developer_name>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="1.0.0" date="2026-09-16">
+      <description>
+        <p>First official release featuring native Vala + Libadwaita UI, QEMU and Compose drivers, and hot-swappable ISO drive.</p>
+      </description>
+    </release>
+  </releases>
+</component>

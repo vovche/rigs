@@ -188,14 +188,10 @@ namespace Rigs {
                         ConfigManager.save_vms(vms);
                         card.update_iso_subtitle();
 
-                        // Hot-swap via QEMU monitor socket
-                        if (vm.vm_type == "qemu" && vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                            new Thread<void*>("qemu-iso-swap", () => {
-                                try {
-                                    Process.spawn_command_line_sync("echo 'change cdrom " + iso_path + "' | socat - UNIX-CONNECT:" + vm.monitor_socket);
-                                } catch (Error e) {}
-                                return null;
-                            });
+                        // Hot-swap via driver
+                        Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+                        if (driver != null) {
+                            driver.insert_iso(vm, iso_path);
                         }
 
                         var toast = new Adw.Toast("Inserted '%s' into %s".printf(Path.get_basename(iso_path), vm.name));
@@ -210,14 +206,10 @@ namespace Rigs {
             ConfigManager.save_vms(vms);
             card.update_iso_subtitle();
 
-            // Hot-eject via QEMU socket
-            if (vm.vm_type == "qemu" && vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                new Thread<void*>("qemu-iso-eject", () => {
-                    try {
-                        Process.spawn_command_line_sync("echo 'eject -f cdrom' | socat - UNIX-CONNECT:" + vm.monitor_socket);
-                    } catch (Error e) {}
-                    return null;
-                });
+            // Hot-eject via driver
+            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+            if (driver != null) {
+                driver.eject_iso(vm);
             }
 
             var toast = new Adw.Toast("Ejected optical media from %s".printf(vm.name));
@@ -228,44 +220,26 @@ namespace Rigs {
             var toast = new Adw.Toast("Starting %s…".printf(vm.name));
             toast_overlay.add_toast(toast);
 
-            new Thread<void*>("vm-starter", () => {
-                try {
-                    Process.spawn_command_line_async("nohup " + vm.start_cmd + " >/dev/null 2>&1 &");
-                } catch (Error e) {
-                    warning("Failed to start VM: %s", e.message);
-                }
-                return null;
-            });
+            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+            if (driver != null) {
+                driver.start(vm);
+            }
         }
 
         private void stop_vm(VmModel vm) {
             var toast = new Adw.Toast("Stopping %s…".printf(vm.name));
             toast_overlay.add_toast(toast);
 
-            new Thread<void*>("vm-stopper", () => {
-                try {
-                    if (vm.vm_type == "compose") {
-                        Process.spawn_command_line_sync(vm.stop_cmd);
-                    } else if (vm.vm_type == "qemu") {
-                        if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                            Process.spawn_command_line_sync("echo system_powerdown | socat - UNIX-CONNECT:" + vm.monitor_socket);
-                        }
-                        Process.spawn_command_line_sync("pkill -f " + vm.process_name);
-                    }
-                } catch (Error e) {
-                    warning("Failed to stop VM: %s", e.message);
-                }
-                return null;
-            });
+            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+            if (driver != null) {
+                driver.stop(vm);
+            }
         }
 
         private void connect_vm(VmModel vm) {
-            if (vm.connect_cmd.length > 0) {
-                try {
-                    Process.spawn_command_line_async(vm.connect_cmd);
-                } catch (Error e) {
-                    warning("Failed to launch connection: %s", e.message);
-                }
+            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+            if (driver != null) {
+                driver.connect_vm(vm);
             }
         }
 

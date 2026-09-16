@@ -11,3 +11,9 @@ install_data(
   'io.github.vovche.Rigs.desktop',
   install_dir: get_option('datadir') / 'applications'
 )
+
+install_data(
+  'io.github.vovche.Rigs.metainfo.xml.in',
+  rename: 'io.github.vovche.Rigs.metainfo.xml',
+  install_dir: get_option('datadir') / 'metainfo'
+)

@@ -127,88 +127,15 @@ namespace Rigs {
         }
 
         private VmStatus check_vm(VmModel vm) {
+            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+            if (driver != null) {
+                return driver.check_status(vm);
+            }
+
             VmStatus st = VmStatus();
             st.running = false;
             st.cpu_pct = 0.0;
             st.ram_str = "0 MB";
-
-            if (vm.vm_type == "compose") {
-                if (vm.container_name.length == 0) return st;
-
-                // podman inspect -f '{{.State.Running}}'
-                string stdout;
-                string stderr;
-                int exit_status;
-                try {
-                    Process.spawn_command_line_sync(
-                        "podman inspect -f {{.State.Running}} " + vm.container_name,
-                        out stdout, out stderr, out exit_status
-                    );
-                    if (exit_status == 0 && stdout.strip().down() == "true") {
-                        st.running = true;
-
-                        // Get stats
-                        string s_out;
-                        Process.spawn_command_line_sync(
-                            "podman stats --no-stream --format json " + vm.container_name,
-                            out s_out, out stderr, out exit_status
-                        );
-                        if (exit_status == 0 && s_out.strip().length > 0) {
-                            var parser = new Json.Parser();
-                            parser.load_from_data(s_out);
-                            var root = parser.get_root();
-                            if (root != null && root.get_node_type() == Json.NodeType.ARRAY) {
-                                var arr = root.get_array();
-                                if (arr.get_length() > 0) {
-                                    var item = arr.get_object_element(0);
-                                    if (item.has_member("pids") && item.get_string_member("pids") != "0") {
-                                        string cpu_str = item.get_string_member("cpu_percent").replace("%", "").strip();
-                                        st.cpu_pct = double.parse(cpu_str);
-                                        string mem_full = item.get_string_member("mem_usage");
-                                        st.ram_str = mem_full.split("/")[0].strip();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (Error e) {
-                    // Ignore
-                }
-            } else if (vm.vm_type == "qemu") {
-                if (vm.process_name.length == 0) return st;
-
-                try {
-                    string stdout;
-                    string stderr;
-                    int exit_status;
-                    // Check if qemu process is running
-                    Process.spawn_command_line_sync(
-                        "pgrep -f " + vm.process_name,
-                        out stdout, out stderr, out exit_status
-                    );
-                    if (exit_status == 0 && stdout.strip().length > 0) {
-                        st.running = true;
-                        string pid = stdout.strip().split("\n")[0].strip();
-
-                        // Read /proc/[pid]/statm for RSS memory (pages * 4KB)
-                        string statm;
-                        FileUtils.get_contents("/proc/" + pid + "/statm", out statm);
-                        string[] parts = statm.split(" ");
-                        if (parts.length > 1) {
-                            uint64 resident_pages = uint64.parse(parts[1]);
-                            uint64 ram_mb = (resident_pages * 4096) / (1024 * 1024);
-                            if (ram_mb > 1024) {
-                                st.ram_str = "%.2f GB".printf((double)ram_mb / 1024.0);
-                            } else {
-                                st.ram_str = "%llu MB".printf(ram_mb);
-                            }
-                        }
-                    }
-                } catch (Error e) {
-                    // Ignore
-                }
-            }
-
             return st;
         }
     }

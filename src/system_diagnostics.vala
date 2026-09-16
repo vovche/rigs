@@ -8,7 +8,7 @@ namespace Rigs {
 
             // 1. Application info
             sb.append("### Application\n");
-            sb.append_printf("- Version: %s\n", "1.0.0");
+            sb.append_printf("- Version: %s\n", "0.9.0");
             sb.append("- Architecture: Native Vala (GObject/C compiled)\n");
 
             // 2. Packaging & Sandbox detection

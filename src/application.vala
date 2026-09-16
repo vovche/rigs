@@ -137,7 +137,7 @@ namespace Rigs {
             about.application_name = "Rigs";
             about.application_icon = "io.github.vovche.Rigs";
             about.developer_name = "vovche";
-            about.version = "1.0.0";
+            about.version = "0.9.0";
             about.comments = _("Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala.");
             about.website = "https://github.com/vovche/rigs";
             about.issue_url = "https://github.com/vovche/rigs/issues/new/choose";

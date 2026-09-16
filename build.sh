@@ -44,8 +44,23 @@ chmod +x "${INSTALL_PREFIX}/bin/rigs"
 echo "=== Installing desktop file and icons ==="
 mkdir -p "${INSTALL_PREFIX}/share/applications"
 cp "${SCRIPT_DIR}/data/io.github.vovche.Rigs.desktop" "${INSTALL_PREFIX}/share/applications/io.github.vovche.Rigs.desktop"
+
 mkdir -p "${INSTALL_PREFIX}/share/icons/hicolor/scalable/apps"
 cp "${SCRIPT_DIR}/data/icons/hicolor/scalable/apps/io.github.vovche.Rigs.svg" "${INSTALL_PREFIX}/share/icons/hicolor/scalable/apps/io.github.vovche.Rigs.svg"
+
+mkdir -p "${INSTALL_PREFIX}/share/icons/hicolor/symbolic/apps"
+cp "${SCRIPT_DIR}/data/icons/hicolor/symbolic/apps/io.github.vovche.Rigs-symbolic.svg" "${INSTALL_PREFIX}/share/icons/hicolor/symbolic/apps/io.github.vovche.Rigs-symbolic.svg"
+
+for size in 48x48 64x64 128x128 256x256 512x512; do
+    mkdir -p "${INSTALL_PREFIX}/share/icons/hicolor/${size}/apps"
+    cp "${SCRIPT_DIR}/data/icons/hicolor/${size}/apps/io.github.vovche.Rigs.png" "${INSTALL_PREFIX}/share/icons/hicolor/${size}/apps/io.github.vovche.Rigs.png"
+done
+
+if [ ! -f "${INSTALL_PREFIX}/share/icons/hicolor/index.theme" ] && [ -f /usr/share/icons/hicolor/index.theme ]; then
+    cp /usr/share/icons/hicolor/index.theme "${INSTALL_PREFIX}/share/icons/hicolor/index.theme"
+fi
+gtk-update-icon-cache -q -f "${INSTALL_PREFIX}/share/icons/hicolor" 2>/dev/null || true
+update-desktop-database "${INSTALL_PREFIX}/share/applications" 2>/dev/null || true
 
 echo "=== Installing translations to ${INSTALL_PREFIX}/share/locale ==="
 for mo in "${BUILD_DIR}"/po/*/LC_MESSAGES/rigs.mo; do

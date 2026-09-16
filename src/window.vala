@@ -26,6 +26,7 @@ namespace Rigs {
 
         construct {
             this.title = "Rigs";
+            this.icon_name = "io.github.vovche.Rigs";
             this.vms = ConfigManager.load_vms();
             this.cards = new HashTable<string, VmCard>(str_hash, str_equal);
             this.monitor = new SystemMonitor();

@@ -1,0 +1,9 @@
+build/
+.mesonpy/
+*.o
+*.c
+*.h
+*.p/
+subprojects/
+.cache/
+compile_commands.json

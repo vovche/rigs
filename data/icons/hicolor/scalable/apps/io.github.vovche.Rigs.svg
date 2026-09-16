@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="metalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3d3846"/>
+      <stop offset="100%" stop-color="#241f31"/>
+    </linearGradient>
+    <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#62a0ea"/>
+      <stop offset="50%" stop-color="#57e389"/>
+      <stop offset="100%" stop-color="#62a0ea"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Plate -->
+  <rect x="14" y="14" width="100" height="100" rx="24" fill="url(#metalGrad)" filter="url(#dropShadow)"/>
+
+  <!-- Subtle border highlight -->
+  <rect x="14.5" y="14.5" width="99" height="99" rx="23.5" fill="none" stroke="#5e5c64" stroke-width="1" stroke-opacity="0.5"/>
+
+  <!-- Rack Slot 1 -->
+  <rect x="24" y="26" width="80" height="18" rx="5" fill="#1e1a29"/>
+  <circle cx="33" cy="35" r="3" fill="#33d17a"/>
+  <rect x="42" y="32" width="28" height="6" rx="3" fill="#3584e4" fill-opacity="0.6"/>
+  <line x1="76" y1="35" x2="96" y2="35" stroke="#5e5c64" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Rack Slot 2 (Active VM slot with pulse) -->
+  <rect x="24" y="50" width="80" height="28" rx="5" fill="#181522" stroke="#3584e4" stroke-width="1.5"/>
+  <circle cx="33" cy="64" r="3" fill="#62a0ea"/>
+  <!-- Smooth sparkline / pulse in slot 2 -->
+  <path d="M 42 66 L 50 66 L 55 57 L 62 71 L 68 62 L 74 66 L 96 66" fill="none" stroke="url(#pulseGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Rack Slot 3 (Storage / Optical drive slot) -->
+  <rect x="24" y="84" width="80" height="18" rx="5" fill="#1e1a29"/>
+  <circle cx="33" cy="93" r="3" fill="#f6d32d"/>
+  <rect x="42" y="91" width="46" height="4" rx="2" fill="#5e5c64"/>
+  <circle cx="95" cy="93" r="2.5" fill="#77767b"/>
+</svg>

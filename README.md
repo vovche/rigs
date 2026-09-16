@@ -19,8 +19,27 @@ Designed as an ultra-fast, zero-overhead hub for mixed workflows:
   - Smart contextual actions (one-click Start / Connect / Stop).
   - Safe confirmation via `Adw.AlertDialog` on removal.
   - Native directory picker (`Gtk.FileDialog`) with auto-detection of `compose.yaml` or `run-vm.sh`.
-- **Live Host Telemetry:** Real-time host CPU% and RAM usage via direct `/proc` inspection.
+- **Live Host Telemetry & Smooth Sparklines:** Real-time host CPU% and RAM usage via direct `/proc` inspection and smooth canvas charts inspired by GNOME Resources.
+- **Optical Drive (ISO) Support:** Hot-plug and eject live ISO images directly to/from QEMU monitor socket without VM restarts.
+- **Comprehensive Internationalization (i18n):** 19 fully translated languages (Ukrainian, English GB & standard fallback, Polish, Czech, French, German, Spanish, Portuguese, Italian, Dutch, Chinese, Japanese, Indonesian, Turkish, Kazakh, Belarusian, Slovenian, Arabic & Hebrew with native RTL support).
 - **State Persistence:** Remembers window size, maximized state, and expanded details between launches.
+
+---
+
+## Installation & Packaging
+
+### Snap Package
+Rigs is packaged as a strict-confinement Snap using the official GNOME extension on `core24`:
+```bash
+snap install rigs
+```
+To build locally with Snapcraft:
+```bash
+snapcraft
+```
+
+### Flatpak
+A Flatpak manifest (`io.github.vovche.Rigs.yaml`) targeting GNOME Runtime 46 is provided in the repository root.
 
 ---
 
@@ -33,6 +52,8 @@ Designed as an ultra-fast, zero-overhead hub for mixed workflows:
 - `libadwaita-1` (>= 1.4)
 - `gtk4` (>= 4.10)
 - `json-glib-1.0`
+- `gettext`
+- `socat` (for QEMU monitor control)
 
 ### Build commands
 ```bash
@@ -41,9 +62,9 @@ ninja -C build
 ./build/src/rigs
 ```
 
-### Install system-wide
+### Install locally
 ```bash
-meson install -C build
+./build.sh
 ```
 
 ---

@@ -1,0 +1,39 @@
+name: rigs
+base: core24
+version: '1.0.0'
+summary: Ultra-fast GNOME VM and Container Hub
+description: |
+  Rigs is an ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala.
+  It provides smooth sparkline metrics for CPU and RAM, QEMU and Docker Compose driver
+  integration, hot-swapping ISO optical disks, and a clean modern Libadwaita interface.
+
+grade: stable
+confinement: strict
+license: Apache-2.0
+
+apps:
+  rigs:
+    command: usr/bin/rigs
+    desktop: usr/share/applications/io.github.vovche.Rigs.desktop
+    extensions: [gnome]
+    plugs:
+      - home
+      - network
+      - system-observe
+      - removable-media
+    common-id: io.github.vovche.Rigs
+
+parts:
+  rigs:
+    plugin: meson
+    source: .
+    meson-parameters:
+      - --prefix=/usr
+    build-packages:
+      - valac
+      - libgtk-4-dev
+      - libadwaita-1-dev
+      - libjson-glib-dev
+      - gettext
+    stage-packages:
+      - socat

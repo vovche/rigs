@@ -17,3 +17,8 @@ install_data(
   rename: 'io.github.vovche.Rigs.metainfo.xml',
   install_dir: get_option('datadir') / 'metainfo'
 )
+
+install_data(
+  'icons/hicolor/scalable/apps/io.github.vovche.Rigs.svg',
+  install_dir: get_option('datadir') / 'icons/hicolor/scalable/apps'
+)

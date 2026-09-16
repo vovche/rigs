@@ -44,6 +44,8 @@ chmod +x "${INSTALL_PREFIX}/bin/rigs"
 echo "=== Installing desktop file and icons ==="
 mkdir -p "${INSTALL_PREFIX}/share/applications"
 cp "${SCRIPT_DIR}/data/io.github.vovche.Rigs.desktop" "${INSTALL_PREFIX}/share/applications/io.github.vovche.Rigs.desktop"
+mkdir -p "${INSTALL_PREFIX}/share/icons/hicolor/scalable/apps"
+cp "${SCRIPT_DIR}/data/icons/hicolor/scalable/apps/io.github.vovche.Rigs.svg" "${INSTALL_PREFIX}/share/icons/hicolor/scalable/apps/io.github.vovche.Rigs.svg"
 
 echo "=== Installing translations to ${INSTALL_PREFIX}/share/locale ==="
 for mo in "${BUILD_DIR}"/po/*/LC_MESSAGES/rigs.mo; do

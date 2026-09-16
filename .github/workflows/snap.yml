@@ -1,0 +1,62 @@
+name: Snap Package
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Snap Store channel to publish to'
+        required: true
+        default: 'edge'
+        type: choice
+        options:
+          - edge
+          - beta
+          - candidate
+          - stable
+
+jobs:
+  snap:
+    name: Build & Publish Snap
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Snap
+        uses: snapcore/action-build@v1
+        id: snapcraft
+
+      - name: Upload Snap artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rigs-snap
+          path: ${{ steps.snapcraft.outputs.snap }}
+          if-no-files-found: error
+
+      - name: Determine Snap Store channel
+        id: channel
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "channel=${{ inputs.channel }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" =~ ^refs/tags/v.* ]]; then
+            echo "channel=stable" >> "$GITHUB_OUTPUT"
+          else
+            echo "channel=edge" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to Snap Store
+        if: ${{ github.event_name != 'pull_request' && env.HAS_SECRET != '' }}
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          HAS_SECRET: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.snapcraft.outputs.snap }}
+          release: ${{ steps.channel.outputs.channel }}

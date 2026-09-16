@@ -8,11 +8,12 @@ namespace Rigs {
         public void start(VmModel vm) {
             new Thread<void*>("compose-starter", () => {
                 try {
+                    string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
                     string cmd = (vm.start_cmd.length > 0) ? vm.start_cmd : "docker compose up -d";
-                    if (vm.dir.length > 0) {
-                        cmd = "cd " + vm.dir + " && " + cmd;
-                    }
-                    Process.spawn_command_line_async("nohup " + cmd + " >/dev/null 2>&1 &");
+                    string[] argv = { "/bin/bash", "-c", cmd };
+                    Pid pid;
+                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out pid);
+                    Process.close_pid(pid);
                 } catch (Error e) {
                     warning("Failed to start Compose VM: %s", e.message);
                 }
@@ -23,11 +24,10 @@ namespace Rigs {
         public void stop(VmModel vm) {
             new Thread<void*>("compose-stopper", () => {
                 try {
+                    string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
                     string cmd = (vm.stop_cmd.length > 0) ? vm.stop_cmd : "docker compose down";
-                    if (vm.dir.length > 0) {
-                        cmd = "cd " + vm.dir + " && " + cmd;
-                    }
-                    Process.spawn_command_line_sync(cmd);
+                    string[] argv = { "/bin/bash", "-c", cmd };
+                    Process.spawn_sync(working_dir, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
                 } catch (Error e) {
                     warning("Failed to stop Compose VM: %s", e.message);
                 }
@@ -38,7 +38,11 @@ namespace Rigs {
         public void connect_vm(VmModel vm) {
             if (vm.connect_cmd.length > 0) {
                 try {
-                    Process.spawn_command_line_async(vm.connect_cmd);
+                    string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
+                    string[] argv = { "/bin/bash", "-c", vm.connect_cmd };
+                    Pid pid;
+                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out pid);
+                    Process.close_pid(pid);
                 } catch (Error e) {
                     warning("Failed to connect Compose VM: %s", e.message);
                 }

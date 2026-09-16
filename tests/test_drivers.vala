@@ -59,5 +59,41 @@ namespace Rigs.Tests {
             assert(st.cpu_pct == 0.0);
             assert(st.ram_str == "0 MB");
         }
+
+        public static void test_qemu_start_spawns_process() {
+            var driver = DriverRegistry.get_default().get_driver("qemu");
+            var vm = new VmModel();
+            vm.id = "test-qemu";
+            vm.vm_type = "qemu";
+            string marker = "/tmp/rigs-test-qemu-marker-" + Random.next_int().to_string();
+            vm.start_cmd = "touch " + marker;
+            driver.start(vm);
+
+            // Give thread a brief moment to execute
+            Thread.usleep(250 * 1000);
+            bool exists = FileUtils.test(marker, FileTest.EXISTS);
+            if (exists) {
+                FileUtils.unlink(marker);
+            }
+            assert(exists);
+        }
+
+        public static void test_compose_start_spawns_process() {
+            var driver = DriverRegistry.get_default().get_driver("compose");
+            var vm = new VmModel();
+            vm.id = "test-compose";
+            vm.vm_type = "compose";
+            string marker = "/tmp/rigs-test-compose-marker-" + Random.next_int().to_string();
+            vm.start_cmd = "touch " + marker;
+            driver.start(vm);
+
+            // Give thread a brief moment to execute
+            Thread.usleep(250 * 1000);
+            bool exists = FileUtils.test(marker, FileTest.EXISTS);
+            if (exists) {
+                FileUtils.unlink(marker);
+            }
+            assert(exists);
+        }
     }
 }

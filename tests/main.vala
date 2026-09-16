@@ -16,6 +16,8 @@ int main(string[] args) {
     Test.add_func("/drivers/fallback_lookup", TestDrivers.test_fallback_driver_lookup);
     Test.add_func("/drivers/qemu_stopped_status", TestDrivers.test_qemu_stopped_status);
     Test.add_func("/drivers/compose_stopped_status", TestDrivers.test_compose_stopped_status);
+    Test.add_func("/drivers/qemu_start_spawns_process", TestDrivers.test_qemu_start_spawns_process);
+    Test.add_func("/drivers/compose_start_spawns_process", TestDrivers.test_compose_start_spawns_process);
 
     Test.add_func("/diagnostics/report", TestDiagnostics.test_diagnostics_report);
 

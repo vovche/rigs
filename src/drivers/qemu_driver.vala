@@ -8,7 +8,12 @@ namespace Rigs {
         public void start(VmModel vm) {
             new Thread<void*>("qemu-starter", () => {
                 try {
-                    Process.spawn_command_line_async("nohup " + vm.start_cmd + " >/dev/null 2>&1 &");
+                    string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
+                    string cmd = (vm.start_cmd.length > 0) ? vm.start_cmd : "./run-vm.sh";
+                    string[] argv = { "/bin/bash", "-c", cmd };
+                    Pid pid;
+                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out pid);
+                    Process.close_pid(pid);
                 } catch (Error e) {
                     warning("Failed to start QEMU VM: %s", e.message);
                 }
@@ -20,11 +25,13 @@ namespace Rigs {
             new Thread<void*>("qemu-stopper", () => {
                 try {
                     if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                        Process.spawn_command_line_sync("echo system_powerdown | socat - UNIX-CONNECT:" + vm.monitor_socket);
+                        string[] argv = { "/bin/bash", "-c", "echo system_powerdown | socat - UNIX-CONNECT:" + vm.monitor_socket };
+                        Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
                         Thread.usleep(1000 * 1000);
                     }
                     if (vm.process_name.length > 0) {
-                        Process.spawn_command_line_sync("pkill -f " + vm.process_name);
+                        string[] argv = { "/bin/bash", "-c", "pkill -f " + vm.process_name };
+                        Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
                     }
                 } catch (Error e) {
                     warning("Failed to stop QEMU VM: %s", e.message);
@@ -36,7 +43,11 @@ namespace Rigs {
         public void connect_vm(VmModel vm) {
             if (vm.connect_cmd.length > 0) {
                 try {
-                    Process.spawn_command_line_async(vm.connect_cmd);
+                    string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
+                    string[] argv = { "/bin/bash", "-c", vm.connect_cmd };
+                    Pid pid;
+                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH | SpawnFlags.DO_NOT_REAP_CHILD, null, out pid);
+                    Process.close_pid(pid);
                 } catch (Error e) {
                     warning("Failed to connect QEMU VM: %s", e.message);
                 }
@@ -88,7 +99,9 @@ namespace Rigs {
             if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
                 new Thread<void*>("qemu-iso-insert", () => {
                     try {
-                        Process.spawn_command_line_sync("echo 'change cdrom " + iso_path + "' | socat - UNIX-CONNECT:" + vm.monitor_socket);
+                        string cmd = "echo 'change cdrom " + iso_path + "' | socat - UNIX-CONNECT:" + vm.monitor_socket;
+                        string[] argv = { "/bin/bash", "-c", cmd };
+                        Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
                     } catch (Error e) {
                         warning("Failed to hot-insert ISO: %s", e.message);
                     }
@@ -101,7 +114,9 @@ namespace Rigs {
             if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
                 new Thread<void*>("qemu-iso-eject", () => {
                     try {
-                        Process.spawn_command_line_sync("echo 'eject -f cdrom' | socat - UNIX-CONNECT:" + vm.monitor_socket);
+                        string cmd = "echo 'eject -f cdrom' | socat - UNIX-CONNECT:" + vm.monitor_socket;
+                        string[] argv = { "/bin/bash", "-c", cmd };
+                        Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
                     } catch (Error e) {
                         warning("Failed to hot-eject ISO: %s", e.message);
                     }

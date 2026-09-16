@@ -47,6 +47,7 @@ namespace Rigs {
 
             var add_btn = new Gtk.Button.from_icon_name("list-add-symbolic");
             add_btn.tooltip_text = _("Add Virtual Machine (Ctrl+N)");
+            add_btn.update_property(Gtk.AccessibleProperty.LABEL, _("Add Virtual Machine"));
             add_btn.clicked.connect(open_add_dialog);
             header.pack_start(add_btn);
 
@@ -58,6 +59,7 @@ namespace Rigs {
             var menu_btn = new Gtk.MenuButton();
             menu_btn.icon_name = "open-menu-symbolic";
             menu_btn.tooltip_text = _("Main Menu");
+            menu_btn.update_property(Gtk.AccessibleProperty.LABEL, _("Main Menu"));
             menu_btn.menu_model = menu;
             header.pack_end(menu_btn);
 

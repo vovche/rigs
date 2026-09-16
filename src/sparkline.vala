@@ -23,6 +23,7 @@ namespace Rigs {
             this.set_content_width(width);
             this.set_content_height(height);
             this.add_css_class("sparkline-box");
+            this.accessible_role = Gtk.AccessibleRole.PRESENTATION;
 
             this.set_draw_func(on_draw);
         }

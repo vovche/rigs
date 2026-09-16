@@ -66,6 +66,16 @@ echo "=== Installing GNOME Shell search provider and D-Bus service ==="
 mkdir -p "${INSTALL_PREFIX}/share/gnome-shell/search-providers"
 cp "${SCRIPT_DIR}/data/io.github.vovche.Rigs.search-provider.ini" "${INSTALL_PREFIX}/share/gnome-shell/search-providers/io.github.vovche.Rigs.search-provider.ini"
 
+# GNOME Shell scans XDG_DATA_DIRS where ~/.local/share/flatpak/exports/share is the user-writable data dir
+FLATPAK_EXPORTS="${HOME}/.local/share/flatpak/exports/share"
+if [ -d "${FLATPAK_EXPORTS}" ]; then
+    mkdir -p "${FLATPAK_EXPORTS}/gnome-shell/search-providers"
+    cp "${SCRIPT_DIR}/data/io.github.vovche.Rigs.search-provider.ini" "${FLATPAK_EXPORTS}/gnome-shell/search-providers/io.github.vovche.Rigs.search-provider.ini"
+    mkdir -p "${FLATPAK_EXPORTS}/applications"
+    cp "${SCRIPT_DIR}/data/io.github.vovche.Rigs.desktop" "${FLATPAK_EXPORTS}/applications/io.github.vovche.Rigs.desktop"
+    update-desktop-database "${FLATPAK_EXPORTS}/applications" 2>/dev/null || true
+fi
+
 mkdir -p "${INSTALL_PREFIX}/share/dbus-1/services"
 sed "s|@bindir@|${INSTALL_PREFIX}/bin|g" "${SCRIPT_DIR}/data/io.github.vovche.Rigs.service.in" > "${INSTALL_PREFIX}/share/dbus-1/services/io.github.vovche.Rigs.service"
 

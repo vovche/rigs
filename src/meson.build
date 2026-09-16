@@ -26,6 +26,7 @@ executable('rigs',
     glib_dep,
     gio_dep,
     posix_dep,
+    m_dep,
   ],
   install: true,
 )

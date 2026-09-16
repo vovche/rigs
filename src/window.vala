@@ -39,8 +39,23 @@ namespace Rigs {
             this.notify["maximized"].connect(() => { save_window_state(); });
             this.close_request.connect(on_close_request);
 
+            // Adaptive polling: 1s focused, 3s background, suspended when minimized
+            this.notify["is-active"].connect(on_window_state_changed);
+            this.notify["suspended"].connect(on_window_state_changed);
+            on_window_state_changed();
+
             monitor.updated.connect(on_monitor_updated);
             monitor.start(vms);
+        }
+
+        private void on_window_state_changed() {
+            if (this.suspended) {
+                monitor.set_interval(MonitorInterval.SUSPENDED);
+            } else if (this.is_active) {
+                monitor.set_interval(MonitorInterval.FOCUSED);
+            } else {
+                monitor.set_interval(MonitorInterval.BACKGROUND);
+            }
         }
 
         private void build_ui() {

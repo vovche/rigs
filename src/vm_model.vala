@@ -67,6 +67,7 @@ namespace Rigs {
         public bool running;
         public double cpu_pct;
         public string ram_str;
+        public double ram_pct;
     }
 
     public struct HostStatus {

@@ -21,6 +21,7 @@ json_dep = dependency('json-glib-1.0')
 glib_dep = dependency('glib-2.0', version: '>= 2.76')
 gio_dep = dependency('gio-2.0')
 posix_dep = meson.get_compiler('vala').find_library('posix')
+m_dep = meson.get_compiler('c').find_library('m', required: false)
 
 i18n = import('i18n')
 

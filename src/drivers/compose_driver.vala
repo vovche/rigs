@@ -85,6 +85,10 @@ namespace Rigs {
                                     st.cpu_pct = double.parse(cpu_str);
                                     string mem_full = item.get_string_member("mem_usage");
                                     st.ram_str = mem_full.split("/")[0].strip();
+                                    if (item.has_member("mem_percent")) {
+                                        string mem_pct_str = item.get_string_member("mem_percent").replace("%", "").strip();
+                                        st.ram_pct = double.parse(mem_pct_str);
+                                    }
                                 }
                             }
                         }

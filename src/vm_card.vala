@@ -20,6 +20,7 @@ namespace Rigs {
         private Adw.ActionRow cpu_row;
         private SmoothSparkline cpu_sparkline;
         private Adw.ActionRow ram_row;
+        private SmoothSparkline ram_sparkline;
         private Adw.ActionRow iso_row;
         private Gtk.Button eject_btn;
 
@@ -73,11 +74,12 @@ namespace Rigs {
             cpu_row.add_suffix(cpu_sparkline);
             this.add_row(cpu_row);
 
-            // 2. RAM
+            // 2. RAM with Resources-style Bezier sparkline (Purple)
             ram_row = new Adw.ActionRow();
-            ram_row.title = _("Host RAM Usage");
+            ram_row.title = _("VM Memory Usage");
             ram_row.subtitle = "0 MB";
-            ram_row.add_suffix(new Gtk.Image.from_icon_name("media-memory-symbolic"));
+            ram_sparkline = new SmoothSparkline(0.569, 0.255, 0.675, 25, 130, 32, true);
+            ram_row.add_suffix(ram_sparkline);
             this.add_row(ram_row);
 
             // 3. Optical Drive (ISO)
@@ -160,7 +162,13 @@ namespace Rigs {
 
             cpu_row.subtitle = _("CPU: %.1f%%").printf(status.cpu_pct);
             cpu_sparkline.add_value(status.running ? status.cpu_pct : 0.0);
-            ram_row.subtitle = _("Memory: %s").printf(status.ram_str);
+
+            if (status.running && status.ram_pct > 0.0) {
+                ram_row.subtitle = _("Memory: %s (%.1f%%)").printf(status.ram_str, status.ram_pct);
+            } else {
+                ram_row.subtitle = _("Memory: %s").printf(status.ram_str);
+            }
+            ram_sparkline.add_value(status.running ? status.ram_pct : 0.0);
         }
     }
 }

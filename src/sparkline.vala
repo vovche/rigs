@@ -9,12 +9,14 @@ namespace Rigs {
         private double r;
         private double g;
         private double b;
+        private bool auto_scale;
 
-        public SmoothSparkline(double r = 0.208, double g = 0.518, double b = 0.894, int max_samples = 25, int width = 120, int height = 34) {
+        public SmoothSparkline(double r = 0.208, double g = 0.518, double b = 0.894, int max_samples = 25, int width = 120, int height = 34, bool auto_scale = false) {
             this.r = r;
             this.g = g;
             this.b = b;
             this.max_samples = max_samples;
+            this.auto_scale = auto_scale;
             this.values = new double[max_samples];
             for (int i = 0; i < max_samples; i++) {
                 values[i] = 0.0;
@@ -29,7 +31,7 @@ namespace Rigs {
         }
 
         public void add_value(double val) {
-            double clamped = val.clamp(0.0, 100.0);
+            double clamped = auto_scale ? ((val > 0.0) ? val : 0.0) : val.clamp(0.0, 100.0);
             for (int i = 0; i < max_samples - 1; i++) {
                 values[i] = values[i + 1];
             }
@@ -44,13 +46,22 @@ namespace Rigs {
             double pad_y = 4.0;
             double draw_h = (double)h - (pad_y * 2.0);
 
+            double scale_max = 100.0;
+            if (auto_scale) {
+                double peak = 1.0;
+                for (int i = 0; i < max_samples; i++) {
+                    if (values[i] > peak) peak = values[i];
+                }
+                scale_max = peak * 1.15;
+            }
+
             // Compute points
             double[] xs = new double[max_samples];
             double[] ys = new double[max_samples];
 
             for (int i = 0; i < max_samples; i++) {
                 xs[i] = ((double)i / (double)(max_samples - 1)) * (double)w;
-                ys[i] = (double)h - pad_y - ((values[i] / 100.0) * draw_h);
+                ys[i] = (double)h - pad_y - ((values[i] / scale_max).clamp(0.0, 1.0) * draw_h);
             }
 
             // Smooth cubic Bezier spline

@@ -2,9 +2,18 @@
 
 namespace Rigs {
 
+    public enum MonitorInterval {
+        FOCUSED    = 1000,  // 1 s — window has focus
+        BACKGROUND = 3000,  // 3 s — visible but not focused
+        SUSPENDED  = 0      // 0   — minimized/hidden: do not poll
+    }
+
     public class SystemMonitor : Object {
         private bool active = false;
         private Thread<void*>? worker_thread = null;
+        private MonitorInterval interval = MonitorInterval.BACKGROUND;
+        private Mutex mutex = Mutex();
+        private Cond cond = Cond();
 
         // Previous CPU counters for delta calculation
         private uint64 prev_idle = 0;
@@ -12,10 +21,28 @@ namespace Rigs {
 
         public signal void updated(HostStatus host, HashTable<string, VmStatus?> vm_statuses);
 
+        public void set_interval(MonitorInterval new_interval) {
+            mutex.lock();
+            interval = new_interval;
+            cond.signal();
+            mutex.unlock();
+        }
+
         public void start(GenericArray<VmModel> vms) {
             active = true;
             worker_thread = new Thread<void*>("rigs-monitor", () => {
                 while (active) {
+                    mutex.lock();
+                    while (active && interval == MonitorInterval.SUSPENDED) {
+                        cond.wait(mutex);
+                    }
+                    if (!active) {
+                        mutex.unlock();
+                        break;
+                    }
+                    uint32 sleep_ms = (uint32)interval;
+                    mutex.unlock();
+
                     HostStatus host = read_host_status();
                     var results = new HashTable<string, VmStatus?>(str_hash, str_equal);
 
@@ -32,14 +59,22 @@ namespace Rigs {
                         return Source.REMOVE;
                     });
 
-                    Thread.usleep(1500 * 1000); // 1.5 seconds
+                    mutex.lock();
+                    if (active) {
+                        int64 end_time = get_monotonic_time() + ((int64)sleep_ms * 1000);
+                        cond.wait_until(mutex, end_time);
+                    }
+                    mutex.unlock();
                 }
                 return null;
             });
         }
 
         public void stop() {
+            mutex.lock();
             active = false;
+            cond.signal();
+            mutex.unlock();
         }
 
         private HostStatus read_host_status() {

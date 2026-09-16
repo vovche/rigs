@@ -38,7 +38,7 @@ fi
 
 echo "=== Installing executable to ${INSTALL_PREFIX}/bin/rigs ==="
 mkdir -p "${INSTALL_PREFIX}/bin"
-cp "${BUILD_DIR}/src/rigs" "${INSTALL_PREFIX}/bin/rigs"
+cp --remove-destination "${BUILD_DIR}/src/rigs" "${INSTALL_PREFIX}/bin/rigs"
 chmod +x "${INSTALL_PREFIX}/bin/rigs"
 
 echo "=== Installing desktop file and icons ==="

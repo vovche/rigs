@@ -158,8 +158,8 @@ namespace Rigs {
             om.process_name = "omarchy-qemu";
             om.start_cmd = "./run-vm.sh";
             om.monitor_socket = "/tmp/omarchy-monitor.sock";
-            om.connect_cmd = "remote-viewer spice://127.0.0.1:5930";
-            om.details = "SPICE :5930 • SSH :2222";
+            om.connect_cmd = "remote-viewer --auto-resize=always spice+unix:///tmp/omarchy-spice.sock";
+            om.details = "SPICE UNIX • 120Hz GL • PipeWire • SSH :2222";
             list.add(om);
 
             var t10 = new VmModel();

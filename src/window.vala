@@ -143,21 +143,21 @@ namespace Rigs {
             host_group.description = _("Overall CPU and RAM usage on your host machine");
             page.add(host_group);
 
-            // CPU Sparkline (Blue)
+            // CPU Sparkline (Vivid Blue)
             host_cpu_row = new Adw.ActionRow();
             host_cpu_row.title = _("CPU Usage");
             host_cpu_row.subtitle = _("Host CPU load: --%");
             host_cpu_row.add_prefix(new Gtk.Image.from_icon_name("computer-symbolic"));
-            host_cpu_sparkline = new SmoothSparkline(0.208, 0.518, 0.894, 25, 120, 34);
+            host_cpu_sparkline = new SmoothSparkline(0.12, 0.55, 1.0, 25, 120, 34);
             host_cpu_row.add_suffix(host_cpu_sparkline);
             host_group.add(host_cpu_row);
 
-            // RAM Sparkline (Purple)
+            // RAM Sparkline (Vivid Violet)
             host_ram_row = new Adw.ActionRow();
             host_ram_row.title = _("Memory (RAM)");
             host_ram_row.subtitle = _("Host RAM: -- / -- GB");
             host_ram_row.add_prefix(new Gtk.Image.from_icon_name("drive-harddisk-symbolic"));
-            host_ram_sparkline = new SmoothSparkline(0.569, 0.255, 0.675, 25, 120, 34);
+            host_ram_sparkline = new SmoothSparkline(0.64, 0.28, 0.96, 25, 120, 34);
             host_ram_row.add_suffix(host_ram_sparkline);
             host_group.add(host_ram_row);
 

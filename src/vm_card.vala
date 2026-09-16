@@ -66,19 +66,19 @@ namespace Rigs {
             this.add_suffix(btn_box);
 
             // Child rows when expanded
-            // 1. CPU with Resources-style sparkline
+            // 1. CPU with Resources-style sparkline (Vivid Blue)
             cpu_row = new Adw.ActionRow();
             cpu_row.title = _("VM CPU Usage");
             cpu_row.subtitle = "0.0%";
-            cpu_sparkline = new SmoothSparkline(0.18, 0.58, 0.95, 25, 130, 32);
+            cpu_sparkline = new SmoothSparkline(0.12, 0.55, 1.0, 25, 130, 32);
             cpu_row.add_suffix(cpu_sparkline);
             this.add_row(cpu_row);
 
-            // 2. RAM with Resources-style Bezier sparkline (Purple)
+            // 2. RAM with Resources-style Bezier sparkline (Vivid Violet)
             ram_row = new Adw.ActionRow();
             ram_row.title = _("VM Memory Usage");
             ram_row.subtitle = "0 MB";
-            ram_sparkline = new SmoothSparkline(0.569, 0.255, 0.675, 25, 130, 32, true);
+            ram_sparkline = new SmoothSparkline(0.64, 0.28, 0.96, 25, 130, 32, true);
             ram_row.add_suffix(ram_sparkline);
             this.add_row(ram_row);
 

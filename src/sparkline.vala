@@ -11,7 +11,7 @@ namespace Rigs {
         private double b;
         private bool auto_scale;
 
-        public SmoothSparkline(double r = 0.208, double g = 0.518, double b = 0.894, int max_samples = 25, int width = 120, int height = 34, bool auto_scale = false) {
+        public SmoothSparkline(double r = 0.12, double g = 0.55, double b = 1.0, int max_samples = 25, int width = 120, int height = 34, bool auto_scale = false) {
             this.r = r;
             this.g = g;
             this.b = b;
@@ -80,15 +80,16 @@ namespace Rigs {
             cr.close_path();
 
             var grad = new Cairo.Pattern.linear(0, 0, 0, h);
-            grad.add_color_stop_rgba(0.0, r, g, b, 0.28);
-            grad.add_color_stop_rgba(1.0, r, g, b, 0.01);
+            grad.add_color_stop_rgba(0.0, r, g, b, 0.45);
+            grad.add_color_stop_rgba(0.6, r, g, b, 0.18);
+            grad.add_color_stop_rgba(1.0, r, g, b, 0.03);
             cr.set_source(grad);
             cr.fill();
             cr.restore();
 
             // Stroke line
-            cr.set_source_rgba(r, g, b, 0.95);
-            cr.set_line_width(2.0);
+            cr.set_source_rgba(r, g, b, 1.0);
+            cr.set_line_width(2.5);
             cr.set_line_cap(Cairo.LineCap.ROUND);
             cr.set_line_join(Cairo.LineJoin.ROUND);
             cr.stroke();

@@ -14,6 +14,16 @@ int main(string[] args) {
     Intl.bind_textdomain_codeset(Rigs.Config.GETTEXT_PACKAGE, "UTF-8");
     Intl.textdomain(Rigs.Config.GETTEXT_PACKAGE);
 
+    for (int i = 1; i < args.length; i++) {
+        if (args[i] == "--debug-info" || args[i] == "-d" || args[i] == "--diagnostics") {
+            print("%s", Rigs.SystemDiagnostics.get_report());
+            return 0;
+        } else if (args[i] == "--version" || args[i] == "-v") {
+            print("Rigs 1.0.0\n");
+            return 0;
+        }
+    }
+
     var app = new Rigs.Application();
     return app.run(args);
 }

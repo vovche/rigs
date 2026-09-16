@@ -51,6 +51,7 @@ namespace Rigs {
             header.pack_start(add_btn);
 
             var menu = new Menu();
+            menu.append(_("Report an Issue"), "app.report-issue");
             menu.append(_("About Rigs"), "app.about");
             menu.append(_("Quit"), "app.quit");
 

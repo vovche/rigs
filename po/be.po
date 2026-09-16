@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Rigs 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 00:27+0000\n"
-"PO-Revision-Date: 2026-09-16 00:27+0000\n"
+"POT-Creation-Date: 2026-09-16 00:32+0000\n"
+"PO-Revision-Date: 2026-09-16 00:32+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: be\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: /workspace/src/application.vala:67
+#: /workspace/src/application.vala:76
 msgid ""
 "Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
 msgstr "Хуткі натыўны цэнтр віртуальных машын і кантэйнераў для GNOME, напісаны на Vala."
@@ -36,124 +36,128 @@ msgid "Add Virtual Machine (Ctrl+N)"
 msgstr "Дадаць віртуальную машыну (Ctrl+N)"
 
 #: /workspace/src/window.vala:54
+msgid "Report an Issue"
+msgstr "Паведаміць пра праблему"
+
+#: /workspace/src/window.vala:55
 msgid "About Rigs"
 msgstr "Пра Rigs"
 
-#: /workspace/src/window.vala:55
+#: /workspace/src/window.vala:56
 msgid "Quit"
 msgstr "Выйсці"
 
-#: /workspace/src/window.vala:59
+#: /workspace/src/window.vala:60
 msgid "Main Menu"
 msgstr "Галоўнае меню"
 
-#: /workspace/src/window.vala:85
+#: /workspace/src/window.vala:86
 msgid "Host Overview"
 msgstr "Агляд хоста"
 
-#: /workspace/src/window.vala:86
+#: /workspace/src/window.vala:87
 msgid "Overall CPU and RAM usage on your host machine"
 msgstr "Агульнае выкарыстанне працэсара і памяці на хосце"
 
-#: /workspace/src/window.vala:91
+#: /workspace/src/window.vala:92
 msgid "CPU Usage"
 msgstr "Выкарыстанне працэсара"
 
-#: /workspace/src/window.vala:92
+#: /workspace/src/window.vala:93
 msgid "Host CPU load: --%"
 msgstr "Нагрузка на працэсар хоста: --%"
 
-#: /workspace/src/window.vala:100
+#: /workspace/src/window.vala:101
 msgid "Memory (RAM)"
 msgstr "Аператыўная памяць (RAM)"
 
-#: /workspace/src/window.vala:101
+#: /workspace/src/window.vala:102
 msgid "Host RAM: -- / -- GB"
 msgstr "RAM хоста: -- / -- ГБ"
 
-#: /workspace/src/window.vala:109
+#: /workspace/src/window.vala:110
 msgid "Virtual Machines"
 msgstr "Віртуальныя машыны"
 
-#: /workspace/src/window.vala:110
+#: /workspace/src/window.vala:111
 msgid "Status, resource consumption and controls"
 msgstr "Стан, спажыванне рэсурсаў і кіраванне"
 
-#: /workspace/src/window.vala:114
+#: /workspace/src/window.vala:115
 msgid "No Virtual Machines"
 msgstr "Няма віртуальных машын"
 
-#: /workspace/src/window.vala:115
+#: /workspace/src/window.vala:116
 msgid "Click the + button above to register your first virtual machine"
 msgstr "Націсніце кнопку + вышэй, каб дадаць першую віртуальную машыну"
 
-#: /workspace/src/window.vala:150
+#: /workspace/src/window.vala:151
 #, c-format
 msgid "Registered '%s'"
 msgstr "Зарэгістравана '%s'"
 
-#: /workspace/src/window.vala:170
+#: /workspace/src/window.vala:171
 msgid "Select ISO Disk Image"
 msgstr "Выбраць вобраз дыска ISO"
 
-#: /workspace/src/window.vala:173
+#: /workspace/src/window.vala:174
 msgid "Disk Images (*.iso)"
 msgstr "Вобразы дыскаў (*.iso)"
 
-#: /workspace/src/window.vala:197
+#: /workspace/src/window.vala:198
 #, c-format
 msgid "Inserted '%s' into %s"
 msgstr "Устаўлена '%s' у %s"
 
-#: /workspace/src/window.vala:215
+#: /workspace/src/window.vala:216
 #, c-format
 msgid "Ejected optical media from %s"
 msgstr "Выняты аптычны дыск з %s"
 
-#: /workspace/src/window.vala:220
+#: /workspace/src/window.vala:221
 #, c-format
 msgid "Starting %s…"
 msgstr "Запуск %s…"
 
-#: /workspace/src/window.vala:230
+#: /workspace/src/window.vala:231
 #, c-format
 msgid "Stopping %s…"
 msgstr "Спыненне %s…"
 
-#: /workspace/src/window.vala:248
+#: /workspace/src/window.vala:249
 #, c-format
 msgid "Remove '%s'?"
 msgstr "Выдаліць '%s'?"
 
-#: /workspace/src/window.vala:249
+#: /workspace/src/window.vala:250
 msgid ""
 "The virtual machine will be removed from Rigs. Your files and VM disk on the "
 "host will remain untouched."
 msgstr "Віртуальная машына будзе выдалена з Rigs. Вашы файлы і дыск на хосце застануцца некранутымі."
 
-#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+#: /workspace/src/window.vala:252 /workspace/src/add_dialog.vala:36
 msgid "Cancel"
 msgstr "Адмена"
 
-#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+#: /workspace/src/window.vala:253 /workspace/src/vm_card.vala:124
 msgid "Remove"
 msgstr "Выдаліць"
 
-#: /workspace/src/window.vala:288
+#: /workspace/src/window.vala:289
 #, c-format
 msgid "Removed '%s'"
 msgstr "Выдалена '%s'"
 
-#: /workspace/src/window.vala:289
+#: /workspace/src/window.vala:290
 msgid "Undo"
 msgstr "Вярнуць"
 
-#: /workspace/src/window.vala:301
+#: /workspace/src/window.vala:302
 #, c-format
 msgid "Host CPU load: %.1f%%"
 msgstr "Нагрузка на працэсар хоста: %.1f%%"
 
-#: /workspace/src/window.vala:304
+#: /workspace/src/window.vala:305
 #, c-format
 msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
 msgstr "RAM хоста: %.2f / %.1f ГБ (%.0f%%)"

@@ -11,6 +11,7 @@ rigs_sources = [
   'drivers/qemu_driver.vala',
   'drivers/compose_driver.vala',
   'drivers/driver_registry.vala',
+  'system_diagnostics.vala',
   config_vala,
 ]
 

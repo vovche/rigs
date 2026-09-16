@@ -10,6 +10,17 @@ We strive to maintain a welcoming, respectful, and collaborative environment. Pl
 
 ---
 
+## Reporting Bugs & Issues
+
+When reporting an issue or unexpected behavior:
+1. Check if the issue has already been reported in [GitHub Issues](https://github.com/vovche/rigs/issues).
+2. Because Rigs can be distributed as a **Snap**, **Flatpak**, or compiled natively from source, always include system & environment diagnostics:
+   - **In the GUI:** Open menu ☰ -> **About Rigs** -> **Troubleshooting / Copy Debug Information**.
+   - **From Terminal:** Run `rigs --debug-info`.
+3. Paste the generated Markdown diagnostics block into the issue description. This allows developers to instantly identify your packaging sandbox (Snap/Flatpak/Native), host OS, desktop session (Wayland/X11), and installed hypervisors (QEMU, KVM, Podman, Docker).
+
+---
+
 ## Development Workflow
 
 ### 1. Prerequisites

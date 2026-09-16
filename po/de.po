@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Rigs 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 00:27+0000\n"
-"PO-Revision-Date: 2026-09-16 00:27+0000\n"
+"POT-Creation-Date: 2026-09-16 00:32+0000\n"
+"PO-Revision-Date: 2026-09-16 00:32+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: /workspace/src/application.vala:67
+#: /workspace/src/application.vala:76
 msgid ""
 "Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
 msgstr "Blitzschnelles, natives GNOME-Zentrum für virtuelle Maschinen und Container, geschrieben in Vala."
@@ -35,124 +35,128 @@ msgid "Add Virtual Machine (Ctrl+N)"
 msgstr "Virtuelle Maschine hinzufügen (Strg+N)"
 
 #: /workspace/src/window.vala:54
+msgid "Report an Issue"
+msgstr "Problem melden"
+
+#: /workspace/src/window.vala:55
 msgid "About Rigs"
 msgstr "Über Rigs"
 
-#: /workspace/src/window.vala:55
+#: /workspace/src/window.vala:56
 msgid "Quit"
 msgstr "Beenden"
 
-#: /workspace/src/window.vala:59
+#: /workspace/src/window.vala:60
 msgid "Main Menu"
 msgstr "Hauptmenü"
 
-#: /workspace/src/window.vala:85
+#: /workspace/src/window.vala:86
 msgid "Host Overview"
 msgstr "Host-Übersicht"
 
-#: /workspace/src/window.vala:86
+#: /workspace/src/window.vala:87
 msgid "Overall CPU and RAM usage on your host machine"
 msgstr "Gesamte Prozessor- und Speicherauslastung des Host-Systems"
 
-#: /workspace/src/window.vala:91
+#: /workspace/src/window.vala:92
 msgid "CPU Usage"
 msgstr "CPU-Auslastung"
 
-#: /workspace/src/window.vala:92
+#: /workspace/src/window.vala:93
 msgid "Host CPU load: --%"
 msgstr "Host-CPU-Auslastung: --%"
 
-#: /workspace/src/window.vala:100
+#: /workspace/src/window.vala:101
 msgid "Memory (RAM)"
 msgstr "Arbeitsspeicher (RAM)"
 
-#: /workspace/src/window.vala:101
+#: /workspace/src/window.vala:102
 msgid "Host RAM: -- / -- GB"
 msgstr "Host-RAM: -- / -- GB"
 
-#: /workspace/src/window.vala:109
+#: /workspace/src/window.vala:110
 msgid "Virtual Machines"
 msgstr "Virtuelle Maschinen"
 
-#: /workspace/src/window.vala:110
+#: /workspace/src/window.vala:111
 msgid "Status, resource consumption and controls"
 msgstr "Status, Ressourcenverbrauch und Steuerung"
 
-#: /workspace/src/window.vala:114
+#: /workspace/src/window.vala:115
 msgid "No Virtual Machines"
 msgstr "Keine virtuellen Maschinen"
 
-#: /workspace/src/window.vala:115
+#: /workspace/src/window.vala:116
 msgid "Click the + button above to register your first virtual machine"
 msgstr "Klicken Sie oben auf +, um Ihre erste virtuelle Maschine hinzuzufügen"
 
-#: /workspace/src/window.vala:150
+#: /workspace/src/window.vala:151
 #, c-format
 msgid "Registered '%s'"
 msgstr "'%s' registriert"
 
-#: /workspace/src/window.vala:170
+#: /workspace/src/window.vala:171
 msgid "Select ISO Disk Image"
 msgstr "ISO-Abbild auswählen"
 
-#: /workspace/src/window.vala:173
+#: /workspace/src/window.vala:174
 msgid "Disk Images (*.iso)"
 msgstr "Datenträgerabbilder (*.iso)"
 
-#: /workspace/src/window.vala:197
+#: /workspace/src/window.vala:198
 #, c-format
 msgid "Inserted '%s' into %s"
 msgstr "'%s' in %s eingelegt"
 
-#: /workspace/src/window.vala:215
+#: /workspace/src/window.vala:216
 #, c-format
 msgid "Ejected optical media from %s"
 msgstr "Medium aus %s ausgeworfen"
 
-#: /workspace/src/window.vala:220
+#: /workspace/src/window.vala:221
 #, c-format
 msgid "Starting %s…"
 msgstr "%s wird gestartet…"
 
-#: /workspace/src/window.vala:230
+#: /workspace/src/window.vala:231
 #, c-format
 msgid "Stopping %s…"
 msgstr "%s wird gestoppt…"
 
-#: /workspace/src/window.vala:248
+#: /workspace/src/window.vala:249
 #, c-format
 msgid "Remove '%s'?"
 msgstr "'%s' entfernen?"
 
-#: /workspace/src/window.vala:249
+#: /workspace/src/window.vala:250
 msgid ""
 "The virtual machine will be removed from Rigs. Your files and VM disk on the "
 "host will remain untouched."
 msgstr "Die virtuelle Maschine wird aus Rigs entfernt. Dateien und Datenträger auf dem Host bleiben unverändert."
 
-#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+#: /workspace/src/window.vala:252 /workspace/src/add_dialog.vala:36
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+#: /workspace/src/window.vala:253 /workspace/src/vm_card.vala:124
 msgid "Remove"
 msgstr "Entfernen"
 
-#: /workspace/src/window.vala:288
+#: /workspace/src/window.vala:289
 #, c-format
 msgid "Removed '%s'"
 msgstr "'%s' entfernt"
 
-#: /workspace/src/window.vala:289
+#: /workspace/src/window.vala:290
 msgid "Undo"
 msgstr "Rückgängig"
 
-#: /workspace/src/window.vala:301
+#: /workspace/src/window.vala:302
 #, c-format
 msgid "Host CPU load: %.1f%%"
 msgstr "Host-CPU-Auslastung: %.1f%%"
 
-#: /workspace/src/window.vala:304
+#: /workspace/src/window.vala:305
 #, c-format
 msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
 msgstr "Host-RAM: %.2f / %.1f GB (%.0f%%)"

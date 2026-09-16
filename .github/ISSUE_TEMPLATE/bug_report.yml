@@ -1,0 +1,76 @@
+name: "Bug Report"
+description: "Report a problem, crash, or unexpected behavior in Rigs"
+title: "[Bug]: "
+labels: ["bug", "triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue with Rigs!
+        To help us resolve the issue quickly across different distribution channels (Snap, Flatpak, Native source build), please fill in this report.
+        
+        💡 **Tip:** You can obtain full system & package diagnostics in one click:
+        - **In GUI:** Click Menu ☰ -> **About Rigs** -> **Troubleshooting / Copy Debug Information**
+        - **In CLI:** Run `rigs --debug-info`
+
+  - type: dropdown
+    id: distribution
+    attributes:
+      label: "Distribution / Installation Method"
+      description: "How did you install Rigs?"
+      options:
+        - "Snap package (Snap Store)"
+        - "Flatpak (Flathub / local build)"
+        - "Native binary (meson install / ./build.sh)"
+        - "Compiled manually from git source"
+        - "Other / Distribution package"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Describe the bug"
+      description: "A clear and concise description of what the bug is."
+      placeholder: "e.g. When hot-swapping an ISO disk image in a running QEMU VM, the card shows an error..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: "How can we reproduce the problem?"
+      placeholder: |
+        1. Open Rigs
+        2. Click 'Add Virtual Machine'
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      description: "What did you expect to happen instead?"
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: "System Diagnostics Report"
+      description: "Paste the output from 'About Rigs -> Troubleshooting' or `rigs --debug-info` here."
+      render: markdown
+      placeholder: |
+        === Rigs Diagnostics Report ===
+        ### Application
+        - Version: ...
+        ### Packaging & Distribution
+        - Channel: ...
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Terminal / Console Output or Logs"
+      description: "If Rigs was launched from the terminal or crashed, paste relevant output here."
+      render: shell

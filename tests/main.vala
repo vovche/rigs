@@ -17,5 +17,7 @@ int main(string[] args) {
     Test.add_func("/drivers/qemu_stopped_status", TestDrivers.test_qemu_stopped_status);
     Test.add_func("/drivers/compose_stopped_status", TestDrivers.test_compose_stopped_status);
 
+    Test.add_func("/diagnostics/report", TestDiagnostics.test_diagnostics_report);
+
     return Test.run();
 }

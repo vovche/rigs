@@ -42,7 +42,9 @@ test_sources = [
   'tests/main.vala',
   'tests/test_models.vala',
   'tests/test_drivers.vala',
+  'tests/test_diagnostics.vala',
   'src/vm_model.vala',
+  'src/system_diagnostics.vala',
   'src/drivers/driver.vala',
   'src/drivers/qemu_driver.vala',
   'src/drivers/compose_driver.vala',
@@ -52,6 +54,8 @@ test_sources = [
 test_exe = executable('rigs-tests',
   test_sources,
   dependencies: [
+    gtk_dep,
+    adw_dep,
     glib_dep,
     gio_dep,
     json_dep,

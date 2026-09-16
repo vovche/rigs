@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Rigs 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 00:27+0000\n"
-"PO-Revision-Date: 2026-09-16 00:27+0000\n"
+"POT-Creation-Date: 2026-09-16 00:32+0000\n"
+"PO-Revision-Date: 2026-09-16 00:32+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: sl\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);\n"
 "n%100==4 ? 2 : 3);\n"
 
-#: /workspace/src/application.vala:67
+#: /workspace/src/application.vala:76
 msgid ""
 "Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
 msgstr "Bliskovito hitro, domače središče navideznih računalnikov in vsebnikov za GNOME, napisano v Vali."
@@ -36,124 +36,128 @@ msgid "Add Virtual Machine (Ctrl+N)"
 msgstr "Dodaj navidezni računalnik (Ctrl+N)"
 
 #: /workspace/src/window.vala:54
+msgid "Report an Issue"
+msgstr "Prijavi težavo"
+
+#: /workspace/src/window.vala:55
 msgid "About Rigs"
 msgstr "O programu Rigs"
 
-#: /workspace/src/window.vala:55
+#: /workspace/src/window.vala:56
 msgid "Quit"
 msgstr "Končaj"
 
-#: /workspace/src/window.vala:59
+#: /workspace/src/window.vala:60
 msgid "Main Menu"
 msgstr "Glavni meni"
 
-#: /workspace/src/window.vala:85
+#: /workspace/src/window.vala:86
 msgid "Host Overview"
 msgstr "Pregled gostitelja"
 
-#: /workspace/src/window.vala:86
+#: /workspace/src/window.vala:87
 msgid "Overall CPU and RAM usage on your host machine"
 msgstr "Splošna poraba procesorja in pomnilnika gostiteljskega sistema"
 
-#: /workspace/src/window.vala:91
+#: /workspace/src/window.vala:92
 msgid "CPU Usage"
 msgstr "Poraba procesorja"
 
-#: /workspace/src/window.vala:92
+#: /workspace/src/window.vala:93
 msgid "Host CPU load: --%"
 msgstr "Obremenitev procesorja gostitelja: --%"
 
-#: /workspace/src/window.vala:100
+#: /workspace/src/window.vala:101
 msgid "Memory (RAM)"
 msgstr "Delovni pomnilnik (RAM)"
 
-#: /workspace/src/window.vala:101
+#: /workspace/src/window.vala:102
 msgid "Host RAM: -- / -- GB"
 msgstr "RAM gostitelja: -- / -- GB"
 
-#: /workspace/src/window.vala:109
+#: /workspace/src/window.vala:110
 msgid "Virtual Machines"
 msgstr "Navidezni računalniki"
 
-#: /workspace/src/window.vala:110
+#: /workspace/src/window.vala:111
 msgid "Status, resource consumption and controls"
 msgstr "Stanje, poraba virov in nadzor"
 
-#: /workspace/src/window.vala:114
+#: /workspace/src/window.vala:115
 msgid "No Virtual Machines"
 msgstr "Ni navideznih računalnikov"
 
-#: /workspace/src/window.vala:115
+#: /workspace/src/window.vala:116
 msgid "Click the + button above to register your first virtual machine"
 msgstr "Kliknite zgornji gumb + za dodajanje prvega navideznega računalnika"
 
-#: /workspace/src/window.vala:150
+#: /workspace/src/window.vala:151
 #, c-format
 msgid "Registered '%s'"
 msgstr "Registrirano '%s'"
 
-#: /workspace/src/window.vala:170
+#: /workspace/src/window.vala:171
 msgid "Select ISO Disk Image"
 msgstr "Izberite sliko diska ISO"
 
-#: /workspace/src/window.vala:173
+#: /workspace/src/window.vala:174
 msgid "Disk Images (*.iso)"
 msgstr "Slike diskov (*.iso)"
 
-#: /workspace/src/window.vala:197
+#: /workspace/src/window.vala:198
 #, c-format
 msgid "Inserted '%s' into %s"
 msgstr "Vstavljeno '%s' v %s"
 
-#: /workspace/src/window.vala:215
+#: /workspace/src/window.vala:216
 #, c-format
 msgid "Ejected optical media from %s"
 msgstr "Medij izvržen iz %s"
 
-#: /workspace/src/window.vala:220
+#: /workspace/src/window.vala:221
 #, c-format
 msgid "Starting %s…"
 msgstr "Zagon %s…"
 
-#: /workspace/src/window.vala:230
+#: /workspace/src/window.vala:231
 #, c-format
 msgid "Stopping %s…"
 msgstr "Ustavljanje %s…"
 
-#: /workspace/src/window.vala:248
+#: /workspace/src/window.vala:249
 #, c-format
 msgid "Remove '%s'?"
 msgstr "Odstrani '%s'?"
 
-#: /workspace/src/window.vala:249
+#: /workspace/src/window.vala:250
 msgid ""
 "The virtual machine will be removed from Rigs. Your files and VM disk on the "
 "host will remain untouched."
 msgstr "Navidezni računalnik bo odstranjen iz Rigs. Vaše datoteke in disk na gostitelju bodo ostali nedotaknjeni."
 
-#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+#: /workspace/src/window.vala:252 /workspace/src/add_dialog.vala:36
 msgid "Cancel"
 msgstr "Prekliči"
 
-#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+#: /workspace/src/window.vala:253 /workspace/src/vm_card.vala:124
 msgid "Remove"
 msgstr "Odstrani"
 
-#: /workspace/src/window.vala:288
+#: /workspace/src/window.vala:289
 #, c-format
 msgid "Removed '%s'"
 msgstr "Odstranjeno '%s'"
 
-#: /workspace/src/window.vala:289
+#: /workspace/src/window.vala:290
 msgid "Undo"
 msgstr "Razveljavi"
 
-#: /workspace/src/window.vala:301
+#: /workspace/src/window.vala:302
 #, c-format
 msgid "Host CPU load: %.1f%%"
 msgstr "Obremenitev procesorja gostitelja: %.1f%%"
 
-#: /workspace/src/window.vala:304
+#: /workspace/src/window.vala:305
 #, c-format
 msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
 msgstr "RAM gostitelja: %.2f / %.1f GB (%.0f%%)"

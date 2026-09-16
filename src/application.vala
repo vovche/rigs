@@ -40,6 +40,10 @@ namespace Rigs {
             about_action.activate.connect(show_about);
             this.add_action(about_action);
 
+            var report_action = new SimpleAction("report-issue", null);
+            report_action.activate.connect(open_report_issue);
+            this.add_action(report_action);
+
             var quit_action = new SimpleAction("quit", null);
             quit_action.activate.connect(() => { this.quit(); });
             this.add_action(quit_action);
@@ -58,15 +62,23 @@ namespace Rigs {
             this.set_accels_for_action("app.quit", { "<Control>q", "<Control>w" });
         }
 
+        private void open_report_issue() {
+            var launcher = new Gtk.UriLauncher("https://github.com/vovche/rigs/issues/new/choose");
+            launcher.launch.begin(this.active_window, null);
+        }
+
         private void show_about() {
             var about = new Adw.AboutDialog();
             about.application_name = "Rigs";
-            about.application_icon = "utilities-system-monitor";
+            about.application_icon = "io.github.vovche.Rigs";
             about.developer_name = "vovche";
             about.version = "1.0.0";
             about.comments = _("Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala.");
             about.website = "https://github.com/vovche/rigs";
+            about.issue_url = "https://github.com/vovche/rigs/issues/new/choose";
             about.license_type = Gtk.License.APACHE_2_0;
+            about.debug_info = SystemDiagnostics.get_report();
+            about.debug_info_filename = "rigs-diagnostics.txt";
 
             about.present(this.active_window);
         }

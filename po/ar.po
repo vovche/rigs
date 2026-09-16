@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Rigs 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 00:27+0000\n"
-"PO-Revision-Date: 2026-09-16 00:27+0000\n"
+"POT-Creation-Date: 2026-09-16 00:32+0000\n"
+"PO-Revision-Date: 2026-09-16 00:32+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: ar\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /workspace/src/application.vala:67
+#: /workspace/src/application.vala:76
 msgid ""
 "Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala."
 msgstr "مركز أصلي فائق السرعة لإدارة الأجهزة الافتراضية والحاويات لبيئة جنوم مكتوب بلغة فالا."
@@ -34,124 +34,128 @@ msgid "Add Virtual Machine (Ctrl+N)"
 msgstr "إضافة جهاز افتراضي (Ctrl+N)"
 
 #: /workspace/src/window.vala:54
+msgid "Report an Issue"
+msgstr "الإبلاغ عن مشكلة"
+
+#: /workspace/src/window.vala:55
 msgid "About Rigs"
 msgstr "حول Rigs"
 
-#: /workspace/src/window.vala:55
+#: /workspace/src/window.vala:56
 msgid "Quit"
 msgstr "إنهاء"
 
-#: /workspace/src/window.vala:59
+#: /workspace/src/window.vala:60
 msgid "Main Menu"
 msgstr "القائمة الرئيسية"
 
-#: /workspace/src/window.vala:85
+#: /workspace/src/window.vala:86
 msgid "Host Overview"
 msgstr "نظرة عامة على المضيف"
 
-#: /workspace/src/window.vala:86
+#: /workspace/src/window.vala:87
 msgid "Overall CPU and RAM usage on your host machine"
 msgstr "الاستخدام العام للمعالج والذاكرة على الجهاز المضيف"
 
-#: /workspace/src/window.vala:91
+#: /workspace/src/window.vala:92
 msgid "CPU Usage"
 msgstr "استخدام المعالج"
 
-#: /workspace/src/window.vala:92
+#: /workspace/src/window.vala:93
 msgid "Host CPU load: --%"
 msgstr "حمولة معالج المضيف: --%"
 
-#: /workspace/src/window.vala:100
+#: /workspace/src/window.vala:101
 msgid "Memory (RAM)"
 msgstr "الذاكرة العشوائية (RAM)"
 
-#: /workspace/src/window.vala:101
+#: /workspace/src/window.vala:102
 msgid "Host RAM: -- / -- GB"
 msgstr "ذاكرة المضيف: -- / -- غيغابايت"
 
-#: /workspace/src/window.vala:109
+#: /workspace/src/window.vala:110
 msgid "Virtual Machines"
 msgstr "الأجهزة الافتراضية"
 
-#: /workspace/src/window.vala:110
+#: /workspace/src/window.vala:111
 msgid "Status, resource consumption and controls"
 msgstr "الحالة واستهلاك الموارد وأزرار التحكم"
 
-#: /workspace/src/window.vala:114
+#: /workspace/src/window.vala:115
 msgid "No Virtual Machines"
 msgstr "لا توجد أجهزة افتراضية"
 
-#: /workspace/src/window.vala:115
+#: /workspace/src/window.vala:116
 msgid "Click the + button above to register your first virtual machine"
 msgstr "انقر فوق الزر + أعلاه لإضافة أول جهاز افتراضي"
 
-#: /workspace/src/window.vala:150
+#: /workspace/src/window.vala:151
 #, c-format
 msgid "Registered '%s'"
 msgstr "تم تسجيل '%s'"
 
-#: /workspace/src/window.vala:170
+#: /workspace/src/window.vala:171
 msgid "Select ISO Disk Image"
 msgstr "اختر صورة قرص ISO"
 
-#: /workspace/src/window.vala:173
+#: /workspace/src/window.vala:174
 msgid "Disk Images (*.iso)"
 msgstr "صور الأقراص (*.iso)"
 
-#: /workspace/src/window.vala:197
+#: /workspace/src/window.vala:198
 #, c-format
 msgid "Inserted '%s' into %s"
 msgstr "تم إدخال '%s' في %s"
 
-#: /workspace/src/window.vala:215
+#: /workspace/src/window.vala:216
 #, c-format
 msgid "Ejected optical media from %s"
 msgstr "تم إخراج القرص من %s"
 
-#: /workspace/src/window.vala:220
+#: /workspace/src/window.vala:221
 #, c-format
 msgid "Starting %s…"
 msgstr "جارٍ تشغيل %s…"
 
-#: /workspace/src/window.vala:230
+#: /workspace/src/window.vala:231
 #, c-format
 msgid "Stopping %s…"
 msgstr "جارٍ إيقاف %s…"
 
-#: /workspace/src/window.vala:248
+#: /workspace/src/window.vala:249
 #, c-format
 msgid "Remove '%s'?"
 msgstr "هل تريد إزالة '%s'؟"
 
-#: /workspace/src/window.vala:249
+#: /workspace/src/window.vala:250
 msgid ""
 "The virtual machine will be removed from Rigs. Your files and VM disk on the "
 "host will remain untouched."
 msgstr "ستتم إزالة الجهاز الافتراضي من Rigs. ستبقى ملفاتك وقرص الجهاز على المضيف دون تغيير."
 
-#: /workspace/src/window.vala:251 /workspace/src/add_dialog.vala:36
+#: /workspace/src/window.vala:252 /workspace/src/add_dialog.vala:36
 msgid "Cancel"
 msgstr "إلغاء"
 
-#: /workspace/src/window.vala:252 /workspace/src/vm_card.vala:124
+#: /workspace/src/window.vala:253 /workspace/src/vm_card.vala:124
 msgid "Remove"
 msgstr "إزالة"
 
-#: /workspace/src/window.vala:288
+#: /workspace/src/window.vala:289
 #, c-format
 msgid "Removed '%s'"
 msgstr "تمت إزالة '%s'"
 
-#: /workspace/src/window.vala:289
+#: /workspace/src/window.vala:290
 msgid "Undo"
 msgstr "تراجع"
 
-#: /workspace/src/window.vala:301
+#: /workspace/src/window.vala:302
 #, c-format
 msgid "Host CPU load: %.1f%%"
 msgstr "حمولة معالج المضيف: %.1f%%"
 
-#: /workspace/src/window.vala:304
+#: /workspace/src/window.vala:305
 #, c-format
 msgid "Host RAM: %.2f / %.1f GB (%.0f%%)"
 msgstr "ذاكرة المضيف: %.2f / %.1f غيغابايت (%.0f%%)"

@@ -17,6 +17,8 @@ namespace Rigs {
             drivers = new HashTable<string, Driver>(str_hash, str_equal);
             register_driver(new QemuDriver());
             register_driver(new ComposeDriver());
+            register_driver(new ManagedDriver("container"));
+            register_driver(new ManagedDriver("libvirt"));
         }
 
         public void register_driver(Driver driver) {
@@ -26,8 +28,7 @@ namespace Rigs {
         public Driver? get_driver(string vm_type) {
             Driver? drv = drivers.lookup(vm_type);
             if (drv == null) {
-                // Default fallback to compose
-                return drivers.lookup("compose");
+                return null;
             }
             return drv;
         }

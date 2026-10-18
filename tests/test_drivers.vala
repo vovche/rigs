@@ -29,9 +29,7 @@ namespace Rigs.Tests {
         public static void test_fallback_driver_lookup() {
             var registry = DriverRegistry.get_default();
             var driver = registry.get_driver("unknown_driver_type");
-            assert(driver != null);
-            // Default fallback is compose
-            assert(driver.vm_type == "compose");
+            assert(driver == null);
         }
 
         public static void test_qemu_stopped_status() {

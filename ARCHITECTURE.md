@@ -51,14 +51,13 @@ To support diverse hypervisor and container runtimes seamlessly without coupling
   A singleton registry that registers available drivers and maps `vm_type` ("qemu", "compose") to their respective concrete implementations, with graceful fallback.
 
 - **`QemuDriver` (`src/drivers/qemu_driver.vala`):**
-  - Manages direct QEMU/KVM processes.
+  - Manages explicitly configured QEMU/KVM scripts. Host procfs monitoring requires native/classic deployment; sandboxed users should use libvirt.
   - Communicates with the QEMU Monitor socket via UNIX domain sockets (`socat`) to issue `system_powerdown`, `change cdrom <path>`, and `eject -f cdrom`.
   - Parses `/proc/[pid]/statm` for resident set size (RSS) memory consumption.
 
 - **`ComposeDriver` (`src/drivers/compose_driver.vala`):**
   - Controls Podman and Docker Compose stacks (`podman compose up -d` / `down`).
-  - Queries authoritative status via `podman inspect -f '{{.State.Running}}'` to avoid empty metric false-negatives.
-  - Fetches memory and CPU metrics via `podman stats --no-stream --format json`.
+  - Queries authoritative status and metrics through the configured Podman/Docker runtime using HostCommand. Unreachable and stopped are separate states.
 
 ### 2.2 Telemetry & Sparkline Engine (`src/sparkline.vala`, `src/monitor.vala`)
 Inspired by the clean aesthetic of **GNOME Resources**:
@@ -78,7 +77,7 @@ Rigs allows developers and system administrators to hot-swap boot media and inst
 4. "Eject" safely unmounts the disk image (`eject -f cdrom`).
 
 ### 2.4 State & Configuration Persistence (`src/vm_model.vala`)
-- **VM Definitions (`~/.config/rigs/vms.json`):** Human-editable JSON format. Seeded on first run with predefined local VM entries; there is no system-wide resource discovery. Optional `qmp_socket` (host Unix socket path) and `guest_os` (`windows` or `linux`) enable guest RAM telemetry.
+- **VM Definitions (`~/.config/rigs/vms.json`):** Human-editable JSON format. Missing/empty configuration starts empty; malformed configuration is preserved and blocks registration. No personal VM entries are shipped. Optional `qmp_socket` (host Unix socket path) and `guest_os` (`windows` or `linux`) enable guest RAM telemetry.
 - **Session State (`~/.config/rigs/state.json`):** Tracks window size, maximized state, and which VM cards were expanded by the user, preserving the layout between desktop restarts.
 
 ---
@@ -119,3 +118,28 @@ rigs/
 ├── meson.build                           # Root build configuration
 └── README.md                             # Project overview and quick start
 ```
+
+## 4. Discovery and host access
+
+`HostCommand` owns executable argv, working directories, locale and deadlines.
+Native/classic deployment executes directly. Flatpak wraps host commands with
+`flatpak-spawn --host --watch-bus`. Strict Snap permits only the connected Docker
+Snap executable; absent connections are explicit failures, never an empty host.
+No command transport uses process-name/global kill for timeout cleanup.
+
+`ResourceDiscovery.scan(existing)` returns candidates plus per-source connection
+status. Four bounded inventory queries cover Podman, Docker, libvirt session and
+system. Stable IDs and legacy container names suppress duplicates. It performs
+no persistence/lifecycle changes. `DiscoveryDialog` runs it off the main thread;
+registration is explicit. Existing configuration is not migrated or replaced.
+
+`ManagedDriver` controls discovered containers by engine + full ID and libvirt
+domains by local URI + UUID. It never invents shell commands from labels or
+names, destroys domains, removes containers, or stops an entire Compose project.
+Unknown driver kinds return null. Legacy scripts remain an explicit manual path.
+
+Guest integration has diagnostic states independent from host RAM. QMP checks
+that balloon0 exists; libvirt uses live dommemstat polling. Windows/Linux
+counter semantics remain distinct. `GuestToolsDialog` configures the OS/channel
+and provides official driver/setup guidance, without claiming driver absence
+from missing statistics or automatically installing/restarting anything.

@@ -72,7 +72,7 @@ namespace Rigs {
 
             dir_row = new Adw.EntryRow();
             dir_row.title = _("Working Directory");
-            dir_row.text = "/home/why/src/vms/";
+            dir_row.text = Environment.get_home_dir();
             var browse_btn = new Gtk.Button.from_icon_name("folder-open-symbolic");
             browse_btn.add_css_class("flat");
             browse_btn.tooltip_text = _("Browse Directory");
@@ -147,7 +147,7 @@ namespace Rigs {
                 type_row.selected = 1;
                 id_row.text = basename + "-qemu";
                 start_row.text = "./run-vm.sh";
-                stop_row.text = "pkill -f " + basename + "-qemu";
+                stop_row.text = "";
                 connect_row.text = "remote-viewer spice://127.0.0.1:5930";
             }
         }
@@ -162,7 +162,7 @@ namespace Rigs {
             } else {
                 id_row.title = _("Process Name");
                 start_row.text = "./run-vm.sh";
-                stop_row.text = "pkill -f ...";
+                stop_row.text = "";
                 connect_row.text = "remote-viewer spice://127.0.0.1:5930";
             }
         }
@@ -172,10 +172,9 @@ namespace Rigs {
             if (name.length == 0) return;
 
             bool is_compose = (type_row.selected == 0);
-            string slug = name.down().replace(" ", "_");
 
             var vm = new VmModel();
-            vm.id = slug;
+            vm.id = Uuid.string_random();
             vm.name = name;
             vm.subtitle = sub_row.text.strip();
             vm.vm_type = is_compose ? "compose" : "qemu";
@@ -190,7 +189,6 @@ namespace Rigs {
                 vm.container_name = id_row.text.strip();
             } else {
                 vm.process_name = id_row.text.strip();
-                vm.monitor_socket = "/tmp/" + slug + "-monitor.sock";
             }
 
             this.close();

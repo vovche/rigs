@@ -18,10 +18,10 @@ namespace Rigs {
         public void start(VmModel vm) {
             new Thread<void*>("qemu-starter", () => {
                 try {
-                    string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
+                    string? working_dir = vm.dir.length > 0 ? vm.dir : null;
                     string cmd = (vm.start_cmd.length > 0) ? vm.start_cmd : "./run-vm.sh";
                     string[] argv = { "/bin/bash", "-c", cmd };
-                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH, null, null);
+                    new HostCommand().launch(argv, working_dir);
                 } catch (Error e) {
                     warning("Failed to start QEMU VM: %s", e.message);
                 }
@@ -32,19 +32,16 @@ namespace Rigs {
         public void stop(VmModel vm) {
             new Thread<void*>("qemu-stopper", () => {
                 try {
-                    if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                        string py_cmd = "python3 -c \"import socket; s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM); s.connect('" + vm.monitor_socket + "'); s.sendall(b'system_powerdown\\n'); s.close()\" 2>/dev/null || true";
-                        string[] argv = { "/bin/bash", "-c", py_cmd };
-                        Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
-                        Thread.usleep(1500 * 1000);
+                    var host = new HostCommand();
+                    string? directory = vm.dir.length > 0 ? vm.dir : null;
+                    if (vm.stop_cmd.length > 0) {
+                        host.run({"/bin/bash", "-c", vm.stop_cmd}, directory, 120000);
+                    } else if (vm.monitor_socket.length > 0) {
+                        host.run({"python3", "-c",
+                            "import socket,sys; s=socket.socket(socket.AF_UNIX); s.settimeout(1); s.connect(sys.argv[1]); s.sendall(b'system_powerdown\\n'); s.close()",
+                            vm.monitor_socket}, directory);
                     }
-                    if (vm.process_name.length > 0) {
-                        string[] argv = { "/bin/bash", "-c", "pkill -f " + vm.process_name };
-                        Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
-                    }
-                } catch (Error e) {
-                    warning("Failed to stop QEMU VM: %s", e.message);
-                }
+                } catch (Error e) { warning("Failed to stop QEMU VM: %s", e.message); }
                 return null;
             });
         }
@@ -52,9 +49,9 @@ namespace Rigs {
         public void connect_vm(VmModel vm) {
             if (vm.connect_cmd.length > 0) {
                 try {
-                    string? working_dir = (vm.dir.length > 0 && FileUtils.test(vm.dir, FileTest.IS_DIR)) ? vm.dir : null;
+                    string? working_dir = vm.dir.length > 0 ? vm.dir : null;
                     string[] argv = { "/bin/bash", "-c", vm.connect_cmd };
-                    Process.spawn_async(working_dir, argv, null, SpawnFlags.SEARCH_PATH, null, null);
+                    new HostCommand().launch(argv, working_dir);
                 } catch (Error e) {
                     warning("Failed to connect QEMU VM: %s", e.message);
                 }
@@ -67,6 +64,11 @@ namespace Rigs {
             st.cpu_pct = 0.0;
             st.ram_str = "0 MB";
 
+            // Direct process monitoring requires the host procfs. Sandboxed
+            // deployments should use libvirt's stable domain interface.
+            string mode = new HostCommand().mode;
+            if (mode != "native" && mode != "snap-classic") return st;
+            st.status_available = true;
             if (vm.process_name.length == 0) return st;
 
             try {
@@ -215,7 +217,7 @@ namespace Rigs {
                     try {
                         string cmd = "echo 'change cdrom " + iso_path + "' | socat - UNIX-CONNECT:" + vm.monitor_socket;
                         string[] argv = { "/bin/bash", "-c", cmd };
-                        Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
+                        new HostCommand().run(argv, vm.dir.length > 0 ? vm.dir : null);
                     } catch (Error e) {
                         warning("Failed to hot-insert ISO: %s", e.message);
                     }
@@ -230,7 +232,7 @@ namespace Rigs {
                     try {
                         string cmd = "echo 'eject -f cdrom' | socat - UNIX-CONNECT:" + vm.monitor_socket;
                         string[] argv = { "/bin/bash", "-c", cmd };
-                        Process.spawn_sync(null, argv, null, SpawnFlags.SEARCH_PATH, null, null, null, null);
+                        new HostCommand().run(argv, vm.dir.length > 0 ? vm.dir : null);
                     } catch (Error e) {
                         warning("Failed to hot-eject ISO: %s", e.message);
                     }

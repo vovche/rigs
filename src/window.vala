@@ -33,6 +33,9 @@ namespace Rigs {
 
             load_window_state();
             build_ui();
+            if (vms.length == 0 && ConfigManager.load_error == null) {
+                Idle.add(() => { open_discovery_dialog(); return Source.REMOVE; });
+            }
 
             this.notify["default-width"].connect(() => { save_window_state(); });
             this.notify["default-height"].connect(() => { save_window_state(); });
@@ -86,6 +89,10 @@ namespace Rigs {
             add_btn.update_property(Gtk.AccessibleProperty.LABEL, _("Add Virtual Machine"));
             add_btn.clicked.connect(open_add_dialog);
             header.pack_start(add_btn);
+            var discover_btn = new Gtk.Button.from_icon_name("system-search-symbolic");
+            discover_btn.tooltip_text = _("Find Resources");
+            discover_btn.clicked.connect(open_discovery_dialog);
+            header.pack_start(discover_btn);
 
             var menu = new Menu();
             menu.append(_("Search Virtual Machines"), "win.search");
@@ -166,13 +173,13 @@ namespace Rigs {
             empty_status_page = new Adw.StatusPage();
             empty_status_page.icon_name = "utilities-system-monitor-symbolic";
             empty_status_page.title = _("No Virtual Machines");
-            empty_status_page.description = _("Register a QEMU micro-VM or Docker/Podman container to get started");
+            empty_status_page.description = _("Find existing containers and virtual machines, or add a machine manually.");
 
-            var empty_add_btn = new Gtk.Button.with_label(_("Add Virtual Machine"));
+            var empty_add_btn = new Gtk.Button.with_label(_("Find Resources"));
             empty_add_btn.add_css_class("suggested-action");
             empty_add_btn.add_css_class("pill");
             empty_add_btn.halign = Gtk.Align.CENTER;
-            empty_add_btn.clicked.connect(open_add_dialog);
+            empty_add_btn.clicked.connect(open_discovery_dialog);
             empty_status_page.set_child(empty_add_btn);
             empty_group.add(empty_status_page);
             page.add(empty_group);
@@ -205,6 +212,11 @@ namespace Rigs {
             card.remove_requested.connect((v) => { prompt_remove_vm(v); });
             card.insert_iso_requested.connect((v) => { choose_and_insert_iso(v, card); });
             card.eject_iso_requested.connect((v) => { eject_iso(v, card); });
+            card.guest_tools_requested.connect((v, state) => {
+                var dialog = new GuestToolsDialog(v, state);
+                dialog.settings_saved.connect(() => { ConfigManager.save_vms(vms); monitor.set_vms(vms); });
+                dialog.present(this);
+            });
 
             card.notify["expanded"].connect(() => { save_window_state(); });
 
@@ -213,18 +225,38 @@ namespace Rigs {
         }
 
         public void open_add_dialog() {
+            if (!configuration_ready()) return;
             var dialog = new AddDialog(this);
-            dialog.vm_added.connect((new_vm) => {
-                vms.add(new_vm);
-                ConfigManager.save_vms(vms);
-                render_vm_card(new_vm);
-                update_empty_state();
-                save_window_state();
-
-                var toast = new Adw.Toast(_("Registered '%s'").printf(new_vm.name));
-                toast_overlay.add_toast(toast);
-            });
+            dialog.vm_added.connect(register_resource);
             dialog.present(this);
+        }
+
+        private bool configuration_ready() {
+            if (ConfigManager.load_error == null) return true;
+            var dialog = new Adw.AlertDialog(_("Configuration Needs Attention"), ConfigManager.load_error);
+            dialog.add_response("close", _("Close"));
+            dialog.present(this);
+            return false;
+        }
+
+        public void open_discovery_dialog() {
+            if (!configuration_ready()) return;
+            var dialog = new DiscoveryDialog(vms);
+            dialog.resource_added.connect(register_resource);
+            dialog.present(this);
+        }
+
+        private void register_resource(VmModel vm) {
+            for (int i = 0; i < vms.length; i++) {
+                if (vms[i].id == vm.id) return;
+            }
+            vms.add(vm);
+            monitor.set_vms(vms);
+            ConfigManager.save_vms(vms);
+            render_vm_card(vm);
+            update_empty_state();
+            save_window_state();
+            toast_overlay.add_toast(new Adw.Toast(_("Registered '%s'").printf(vm.name)));
         }
 
         public GenericArray<VmModel> get_vms() {
@@ -402,6 +434,7 @@ namespace Rigs {
 
             VmModel removed = vms[idx];
             vms.remove_index(idx);
+            monitor.set_vms(vms);
             ConfigManager.save_vms(vms);
 
             VmCard card = cards.lookup(removed.id);
@@ -416,7 +449,12 @@ namespace Rigs {
             var toast = new Adw.Toast(_("Removed '%s'").printf(removed.name));
             toast.button_label = _("Undo");
             toast.button_clicked.connect(() => {
-                vms.insert(idx, removed);
+                for (int i = 0; i < vms.length; i++) {
+                    if (vms[i].id == removed.id) return;
+                }
+                int restore_index = idx < (int)vms.length ? idx : (int)vms.length;
+                vms.insert(restore_index, removed);
+                monitor.set_vms(vms);
                 ConfigManager.save_vms(vms);
                 render_vm_card(removed);
                 update_empty_state();

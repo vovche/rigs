@@ -22,12 +22,14 @@ namespace Rigs {
                 sb.append_printf("- Snap Version: %s\n", Environment.get_variable("SNAP_VERSION") ?? "unknown");
                 sb.append_printf("- Snap Revision: %s\n", Environment.get_variable("SNAP_REVISION") ?? "unknown");
                 sb.append_printf("- Snap Architecture: %s\n", Environment.get_variable("SNAP_ARCH") ?? "unknown");
-                sb.append("- Confinement: strict (plugs: system-observe, home, network, removable-media)\n");
+                sb.append_printf("- Host execution: %s\n", new HostCommand().mode);
+                sb.append("- Strict Snap: Docker requires connected docker and docker-executables plugs; arbitrary host tools are unavailable.\n");
                 sb.append_printf("- Snap Root: %s\n", snap);
             } else if (flatpak != null || FileUtils.test("/.flatpak-info", FileTest.EXISTS)) {
                 sb.append("- Channel: Flatpak Sandbox\n");
                 sb.append_printf("- App ID: %s\n", flatpak ?? "unknown");
                 sb.append("- Runtime: GNOME Platform\n");
+                sb.append("- Host execution: flatpak-spawn --host (org.freedesktop.Flatpak permission required)\n");
             } else {
                 sb.append("- Channel: Native Package / Compiled from Source\n");
                 try {
@@ -73,6 +75,8 @@ namespace Rigs {
             check_binary(sb, "Podman", "podman");
             check_binary(sb, "Docker", "docker");
             check_binary(sb, "Docker Compose", "docker-compose");
+            check_binary(sb, "libvirt CLI", "virsh");
+            sb.append("- Binary paths above describe the application environment; discovery probes the permitted runtime connection.\n");
 
             bool kvm_exists = FileUtils.test("/dev/kvm", FileTest.EXISTS);
             if (kvm_exists) {

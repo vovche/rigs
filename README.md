@@ -21,25 +21,62 @@ Designed as an ultra-fast, zero-overhead hub for mixed workflows:
   - Native directory picker (`Gtk.FileDialog`) with auto-detection of `compose.yaml` or `run-vm.sh`.
 - **Live Host Telemetry & Smooth Sparklines:** Real-time host CPU% and RAM usage via direct `/proc` inspection and smooth canvas charts inspired by GNOME Resources.
 - **Optical Drive (ISO) Support:** Hot-plug and eject live ISO images directly to/from QEMU monitor socket without VM restarts.
-- **Comprehensive Internationalization (i18n):** 19 fully translated languages (Ukrainian, English GB & standard fallback, Polish, Czech, French, German, Spanish, Portuguese, Italian, Dutch, Chinese, Japanese, Indonesian, Turkish, Kazakh, Belarusian, Slovenian, Arabic & Hebrew with native RTL support).
+- **Internationalization (i18n):** Translation catalogs for 19 languages (Ukrainian, English GB & standard fallback, Polish, Czech, French, German, Spanish, Portuguese, Italian, Dutch, Chinese, Japanese, Indonesian, Turkish, Kazakh, Belarusian, Slovenian, Arabic & Hebrew with native RTL support).
 - **State Persistence:** Remembers window size, maximized state, and expanded details between launches.
 
 ---
 
+## First launch and resource discovery
+
+A new installation starts without personal machine definitions. The discovery
+window checks Podman, Docker, and both local libvirt connections
+(`qemu:///session`, `qemu:///system`). Select **Add** for each resource you want
+Rigs to manage. **Find Resources** in the header rescans later; manual script
+registration remains available through the Add button.
+
+Discovery lists running and stopped resources accessible to the current user
+and current container-engine context. It never starts/stops resources, installs
+a runtime, elevates privileges, or scans the filesystem recursively. Engine
+aliases and already registered resources are deduplicated. Per-connection
+messages distinguish an empty inventory from missing tooling, permissions,
+connection errors and timeouts. Containers use runtime IDs; libvirt domains
+use URI + UUID. Importing an individual Compose container controls only that
+container, not its whole project.
+
+Existing `vms.json` entries and custom commands are preserved. Empty files/lists
+never recreate sample machines. Malformed configuration is preserved and blocks
+registration until repaired. Unsupported driver types cannot invoke a fallback
+driver. Standalone QEMU scripts stay a manual/native option: observing a process
+does not reveal a reliable persistent start command or safe stop target.
+
+
 ## Installation & Packaging
 
-### Snap Package
-Rigs is packaged as a strict-confinement Snap using the official GNOME extension on `core24`:
-```bash
-snap install rigs
-```
-To build locally with Snapcraft:
-```bash
-snapcraft
+### Native and Flatpak
+`./build.sh` builds, tests and installs the native application. Runtime tools
+(`podman`, `docker`, `virsh`, optional `virt-viewer`) belong on the host.
+The Flatpak manifest is `io.github.vovche.Rigs.yaml`. Discovery and supported
+runtime controls run on the host via `flatpak-spawn --host`; its
+`org.freedesktop.Flatpak` permission is intentional. A denied connection is
+shown in the discovery dialog rather than interpreted as an empty inventory.
+
+### Snap
+`snap/snapcraft.yaml` provides strict Snap packaging with the GNOME extension.
+Strict Snap supports Docker through the Docker Snap's client and socket:
+
+```sh
+sudo snap connect rigs:docker docker:docker-daemon
+sudo snap connect rigs:docker-executables docker:docker-executables
 ```
 
-### Flatpak
-A Flatpak manifest (`io.github.vovche.Rigs.yaml`) targeting GNOME Runtime 46 is provided in the repository root.
+These privileged connections may require a Snap Store declaration. Strict
+confinement does not permit arbitrary host executables: Podman, libvirt and
+custom host scripts require native/classic deployment or a future host broker.
+A classic package, if provided, requires separate Store approval. No published
+Snap/Flathub listing or completed package build is implied by these manifests.
+
+See [Flatpak host execution](https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-spawn)
+and [Snap Docker interfaces](https://snapcraft.io/docs/reference/interfaces/docker-interface/).
 
 ---
 
@@ -49,7 +86,7 @@ A Flatpak manifest (`io.github.vovche.Rigs.yaml`) targeting GNOME Runtime 46 is 
 - `valac` (>= 0.56)
 - `meson` (>= 0.59)
 - `ninja`
-- `libadwaita-1` (>= 1.4)
+- `libadwaita-1` (>= 1.5)
 - `gtk4` (>= 4.10)
 - `json-glib-1.0`
 - `gettext`
@@ -107,3 +144,23 @@ differ slightly from Task Manager due to polling time and rounding.
 
 Protocol: [QEMU balloon statistics](https://www.qemu.org/docs/master/interop/virtio-balloon-stats.html).
 Windows mapping: [VirtIO-Win memory statistics](https://github.com/virtio-win/kvm-guest-drivers-windows/blob/master/Balloon/app/memstat.cpp).
+
+### Guest integration guidance
+
+For QEMU/libvirt VMs, use the setup button beside guest memory to choose the
+OS and configure statistics. Rigs distinguishes an unconfigured channel,
+connection failure, missing `balloon0` device, guest not reporting, stale
+samples, and unsupported counters. The setup dialog links official VirtIO-Win
+downloads and explains the Balloon driver/service. These observations do not
+prove that drivers are missing; Rigs does not install guest software or restart
+VMs automatically. Known dockur/dockurr Windows VM images expose this setup
+action when discovered; generic containers are not treated as Windows VMs.
+
+Libvirt VMs use `virsh dommemstat` with five-second live polling, without a
+separate QMP socket or memory resizing. Select the guest OS before collecting
+these statistics. Native/Flatpak/Snap routing is covered by headless tests;
+Flatpak and Snap installation/build tests remain separate release checks.
+
+Configuration follows `XDG_CONFIG_HOME` (normally `~/.config/rigs`). Flatpak and
+Snap use their own application configuration directories; they do not silently
+import the native configuration or its custom commands.

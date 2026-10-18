@@ -11,11 +11,13 @@ namespace Rigs {
         public signal void remove_requested(VmModel vm);
         public signal void insert_iso_requested(VmModel vm);
         public signal void eject_iso_requested(VmModel vm);
+        public signal void guest_tools_requested(VmModel vm, GuestMemoryState state);
 
         private Gtk.Label status_lbl;
         private Gtk.Button start_btn;
         private Gtk.Button connect_btn;
         private Gtk.Button stop_btn;
+        private Gtk.Button guest_settings_btn;
 
         private Adw.ActionRow cpu_row;
         private SmoothSparkline cpu_sparkline;
@@ -24,12 +26,14 @@ namespace Rigs {
         private SmoothSparkline ram_sparkline;
         private Adw.ActionRow iso_row;
         private Gtk.Button eject_btn;
+        private GuestMemoryState guest_state = GuestMemoryState.NOT_CONFIGURED;
 
         public VmCard(VmModel vm) {
             Object(vm: vm);
         }
 
         construct {
+            this.use_markup = false;
             this.title = vm.name;
             this.subtitle = vm.subtitle;
             this.add_prefix(new Gtk.Image.from_icon_name(vm.icon));
@@ -63,6 +67,10 @@ namespace Rigs {
             stop_btn.visible = false;
             stop_btn.clicked.connect(() => { stop_requested(vm); });
             btn_box.append(stop_btn);
+            guest_settings_btn = new Gtk.Button.from_icon_name("emblem-system-symbolic");
+            guest_settings_btn.tooltip_text = _("Set Up Guest Integration");
+            guest_settings_btn.clicked.connect(() => { guest_tools_requested(vm, guest_state); });
+            btn_box.append(guest_settings_btn);
 
             this.add_suffix(btn_box);
 
@@ -77,7 +85,7 @@ namespace Rigs {
 
             // 2. RAM with Resources-style Bezier sparkline (Vivid Violet)
             ram_row = new Adw.ActionRow();
-            ram_row.title = vm.vm_type == "qemu"
+            ram_row.title = vm.vm_type == "libvirt" ? _("Allocated RAM") : vm.vm_type == "qemu"
                 ? _("Host Memory / Allocated RAM") : _("Host Memory");
             if (vm.vm_type == "qemu") {
                 ram_row.tooltip_text = _("QEMU process memory on the host / RAM allocated to the VM. Usage inside the guest OS is not available.");
@@ -88,7 +96,13 @@ namespace Rigs {
             guest_ram_row = new Adw.ActionRow();
             guest_ram_row.title = _("Guest Memory Usage");
             guest_ram_row.subtitle = _("Guest statistics unavailable");
-            guest_ram_row.visible = vm.qmp_socket.length > 0;
+            guest_ram_row.visible = vm.qmp_socket.length > 0 || vm.vm_type == "qemu" || vm.vm_type == "libvirt" || vm.guest_os.length > 0;
+            guest_settings_btn.visible = !guest_ram_row.visible;
+            var guest_setup = new Gtk.Button.from_icon_name("emblem-system-symbolic");
+            guest_setup.valign = Gtk.Align.CENTER;
+            guest_setup.tooltip_text = _("Set Up Guest Integration");
+            guest_setup.clicked.connect(() => { guest_tools_requested(vm, guest_state); });
+            guest_ram_row.add_suffix(guest_setup);
             ram_sparkline = new SmoothSparkline(0.64, 0.28, 0.96, 25, 130, 32);
             guest_ram_row.add_suffix(ram_sparkline);
             this.add_row(guest_ram_row);
@@ -118,6 +132,7 @@ namespace Rigs {
 
             iso_row.add_suffix(iso_box);
             this.add_row(iso_row);
+            iso_row.visible = vm.vm_type == "qemu";
 
             // 4. Ports & Endpoints
             var endpoint_row = new Adw.ActionRow();
@@ -130,6 +145,7 @@ namespace Rigs {
             dir_row.title = _("Working Directory");
             dir_row.subtitle = (vm.dir.length > 0) ? vm.dir : _("None");
             this.add_row(dir_row);
+            dir_row.visible = vm.dir.length > 0;
 
             // 6. Remove VM
             var remove_row = new Adw.ActionRow();
@@ -153,13 +169,26 @@ namespace Rigs {
         }
 
         public void update_status(VmStatus status) {
+            guest_state = status.guest_memory_state;
+            guest_ram_row.visible = vm.qmp_socket.length > 0 || vm.vm_type == "qemu" || vm.vm_type == "libvirt" || vm.guest_os.length > 0;
+            guest_settings_btn.visible = !guest_ram_row.visible;
+            if (!status.status_available) {
+                status_lbl.label = _("UNAVAILABLE");
+                status_lbl.remove_css_class("status-running");
+                status_lbl.add_css_class("status-stopped");
+                start_btn.visible = stop_btn.visible = connect_btn.visible = false;
+                cpu_row.subtitle = ram_row.subtitle = _("Connection unavailable");
+                guest_ram_row.subtitle = _("Guest statistics unavailable");
+                ram_sparkline.visible = false;
+                return;
+            }
             if (status.running) {
                 status_lbl.label = _("RUNNING");
                 status_lbl.remove_css_class("status-stopped");
                 status_lbl.add_css_class("status-running");
 
                 start_btn.visible = false;
-                connect_btn.visible = true;
+                connect_btn.visible = vm.vm_type == "libvirt" || vm.connect_cmd.length > 0;
                 stop_btn.visible = true;
             } else {
                 status_lbl.label = _("STOPPED");
@@ -180,7 +209,7 @@ namespace Rigs {
             if (status.running && status.guest_ram_valid) {
                 guest_ram_row.subtitle = _("Memory: %s (%.1f%%)").printf(status.guest_ram_str, status.guest_ram_pct);
             } else {
-                guest_ram_row.subtitle = status.running ? _("Guest statistics unavailable") : "0 MB";
+                guest_ram_row.subtitle = status.running ? GuestToolsDialog.describe(guest_state) : "0 MB";
             }
             ram_sparkline.visible = status.running && status.guest_ram_valid;
             ram_sparkline.add_value(status.running && status.guest_ram_valid ? status.guest_ram_pct : 0.0);

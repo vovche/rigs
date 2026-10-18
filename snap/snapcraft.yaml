@@ -21,12 +21,29 @@ apps:
       - network
       - system-observe
       - removable-media
+      - docker
+      - docker-executables
     common-id: io.github.vovche.Rigs
+    environment:
+      PATH: $SNAP/docker-snap/bin:$PATH
+
+plugs:
+  docker:
+    interface: docker
+    label: Manage containers through the Docker Snap
+  docker-executables:
+    interface: content
+    content: docker-executables
+    target: $SNAP/docker-snap
+    default-provider: docker
 
 parts:
   rigs:
     plugin: meson
     source: .
+    override-build: |
+      craftctl default
+      mkdir -p "$CRAFT_PART_INSTALL/docker-snap"
     meson-parameters:
       - --prefix=/usr
     build-packages:

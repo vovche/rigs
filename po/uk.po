@@ -354,3 +354,160 @@ msgstr "Виберіть каталог VM"
 msgid "Process Name"
 msgstr "Назва процесу"
 
+
+msgid "Find Resources"
+msgstr "Знайти ресурси"
+
+msgid "Scan Again"
+msgstr "Сканувати знову"
+
+msgid "Looking for containers and virtual machines…"
+msgstr "Пошук контейнерів і віртуальних машин…"
+
+msgid "Connections"
+msgstr "Підключення"
+
+msgid "Only resources accessible to your current user are listed. Scanning does not change them."
+msgstr "Показано лише ресурси, доступні поточному користувачу. Сканування їх не змінює."
+
+msgid "Connected"
+msgstr "Підключено"
+
+msgid "Available Resources"
+msgstr "Доступні ресурси"
+
+msgid "No new resources found. Check the connections above or add a machine manually."
+msgstr "Нових ресурсів не знайдено. Перевірте підключення вище або додайте машину вручну."
+
+msgid "Choose which resources to add to Rigs. Existing machines and containers keep their current settings."
+msgstr "Виберіть ресурси для додавання до Rigs. Налаштування наявних машин і контейнерів зберігаються."
+
+msgid "Added"
+msgstr "Додано"
+
+msgid "Connect the Docker interfaces in a supported Snap package to discover Docker resources. Podman and libvirt require a native package, classic Snap, or host broker."
+msgstr "Для пошуку ресурсів Docker підключіть інтерфейси Docker у Snap. Для Podman і libvirt потрібен нативний пакунок, classic Snap або посередник на хості."
+
+msgid "This Snap supports Docker through connected Docker interfaces. Podman and libvirt require a native package, classic Snap, or host broker."
+msgstr "Цей Snap підтримує Docker через підключені інтерфейси Docker. Для Podman і libvirt потрібен нативний пакунок, classic Snap або посередник на хості."
+
+msgid "Runtime inventory timed out. Check the runtime connection and try again."
+msgstr "Час очікування списку ресурсів вичерпано. Перевірте підключення й повторіть спробу."
+
+msgid "Runtime command is not installed or unavailable on the host."
+msgstr "Команду середовища не встановлено або вона недоступна на хості."
+
+msgid "Runtime connection is unavailable or access was denied."
+msgstr "Підключення до середовища недоступне або в доступі відмовлено."
+
+msgid "Runtime discovery failed. Check host access and runtime availability."
+msgstr "Не вдалося знайти ресурси. Перевірте доступ до хоста й середовища виконання."
+
+msgid "Runtime returned malformed inventory data; some resources were skipped."
+msgstr "Середовище повернуло некоректний список; деякі ресурси пропущено."
+
+msgid "Runtime inventory is available."
+msgstr "Список ресурсів доступний."
+
+msgid "Guest statistics are connected"
+msgstr "Гостьову статистику підключено"
+
+msgid "Guest statistics need to be configured"
+msgstr "Потрібно налаштувати гостьову статистику"
+
+msgid "Cannot connect to the guest statistics channel"
+msgstr "Не вдалося підключитися до каналу гостьової статистики"
+
+msgid "The balloon0 statistics device is missing"
+msgstr "Пристрій статистики balloon0 відсутній"
+
+msgid "The guest is not reporting statistics yet"
+msgstr "Гостьова ОС ще не надсилає статистику"
+
+msgid "Guest statistics have stopped updating"
+msgstr "Гостьова статистика перестала оновлюватися"
+
+msgid "The guest does not provide the required memory counters"
+msgstr "Гостьова ОС не надає потрібних лічильників пам’яті"
+
+msgid "Guest Integration"
+msgstr "Гостьова інтеграція"
+
+msgid "Save and Check"
+msgstr "Зберегти й перевірити"
+
+msgid "Choose the guest OS. Rigs reads memory statistics through libvirt. Ensure the domain has a VirtIO memory balloon device; use your VM manager to add it if needed, then restart the VM. No separate QMP socket is needed."
+msgstr "Виберіть гостьову ОС. Rigs читає статистику через libvirt. Перевірте наявність пристрою VirtIO Balloon; за потреби додайте його в менеджері VM та перезапустіть машину. Окремий QMP-сокет не потрібен."
+
+msgid "Choose the guest OS and the host path of its QMP socket. Host memory and guest memory are measured separately."
+msgstr "Виберіть гостьову ОС і шлях до її QMP-сокета на хості. Пам’ять хоста та гостьової ОС вимірюється окремо."
+
+msgid "Statistics Connection"
+msgstr "Підключення статистики"
+
+msgid "Guest Operating System"
+msgstr "Гостьова операційна система"
+
+msgid "Choose an operating system"
+msgstr "Виберіть операційну систему"
+
+msgid "QMP Socket on the Host"
+msgstr "QMP-сокет на хості"
+
+msgid "Guest Drivers and Services"
+msgstr "Гостьові драйвери та служби"
+
+msgid "Missing statistics alone do not prove that a driver is missing. Check the connection, device and guest service before installing anything."
+msgstr "Відсутність статистики не доводить відсутність драйвера. Перед встановленням перевірте підключення, пристрій і гостьову службу."
+
+msgid "Windows: VirtIO Balloon Driver"
+msgstr "Windows: драйвер VirtIO Balloon"
+
+msgid "Install the Balloon driver from VirtIO-Win, then check that BalloonService is running. Wait a few seconds for the first sample."
+msgstr "Встановіть драйвер Balloon із VirtIO-Win і перевірте, що BalloonService працює. Зачекайте кілька секунд до першого вимірювання."
+
+msgid "Get VirtIO-Win"
+msgstr "Отримати VirtIO-Win"
+
+msgid "Linux: VirtIO Balloon Driver"
+msgstr "Linux: драйвер VirtIO Balloon"
+
+msgid "Check that the virtio_balloon kernel driver is loaded and the VM has a balloon device. A paused guest may stop reporting statistics."
+msgstr "Перевірте, що драйвер ядра virtio_balloon завантажено, а VM має balloon-пристрій. Призупинена машина може не надсилати статистику."
+
+msgid "QEMU Launch Configuration"
+msgstr "Налаштування запуску QEMU"
+
+msgid "The VM needs a virtio-balloon device named balloon0 and a local QMP socket. Add these options in your VM manager or launch configuration, then restart the VM. Keep any existing balloon device; do not add a duplicate."
+msgstr "VM потрібні пристрій virtio-balloon із назвою balloon0 та локальний QMP-сокет. Додайте параметри в менеджері VM або конфігурації запуску й перезапустіть VM. Якщо balloon-пристрій уже існує, не додавайте другий."
+
+msgid "Allocated RAM"
+msgstr "Виділена RAM"
+
+msgid "Set Up Guest Integration"
+msgstr "Налаштувати гостьову інтеграцію"
+
+msgid "UNAVAILABLE"
+msgstr "НЕДОСТУПНО"
+
+msgid "Connection unavailable"
+msgstr "Підключення недоступне"
+
+msgid "Find existing containers and virtual machines, or add a machine manually."
+msgstr "Знайдіть наявні контейнери й віртуальні машини або додайте машину вручну."
+
+msgid "Configuration Needs Attention"
+msgstr "Потрібно перевірити конфігурацію"
+
+msgid "Close"
+msgstr "Закрити"
+
+
+msgid "The resource configuration must contain a JSON array."
+msgstr "Конфігурація ресурсів має містити JSON-масив."
+
+msgid "The resource configuration could not be read. Repair vms.json or restore a backup."
+msgstr "Не вдалося прочитати конфігурацію ресурсів. Виправте vms.json або відновіть резервну копію."
+
+msgid "The resource configuration contains invalid or duplicate entries. Repair vms.json or restore a backup."
+msgstr "Конфігурація містить некоректні або повторювані записи. Виправте vms.json або відновіть резервну копію."

@@ -16,7 +16,7 @@ add_project_arguments([
 ], language: 'c')
 
 gtk_dep = dependency('gtk4', version: '>= 4.10')
-adw_dep = dependency('libadwaita-1', version: '>= 1.4')
+adw_dep = dependency('libadwaita-1', version: '>= 1.5')
 json_dep = dependency('json-glib-1.0')
 glib_dep = dependency('glib-2.0', version: '>= 2.76')
 gio_dep = dependency('gio-2.0')
@@ -44,12 +44,18 @@ test_sources = [
   'tests/main.vala',
   'tests/test_models.vala',
   'tests/test_guest_memory.vala',
+  'tests/test_host_command.vala',
+  'tests/test_discovery.vala',
+  'tests/test_managed_driver.vala',
   'tests/test_drivers.vala',
   'tests/test_diagnostics.vala',
   'tests/test_search_provider.vala',
   'tests/mock_driver.vala',
   'src/vm_model.vala',
   'src/guest_memory.vala',
+  'src/host_command.vala',
+  'src/resource_discovery.vala',
+  'src/drivers/managed_driver.vala',
   'src/search_provider.vala',
   'src/system_diagnostics.vala',
   'src/drivers/driver.vala',

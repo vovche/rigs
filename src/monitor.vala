@@ -14,6 +14,7 @@ namespace Rigs {
         private MonitorInterval interval = MonitorInterval.BACKGROUND;
         private Mutex mutex = Mutex();
         private Cond cond = Cond();
+        private GenericArray<VmModel> monitored_vms = new GenericArray<VmModel>();
 
         // Previous CPU counters for delta calculation
         private uint64 prev_idle = 0;
@@ -29,6 +30,7 @@ namespace Rigs {
         }
 
         public void start(GenericArray<VmModel> vms) {
+            set_vms(vms);
             active = true;
             worker_thread = new Thread<void*>("rigs-monitor", () => {
                 while (active) {
@@ -41,13 +43,14 @@ namespace Rigs {
                         break;
                     }
                     uint32 sleep_ms = (uint32)interval;
+                    var snapshot = monitored_vms;
                     mutex.unlock();
 
                     HostStatus host = read_host_status();
                     var results = new HashTable<string, VmStatus?>(str_hash, str_equal);
 
-                    for (int i = 0; i < vms.length; i++) {
-                        VmModel vm = vms[i];
+                    for (int i = 0; i < snapshot.length; i++) {
+                        VmModel vm = snapshot[i];
                         VmStatus st = check_vm(vm);
                         results.insert(vm.id, st);
                     }
@@ -68,6 +71,21 @@ namespace Rigs {
                 }
                 return null;
             });
+        }
+
+        // Called by the GTK thread after registration/removal/settings changes.
+        // The worker never traverses the mutable UI array or mutable VM models.
+        public void set_vms(GenericArray<VmModel> vms) {
+            var snapshot = new GenericArray<VmModel>();
+            for (int i = 0; i < vms.length; i++) {
+                var node = new Json.Node(Json.NodeType.OBJECT);
+                node.set_object(vms[i].to_json_object());
+                snapshot.add(VmModel.from_json_node(node));
+            }
+            mutex.lock();
+            monitored_vms = snapshot;
+            cond.signal();
+            mutex.unlock();
         }
 
         public void stop() {
@@ -165,8 +183,12 @@ namespace Rigs {
             Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
             if (driver != null) {
                 var status = driver.check_status(vm);
-                if (status.running && vm.qmp_socket.length > 0) {
-                    var guest = GuestMemory.read(vm.qmp_socket, vm.guest_os == "windows");
+                if (status.running && (vm.guest_os == "windows" || vm.guest_os == "linux")) {
+                    var checked = vm.vm_type == "libvirt"
+                        ? GuestMemory.check_libvirt(vm.connection_uri, vm.resource_id, vm.guest_os == "windows")
+                        : GuestMemory.check(vm.qmp_socket, vm.guest_os == "windows");
+                    status.guest_memory_state = checked.state;
+                    var guest = checked.memory;
                     if (guest != null) {
                         status.guest_ram_valid = true;
                         status.guest_ram_pct = guest.percent;

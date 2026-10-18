@@ -1,3 +1,5 @@
+using GLib.Intl;
+
 /* vm_model.vala — VM data models and configuration management for Rigs */
 
 namespace Rigs {
@@ -19,6 +21,9 @@ namespace Rigs {
         public string attached_iso { get; set; default = ""; }
         public string qmp_socket { get; set; default = ""; }
         public string guest_os { get; set; default = ""; }
+        public string runtime { get; set; default = "podman"; }
+        public string resource_id { get; set; default = ""; }
+        public string connection_uri { get; set; default = "qemu:///session"; }
 
         public static VmModel from_json_node(Json.Node node) {
             var model = new VmModel();
@@ -44,6 +49,9 @@ namespace Rigs {
             if (obj.has_member("qmp_socket")) model.qmp_socket = obj.get_string_member("qmp_socket");
             if (obj.has_member("guest_os")) model.guest_os = obj.get_string_member("guest_os");
 
+            if (obj.has_member("runtime")) model.runtime = obj.get_string_member("runtime");
+            if (obj.has_member("resource_id")) model.resource_id = obj.get_string_member("resource_id");
+            if (obj.has_member("connection_uri")) model.connection_uri = obj.get_string_member("connection_uri");
             return model;
         }
 
@@ -65,18 +73,23 @@ namespace Rigs {
             if (attached_iso.length > 0) obj.set_string_member("attached_iso", attached_iso);
             if (qmp_socket.length > 0) obj.set_string_member("qmp_socket", qmp_socket);
             if (guest_os.length > 0) obj.set_string_member("guest_os", guest_os);
+            obj.set_string_member("runtime", runtime);
+            if (resource_id.length > 0) obj.set_string_member("resource_id", resource_id);
+            if (vm_type == "libvirt") obj.set_string_member("connection_uri", connection_uri);
             return obj;
         }
     }
 
     public struct VmStatus {
         public bool running;
+        public bool status_available;
         public double cpu_pct;
         public string ram_str;
         public double ram_pct;
         public bool guest_ram_valid;
         public string guest_ram_str;
         public double guest_ram_pct;
+        public GuestMemoryState guest_memory_state;
     }
 
     public struct HostStatus {
@@ -121,12 +134,15 @@ namespace Rigs {
             return Path.build_filename(get_config_dir(), "state.json");
         }
 
-        public static GenericArray<VmModel> load_vms() {
+        public static string? load_error = null;
+
+        public static GenericArray<VmModel> load_vms(string? config_path = null) {
             var list = new GenericArray<VmModel>();
-            string path = get_vms_file();
+            load_error = null;
+            string path = config_path ?? get_vms_file();
 
             if (!FileUtils.test(path, FileTest.EXISTS)) {
-                return seed_default_vms();
+                return list;
             }
 
             try {
@@ -135,24 +151,46 @@ namespace Rigs {
                 var root = parser.get_root();
                 if (root != null && root.get_node_type() == Json.NodeType.ARRAY) {
                     var array = root.get_array();
+                    var ids = new HashTable<string, bool>(str_hash, str_equal);
                     for (uint i = 0; i < array.get_length(); i++) {
                         var node = array.get_element(i);
+                        if (!valid_entry(node, ids)) {
+                            load_error = _("The resource configuration contains invalid or duplicate entries. Repair vms.json or restore a backup.");
+                            return new GenericArray<VmModel>();
+                        }
                         list.add(VmModel.from_json_node(node));
                     }
+                } else {
+                    load_error = _("The resource configuration must contain a JSON array.");
                 }
             } catch (Error e) {
-                warning("Failed to parse vms.json: %s", e.message);
-                return seed_default_vms();
-            }
-
-            if (list.length == 0) {
-                return seed_default_vms();
+                load_error = _("The resource configuration could not be read. Repair vms.json or restore a backup.");
+                return list;
             }
 
             return list;
         }
 
+        private static bool valid_entry(Json.Node node, HashTable<string, bool> ids) {
+            if (node.get_node_type() != Json.NodeType.OBJECT) return false;
+            var obj = node.get_object();
+            string[] keys = {"id", "name", "subtitle", "type", "icon", "dir", "start_cmd", "stop_cmd",
+                "connect_cmd", "details", "container_name", "process_name", "monitor_socket", "attached_iso",
+                "qmp_socket", "guest_os", "runtime", "resource_id", "connection_uri"};
+            foreach (string key in keys) {
+                if (!obj.has_member(key)) continue;
+                var value = obj.get_member(key);
+                if (value.get_node_type() != Json.NodeType.VALUE || value.get_value_type() != typeof(string)) return false;
+            }
+            if (!obj.has_member("id") || !obj.has_member("name")) return false;
+            string id = obj.get_string_member("id");
+            if (id.length == 0 || obj.get_string_member("name").strip().length == 0 || ids.contains(id)) return false;
+            ids.insert(id, true);
+            return true;
+        }
+
         public static void save_vms(GenericArray<VmModel> vms) {
+            if (load_error != null) return;
             string dir = get_config_dir();
             DirUtils.create_with_parents(dir, 0755);
 
@@ -177,53 +215,5 @@ namespace Rigs {
             }
         }
 
-        public static GenericArray<VmModel> seed_default_vms() {
-            var list = new GenericArray<VmModel>();
-
-            var om = new VmModel();
-            om.id = "omarchy";
-            om.name = "Omarchy Quattro";
-            om.subtitle = "Arch Linux • QEMU KVM";
-            om.vm_type = "qemu";
-            om.icon = "computer-symbolic";
-            om.dir = "/home/why/src/vms/omarchy";
-            om.process_name = "omarchy-qemu";
-            om.start_cmd = "./run-vm.sh";
-            om.monitor_socket = "/tmp/omarchy-monitor.sock";
-            om.connect_cmd = "remote-viewer --auto-resize=always spice+unix:///tmp/omarchy-spice.sock";
-            om.details = "SPICE UNIX • 120Hz GL • PipeWire • SSH :2222";
-            list.add(om);
-
-            var t10 = new VmModel();
-            t10.id = "tiny10";
-            t10.name = "Tiny10";
-            t10.subtitle = "Windows 10 • Podman Container";
-            t10.vm_type = "compose";
-            t10.icon = "network-server-symbolic";
-            t10.dir = "/home/why/src/vms/tiny10";
-            t10.container_name = "tiny10-vm";
-            t10.start_cmd = "./vmctl.sh up";
-            t10.stop_cmd = "./vmctl.sh down";
-            t10.connect_cmd = "remmina -c /home/why/snap/remmina/current/.local/share/remmina/group_rdp_tiny10_127-0-0-1-3390.remmina";
-            t10.details = "RDP :3390 • WinRM :5985 • Web :8007";
-            list.add(t10);
-
-            var w10e = new VmModel();
-            w10e.id = "win10e";
-            w10e.name = "Win10 Enterprise";
-            w10e.subtitle = "Windows 10 LTSC • Podman Container";
-            w10e.vm_type = "compose";
-            w10e.icon = "network-server-symbolic";
-            w10e.dir = "/home/why/src/vms/win10e";
-            w10e.container_name = "win10e-vm";
-            w10e.start_cmd = "docker compose up -d";
-            w10e.stop_cmd = "docker compose down";
-            w10e.connect_cmd = "remmina -c rdp://developer:password123@127.0.0.1:3389";
-            w10e.details = "RDP :3389 • Web :8006";
-            list.add(w10e);
-
-            save_vms(list);
-            return list;
-        }
     }
 }

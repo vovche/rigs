@@ -33,6 +33,8 @@ namespace Rigs.Tests {
             original.attached_iso = "/srv/isos/ubuntu.iso";
             original.qmp_socket = "/tmp/rigs-test-qmp.sock";
             original.guest_os = "windows";
+            original.runtime = "docker";
+            original.resource_id = "0123456789abcdef";
 
             var json_obj = original.to_json_object();
             var node = new Json.Node(Json.NodeType.OBJECT);
@@ -54,6 +56,8 @@ namespace Rigs.Tests {
             assert(parsed.attached_iso == "/srv/isos/ubuntu.iso");
             assert(parsed.qmp_socket == original.qmp_socket);
             assert(parsed.guest_os == "windows");
+            assert(parsed.runtime == "docker");
+            assert(parsed.resource_id == original.resource_id);
         }
 
         public static void test_vm_model_empty_json() {
@@ -66,20 +70,28 @@ namespace Rigs.Tests {
             assert(parsed.attached_iso == "");
         }
 
-        public static void test_seed_default_vms() {
-            var vms = ConfigManager.seed_default_vms();
-            assert(vms.length >= 2);
-
-            bool has_omarchy = false;
-            bool has_tiny10 = false;
-
-            for (int i = 0; i < vms.length; i++) {
-                if (vms[i].id == "omarchy") has_omarchy = true;
-                if (vms[i].id == "tiny10") has_tiny10 = true;
-            }
-
-            assert(has_omarchy);
-            assert(has_tiny10);
+        public static void test_empty_configuration() {
+            try {
+                string dir = DirUtils.make_tmp("rigs-config-test-XXXXXX");
+                string path = Path.build_filename(dir, "vms.json");
+                assert(ConfigManager.load_vms(path).length == 0);
+                assert(!FileUtils.test(path, FileTest.EXISTS));
+                FileUtils.set_contents(path, "[]");
+                assert(ConfigManager.load_vms(path).length == 0);
+                FileUtils.set_contents(path, "broken configuration");
+                assert(ConfigManager.load_vms(path).length == 0);
+                assert(ConfigManager.load_error != null);
+                string contents;
+                FileUtils.get_contents(path, out contents);
+                assert(contents == "broken configuration");
+                FileUtils.set_contents(path, "[{\"id\":\"a\",\"name\":\"A\",\"runtime\":42}]");
+                assert(ConfigManager.load_vms(path).length == 0 && ConfigManager.load_error != null);
+                FileUtils.set_contents(path, "[{\"id\":\"a\",\"name\":\"A\"},{\"id\":\"a\",\"name\":\"B\"}]");
+                assert(ConfigManager.load_vms(path).length == 0 && ConfigManager.load_error != null);
+                FileUtils.unlink(path);
+                ConfigManager.load_vms(path); // Reset the test-local error.
+                DirUtils.remove(dir);
+            } catch (Error e) { assert_not_reached(); }
         }
     }
 }

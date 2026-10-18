@@ -10,9 +10,11 @@ int main(string[] args) {
     Test.add_func("/guest-memory/invalid-and-stale", TestGuestMemory.test_invalid);
     Test.add_func("/guest-memory/qmp", TestGuestMemory.test_qmp);
     Test.add_func("/guest-memory/qmp-error", TestGuestMemory.test_qmp_error);
+    Test.add_func("/guest-memory/states", TestGuestMemory.test_states);
+    Test.add_func("/guest-memory/libvirt", TestGuestMemory.test_libvirt);
     Test.add_func("/models/json_roundtrip", TestModels.test_vm_model_json_roundtrip);
     Test.add_func("/models/empty_json", TestModels.test_vm_model_empty_json);
-    Test.add_func("/models/seed_default_vms", TestModels.test_seed_default_vms);
+    Test.add_func("/models/empty_configuration", TestModels.test_empty_configuration);
 
     Test.add_func("/drivers/registry_singleton", TestDrivers.test_registry_singleton);
     Test.add_func("/drivers/qemu_lookup", TestDrivers.test_qemu_driver_lookup);
@@ -31,5 +33,15 @@ int main(string[] args) {
     Test.add_func("/search/subsearch", TestSearchProvider.test_subsearch);
     Test.add_func("/search/result_metas", TestSearchProvider.test_result_metas);
 
+    Test.add_func("/host-command/prepare", TestHostCommand.test_prepare);
+    Test.add_func("/host-command/native", TestHostCommand.test_native);
+    Test.add_func("/host-command/timeout", TestHostCommand.test_timeout);
+    Test.add_func("/discovery/containers", TestDiscovery.test_containers);
+    Test.add_func("/discovery/libvirt", TestDiscovery.test_libvirt);
+    Test.add_func("/discovery/failures", TestDiscovery.test_failures);
+    Test.add_func("/discovery/duplicates", TestDiscovery.test_duplicates);
+    Test.add_func("/managed-driver/container", TestManagedDriver.test_container_status);
+    Test.add_func("/managed-driver/libvirt", TestManagedDriver.test_libvirt_status);
+    Test.add_func("/managed-driver/invalid", TestManagedDriver.test_invalid_targets);
     return Test.run();
 }

@@ -5,3 +5,7 @@ src/application.vala
 src/window.vala
 src/vm_card.vala
 src/add_dialog.vala
+src/discovery_dialog.vala
+src/resource_discovery.vala
+src/guest_tools_dialog.vala
+src/vm_model.vala

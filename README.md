@@ -72,3 +72,38 @@ ninja -C build
 ## License
 
 Apache License 2.0.
+
+### Guest memory statistics (QEMU and Compose)
+
+Host/container consumption and guest RAM usage are displayed separately. To
+collect guest RAM, run QEMU with a VirtIO balloon device named `balloon0` and a
+local QMP Unix socket, for example:
+
+```sh
+-device virtio-balloon-pci,id=balloon0,guest-stats-polling-interval=5 \
+-qmp unix:/storage/rigs-qmp.sock,server=on,wait=off
+```
+
+For a container VM, place the socket in an existing host-mounted directory.
+Keep the socket local and accessible only to the VM owner. In the VM's entry
+in `~/.config/rigs/vms.json`, configure its **host** path:
+
+```json
+"qmp_socket": "/path/to/vm/storage/rigs-qmp.sock",
+"guest_os": "windows"
+```
+
+For Windows, install the VirtIO Balloon driver and run `BalloonService`
+(`blnsvr`). For Linux, use the guest's virtio_balloon driver and set `guest_os`
+to `linux`. Rigs enables a five-second statistics polling interval; it never
+issues balloon resize commands. Device/launch changes require a VM restart.
+
+Rigs validates guest counters and timestamps. Missing or stale statistics show
+“Guest statistics unavailable”; host consumption is never substituted. For
+Windows, used RAM is total minus `stat-free-memory`, which VirtIO-Win populates
+from `GlobalMemoryStatusEx.ullAvailPhys`. For Linux it is total minus
+`stat-available-memory`, preserving reclaimable cache semantics. Samples can
+differ slightly from Task Manager due to polling time and rounding.
+
+Protocol: [QEMU balloon statistics](https://www.qemu.org/docs/master/interop/virtio-balloon-stats.html).
+Windows mapping: [VirtIO-Win memory statistics](https://github.com/virtio-win/kvm-guest-drivers-windows/blob/master/Balloon/app/memstat.cpp).

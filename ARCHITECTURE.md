@@ -65,6 +65,7 @@ Inspired by the clean aesthetic of **GNOME Resources**:
 
 - **Decoupled Monitoring Thread:** `SystemMonitor` executes in a dedicated OS thread every 1.5 seconds, avoiding any I/O or procfs stalls on the GTK main UI thread. Collected metrics are dispatched to the UI using `GLib.Idle.add()`.
 - **Sliding History Ring Buffer:** Metrics are maintained in a 25-sample circular array.
+- **Optional Guest RAM (`src/guest_memory.vala`):** The monitor queries a configured local QMP socket on its background thread. Balloon statistics from `balloon0` are validated for range and freshness (15 seconds). Windows uses total minus available physical RAM (`stat-free-memory` in VirtIO-Win); Linux requires `stat-available-memory`. Guest RAM and host process/container consumption have separate UI rows. Missing statistics remain unavailable. Polling never resizes guest RAM.
 - **Smooth Bezier Spline Rendering:** The `SmoothSparkline` custom widget uses Cairo to draw continuous cubic Bezier curves through historical data points:
   - Fill: Linear vertical gradient from theme accent color (40% opacity) fading to transparent.
   - Stroke: Crisp anti-aliased contour line (2.0px width) with round line joins and caps.
@@ -77,7 +78,7 @@ Rigs allows developers and system administrators to hot-swap boot media and inst
 4. "Eject" safely unmounts the disk image (`eject -f cdrom`).
 
 ### 2.4 State & Configuration Persistence (`src/vm_model.vala`)
-- **VM Definitions (`~/.config/rigs/vms.json`):** Human-editable JSON format. Auto-seeded on first run with detected local environments.
+- **VM Definitions (`~/.config/rigs/vms.json`):** Human-editable JSON format. Seeded on first run with predefined local VM entries; there is no system-wide resource discovery. Optional `qmp_socket` (host Unix socket path) and `guest_os` (`windows` or `linux`) enable guest RAM telemetry.
 - **Session State (`~/.config/rigs/state.json`):** Tracks window size, maximized state, and which VM cards were expanded by the user, preserving the layout between desktop restarts.
 
 ---

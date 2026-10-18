@@ -6,6 +6,10 @@ int main(string[] args) {
     Test.init(ref args);
 
     Test.add_func("/models/defaults", TestModels.test_vm_model_defaults);
+    Test.add_func("/guest-memory/windows-and-linux", TestGuestMemory.test_windows);
+    Test.add_func("/guest-memory/invalid-and-stale", TestGuestMemory.test_invalid);
+    Test.add_func("/guest-memory/qmp", TestGuestMemory.test_qmp);
+    Test.add_func("/guest-memory/qmp-error", TestGuestMemory.test_qmp_error);
     Test.add_func("/models/json_roundtrip", TestModels.test_vm_model_json_roundtrip);
     Test.add_func("/models/empty_json", TestModels.test_vm_model_empty_json);
     Test.add_func("/models/seed_default_vms", TestModels.test_seed_default_vms);

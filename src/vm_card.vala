@@ -20,6 +20,7 @@ namespace Rigs {
         private Adw.ActionRow cpu_row;
         private SmoothSparkline cpu_sparkline;
         private Adw.ActionRow ram_row;
+        private Adw.ActionRow guest_ram_row;
         private SmoothSparkline ram_sparkline;
         private Adw.ActionRow iso_row;
         private Gtk.Button eject_btn;
@@ -77,16 +78,20 @@ namespace Rigs {
             // 2. RAM with Resources-style Bezier sparkline (Vivid Violet)
             ram_row = new Adw.ActionRow();
             ram_row.title = vm.vm_type == "qemu"
-                ? _("Host Memory / Allocated RAM") : _("VM Memory Usage");
+                ? _("Host Memory / Allocated RAM") : _("Host Memory");
             if (vm.vm_type == "qemu") {
                 ram_row.tooltip_text = _("QEMU process memory on the host / RAM allocated to the VM. Usage inside the guest OS is not available.");
             }
             ram_row.subtitle = "0 MB";
-            ram_sparkline = new SmoothSparkline(0.64, 0.28, 0.96, 25, 130, 32, true);
-            // RSS / allocated guest RAM is not a guest memory usage percentage.
-            ram_sparkline.visible = vm.vm_type != "qemu";
-            ram_row.add_suffix(ram_sparkline);
             this.add_row(ram_row);
+
+            guest_ram_row = new Adw.ActionRow();
+            guest_ram_row.title = _("Guest Memory Usage");
+            guest_ram_row.subtitle = _("Guest statistics unavailable");
+            guest_ram_row.visible = vm.qmp_socket.length > 0;
+            ram_sparkline = new SmoothSparkline(0.64, 0.28, 0.96, 25, 130, 32);
+            guest_ram_row.add_suffix(ram_sparkline);
+            this.add_row(guest_ram_row);
 
             // 3. Optical Drive (ISO)
             iso_row = new Adw.ActionRow();
@@ -169,12 +174,16 @@ namespace Rigs {
             cpu_row.subtitle = _("CPU: %.1f%% (host)").printf(status.cpu_pct);
             cpu_sparkline.add_value(status.running ? status.cpu_pct : 0.0);
 
-            if (vm.vm_type != "qemu" && status.running && status.ram_pct > 0.0) {
-                ram_row.subtitle = _("Memory: %s (%.1f%%)").printf(status.ram_str, status.ram_pct);
+            // Container usage / guest RAM is not a guest usage percentage.
+            string host_memory = vm.vm_type == "compose" ? status.ram_str.split(" / ")[0] : status.ram_str;
+            ram_row.subtitle = _("Memory: %s").printf(host_memory);
+            if (status.running && status.guest_ram_valid) {
+                guest_ram_row.subtitle = _("Memory: %s (%.1f%%)").printf(status.guest_ram_str, status.guest_ram_pct);
             } else {
-                ram_row.subtitle = _("Memory: %s").printf(status.ram_str);
+                guest_ram_row.subtitle = status.running ? _("Guest statistics unavailable") : "0 MB";
             }
-            ram_sparkline.add_value(status.running ? status.ram_pct : 0.0);
+            ram_sparkline.visible = status.running && status.guest_ram_valid;
+            ram_sparkline.add_value(status.running && status.guest_ram_valid ? status.guest_ram_pct : 0.0);
         }
     }
 }

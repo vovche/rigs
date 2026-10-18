@@ -20,6 +20,7 @@ adw_dep = dependency('libadwaita-1', version: '>= 1.4')
 json_dep = dependency('json-glib-1.0')
 glib_dep = dependency('glib-2.0', version: '>= 2.76')
 gio_dep = dependency('gio-2.0')
+gio_unix_dep = dependency('gio-unix-2.0')
 posix_dep = meson.get_compiler('vala').find_library('posix')
 m_dep = meson.get_compiler('c').find_library('m', required: false)
 
@@ -42,11 +43,13 @@ subdir('src')
 test_sources = [
   'tests/main.vala',
   'tests/test_models.vala',
+  'tests/test_guest_memory.vala',
   'tests/test_drivers.vala',
   'tests/test_diagnostics.vala',
   'tests/test_search_provider.vala',
   'tests/mock_driver.vala',
   'src/vm_model.vala',
+  'src/guest_memory.vala',
   'src/search_provider.vala',
   'src/system_diagnostics.vala',
   'src/drivers/driver.vala',
@@ -62,6 +65,7 @@ test_exe = executable('rigs-tests',
     adw_dep,
     glib_dep,
     gio_dep,
+    gio_unix_dep,
     json_dep,
     posix_dep,
   ],

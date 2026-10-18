@@ -269,6 +269,15 @@ msgstr "Пам'ять: %s"
 msgid "Host Memory / Allocated RAM"
 msgstr "Пам'ять на хості / Виділена RAM"
 
+msgid "Host Memory"
+msgstr "Пам'ять на хості"
+
+msgid "Guest Memory Usage"
+msgstr "Використання пам'яті гостьової ОС"
+
+msgid "Guest statistics unavailable"
+msgstr "Гостьова статистика недоступна"
+
 msgid "QEMU process memory on the host / RAM allocated to the VM. Usage inside the guest OS is not available."
 msgstr "Пам'ять процесу QEMU на хості / RAM, виділена віртуальній машині. Використання всередині гостьової ОС недоступне."
 

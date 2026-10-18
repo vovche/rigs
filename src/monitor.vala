@@ -164,7 +164,17 @@ namespace Rigs {
         private VmStatus check_vm(VmModel vm) {
             Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
             if (driver != null) {
-                return driver.check_status(vm);
+                var status = driver.check_status(vm);
+                if (status.running && vm.qmp_socket.length > 0) {
+                    var guest = GuestMemory.read(vm.qmp_socket, vm.guest_os == "windows");
+                    if (guest != null) {
+                        status.guest_ram_valid = true;
+                        status.guest_ram_pct = guest.percent;
+                        status.guest_ram_str = "%.2f GB / %.2f GB".printf(
+                            guest.used_bytes / 1073741824.0, guest.total_bytes / 1073741824.0);
+                    }
+                }
+                return status;
             }
 
             VmStatus st = VmStatus();

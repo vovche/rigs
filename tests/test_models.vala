@@ -12,6 +12,8 @@ namespace Rigs.Tests {
             assert(vm.vm_type == "compose");
             assert(vm.icon == "computer-symbolic");
             assert(vm.attached_iso == "");
+            assert(vm.qmp_socket == "");
+            assert(vm.guest_os == "");
         }
 
         public static void test_vm_model_json_roundtrip() {
@@ -29,6 +31,8 @@ namespace Rigs.Tests {
             original.process_name = "qemu-test";
             original.monitor_socket = "/tmp/qemu-test.sock";
             original.attached_iso = "/srv/isos/ubuntu.iso";
+            original.qmp_socket = "/tmp/rigs-test-qmp.sock";
+            original.guest_os = "windows";
 
             var json_obj = original.to_json_object();
             var node = new Json.Node(Json.NodeType.OBJECT);
@@ -48,6 +52,8 @@ namespace Rigs.Tests {
             assert(parsed.process_name == "qemu-test");
             assert(parsed.monitor_socket == "/tmp/qemu-test.sock");
             assert(parsed.attached_iso == "/srv/isos/ubuntu.iso");
+            assert(parsed.qmp_socket == original.qmp_socket);
+            assert(parsed.guest_os == "windows");
         }
 
         public static void test_vm_model_empty_json() {

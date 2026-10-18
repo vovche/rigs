@@ -17,6 +17,8 @@ namespace Rigs {
         public string process_name { get; set; default = ""; }
         public string monitor_socket { get; set; default = ""; }
         public string attached_iso { get; set; default = ""; }
+        public string qmp_socket { get; set; default = ""; }
+        public string guest_os { get; set; default = ""; }
 
         public static VmModel from_json_node(Json.Node node) {
             var model = new VmModel();
@@ -39,6 +41,8 @@ namespace Rigs {
             if (obj.has_member("process_name")) model.process_name = obj.get_string_member("process_name");
             if (obj.has_member("monitor_socket")) model.monitor_socket = obj.get_string_member("monitor_socket");
             if (obj.has_member("attached_iso")) model.attached_iso = obj.get_string_member("attached_iso");
+            if (obj.has_member("qmp_socket")) model.qmp_socket = obj.get_string_member("qmp_socket");
+            if (obj.has_member("guest_os")) model.guest_os = obj.get_string_member("guest_os");
 
             return model;
         }
@@ -59,6 +63,8 @@ namespace Rigs {
             if (process_name.length > 0) obj.set_string_member("process_name", process_name);
             if (monitor_socket.length > 0) obj.set_string_member("monitor_socket", monitor_socket);
             if (attached_iso.length > 0) obj.set_string_member("attached_iso", attached_iso);
+            if (qmp_socket.length > 0) obj.set_string_member("qmp_socket", qmp_socket);
+            if (guest_os.length > 0) obj.set_string_member("guest_os", guest_os);
             return obj;
         }
     }
@@ -68,6 +74,9 @@ namespace Rigs {
         public double cpu_pct;
         public string ram_str;
         public double ram_pct;
+        public bool guest_ram_valid;
+        public string guest_ram_str;
+        public double guest_ram_pct;
     }
 
     public struct HostStatus {

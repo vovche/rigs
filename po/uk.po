@@ -266,6 +266,12 @@ msgstr "CPU: %.1f%% (хост)"
 msgid "Memory: %s"
 msgstr "Пам'ять: %s"
 
+msgid "Host Memory / Allocated RAM"
+msgstr "Пам'ять на хості / Виділена RAM"
+
+msgid "QEMU process memory on the host / RAM allocated to the VM. Usage inside the guest OS is not available."
+msgstr "Пам'ять процесу QEMU на хості / RAM, виділена віртуальній машині. Використання всередині гостьової ОС недоступне."
+
 #: /workspace/src/vm_card.vala:165
 #, c-format
 msgid "Memory: %s (%.1f%%)"

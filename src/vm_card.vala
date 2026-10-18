@@ -76,9 +76,15 @@ namespace Rigs {
 
             // 2. RAM with Resources-style Bezier sparkline (Vivid Violet)
             ram_row = new Adw.ActionRow();
-            ram_row.title = _("VM Memory Usage");
+            ram_row.title = vm.vm_type == "qemu"
+                ? _("Host Memory / Allocated RAM") : _("VM Memory Usage");
+            if (vm.vm_type == "qemu") {
+                ram_row.tooltip_text = _("QEMU process memory on the host / RAM allocated to the VM. Usage inside the guest OS is not available.");
+            }
             ram_row.subtitle = "0 MB";
             ram_sparkline = new SmoothSparkline(0.64, 0.28, 0.96, 25, 130, 32, true);
+            // RSS / allocated guest RAM is not a guest memory usage percentage.
+            ram_sparkline.visible = vm.vm_type != "qemu";
             ram_row.add_suffix(ram_sparkline);
             this.add_row(ram_row);
 
@@ -163,7 +169,7 @@ namespace Rigs {
             cpu_row.subtitle = _("CPU: %.1f%% (host)").printf(status.cpu_pct);
             cpu_sparkline.add_value(status.running ? status.cpu_pct : 0.0);
 
-            if (status.running && status.ram_pct > 0.0) {
+            if (vm.vm_type != "qemu" && status.running && status.ram_pct > 0.0) {
                 ram_row.subtitle = _("Memory: %s (%.1f%%)").printf(status.ram_str, status.ram_pct);
             } else {
                 ram_row.subtitle = _("Memory: %s").printf(status.ram_str);

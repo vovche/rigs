@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgtk-4-dev \
     libadwaita-1-dev \
     libjson-glib-dev \
+    libsoup-3.0-dev \
     gettext \
     git \
     ca-certificates \

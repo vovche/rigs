@@ -21,6 +21,7 @@ json_dep = dependency('json-glib-1.0')
 glib_dep = dependency('glib-2.0', version: '>= 2.76')
 gio_dep = dependency('gio-2.0')
 gio_unix_dep = dependency('gio-unix-2.0')
+soup_dep = dependency('libsoup-3.0')
 posix_dep = meson.get_compiler('vala').find_library('posix')
 m_dep = meson.get_compiler('c').find_library('m', required: false)
 
@@ -44,6 +45,10 @@ test_sources = [
   'tests/main.vala',
   'tests/test_models.vala',
   'tests/test_guest_memory.vala',
+  'tests/test_guest_agent.vala',
+  'tests/test_guest_media.vala',
+  'tests/test_guest_tools_packages.vala',
+  'tests/test_windows_guest_installer.vala',
   'tests/test_host_command.vala',
   'tests/test_discovery.vala',
   'tests/test_managed_driver.vala',
@@ -53,6 +58,10 @@ test_sources = [
   'tests/mock_driver.vala',
   'src/vm_model.vala',
   'src/guest_memory.vala',
+  'src/guest_agent.vala',
+  'src/guest_media.vala',
+  'src/guest_tools_packages.vala',
+  'src/windows_guest_installer.vala',
   'src/host_command.vala',
   'src/resource_discovery.vala',
   'src/drivers/managed_driver.vala',
@@ -72,6 +81,7 @@ test_exe = executable('rigs-tests',
     glib_dep,
     gio_dep,
     gio_unix_dep,
+    soup_dep,
     json_dep,
     posix_dep,
   ],

@@ -9,3 +9,8 @@ src/discovery_dialog.vala
 src/resource_discovery.vala
 src/guest_tools_dialog.vala
 src/vm_model.vala
+src/guest_driver_setup_dialog.vala
+src/guest_tools_packages.vala
+src/windows_guest_installer.vala
+src/guest_agent.vala
+src/guest_media.vala

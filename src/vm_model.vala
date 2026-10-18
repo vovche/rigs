@@ -20,6 +20,7 @@ namespace Rigs {
         public string monitor_socket { get; set; default = ""; }
         public string attached_iso { get; set; default = ""; }
         public string qmp_socket { get; set; default = ""; }
+        public string guest_agent_socket { get; set; default = ""; }
         public string guest_os { get; set; default = ""; }
         public string runtime { get; set; default = "podman"; }
         public string resource_id { get; set; default = ""; }
@@ -47,6 +48,7 @@ namespace Rigs {
             if (obj.has_member("monitor_socket")) model.monitor_socket = obj.get_string_member("monitor_socket");
             if (obj.has_member("attached_iso")) model.attached_iso = obj.get_string_member("attached_iso");
             if (obj.has_member("qmp_socket")) model.qmp_socket = obj.get_string_member("qmp_socket");
+            if (obj.has_member("guest_agent_socket")) model.guest_agent_socket = obj.get_string_member("guest_agent_socket");
             if (obj.has_member("guest_os")) model.guest_os = obj.get_string_member("guest_os");
 
             if (obj.has_member("runtime")) model.runtime = obj.get_string_member("runtime");
@@ -72,6 +74,7 @@ namespace Rigs {
             if (monitor_socket.length > 0) obj.set_string_member("monitor_socket", monitor_socket);
             if (attached_iso.length > 0) obj.set_string_member("attached_iso", attached_iso);
             if (qmp_socket.length > 0) obj.set_string_member("qmp_socket", qmp_socket);
+            if (guest_agent_socket.length > 0) obj.set_string_member("guest_agent_socket", guest_agent_socket);
             if (guest_os.length > 0) obj.set_string_member("guest_os", guest_os);
             obj.set_string_member("runtime", runtime);
             if (resource_id.length > 0) obj.set_string_member("resource_id", resource_id);
@@ -176,7 +179,7 @@ namespace Rigs {
             var obj = node.get_object();
             string[] keys = {"id", "name", "subtitle", "type", "icon", "dir", "start_cmd", "stop_cmd",
                 "connect_cmd", "details", "container_name", "process_name", "monitor_socket", "attached_iso",
-                "qmp_socket", "guest_os", "runtime", "resource_id", "connection_uri"};
+                "qmp_socket", "guest_agent_socket", "guest_os", "runtime", "resource_id", "connection_uri"};
             foreach (string key in keys) {
                 if (!obj.has_member(key)) continue;
                 var value = obj.get_member(key);

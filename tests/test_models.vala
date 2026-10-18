@@ -13,6 +13,7 @@ namespace Rigs.Tests {
             assert(vm.icon == "computer-symbolic");
             assert(vm.attached_iso == "");
             assert(vm.qmp_socket == "");
+            assert(vm.guest_agent_socket == "");
             assert(vm.guest_os == "");
         }
 
@@ -32,6 +33,7 @@ namespace Rigs.Tests {
             original.monitor_socket = "/tmp/qemu-test.sock";
             original.attached_iso = "/srv/isos/ubuntu.iso";
             original.qmp_socket = "/tmp/rigs-test-qmp.sock";
+            original.guest_agent_socket = "/tmp/rigs-test-qga.sock";
             original.guest_os = "windows";
             original.runtime = "docker";
             original.resource_id = "0123456789abcdef";
@@ -55,6 +57,7 @@ namespace Rigs.Tests {
             assert(parsed.monitor_socket == "/tmp/qemu-test.sock");
             assert(parsed.attached_iso == "/srv/isos/ubuntu.iso");
             assert(parsed.qmp_socket == original.qmp_socket);
+            assert(parsed.guest_agent_socket == original.guest_agent_socket);
             assert(parsed.guest_os == "windows");
             assert(parsed.runtime == "docker");
             assert(parsed.resource_id == original.resource_id);

@@ -55,13 +55,19 @@ namespace Rigs {
             socket.text = vm.qmp_socket;
             socket.visible = vm.vm_type != "libvirt";
             settings.add(socket);
+            var agent_socket = new Adw.EntryRow();
+            agent_socket.title = _("Guest Agent Socket on the Host");
+            agent_socket.text = vm.guest_agent_socket;
+            agent_socket.visible = vm.vm_type != "libvirt";
+            settings.add(agent_socket);
             os.notify["selected"].connect(() => {
-                save.sensitive = os.selected > 0 && (vm.vm_type == "libvirt" || socket.text.has_prefix("/"));
+                save.sensitive = valid_settings(vm, os, socket, agent_socket);
             });
             socket.notify["text"].connect(() => {
-                save.sensitive = os.selected > 0 && (vm.vm_type == "libvirt" || socket.text.has_prefix("/"));
+                save.sensitive = valid_settings(vm, os, socket, agent_socket);
             });
-            save.sensitive = os.selected > 0 && (vm.vm_type == "libvirt" || socket.text.has_prefix("/"));
+            agent_socket.notify["text"].connect(() => { save.sensitive = valid_settings(vm, os, socket, agent_socket); });
+            save.sensitive = valid_settings(vm, os, socket, agent_socket);
             var help = new Adw.PreferencesGroup();
             help.title = _("Guest Drivers and Services");
             help.description = _("Missing statistics alone do not prove that a driver is missing. Check the connection, device and guest service before installing anything.");
@@ -70,11 +76,16 @@ namespace Rigs {
             windows.title = _("Windows: VirtIO Balloon Driver");
             windows.subtitle = _("Install the Balloon driver from VirtIO-Win, then check that BalloonService is running. Wait a few seconds for the first sample.");
             windows.subtitle_lines = 0;
-            var downloads = new Gtk.Button.with_label(_("Get VirtIO-Win"));
+            var downloads = new Gtk.Button.with_label(_("Set Up Windows Drivers…"));
             downloads.valign = Gtk.Align.CENTER;
             downloads.clicked.connect(() => {
-                new Gtk.UriLauncher("https://github.com/virtio-win/virtio-win-pkg-scripts/blob/master/README.md").launch.begin(null, null);
+                if (!valid_settings(vm, os, socket, agent_socket)) return;
+                save_connection(vm, os, socket, agent_socket);
+                new GuestDriverSetupDialog(vm).present(this);
             });
+            downloads.sensitive = os.selected == 1 && save.sensitive;
+            save.notify["sensitive"].connect(() => { downloads.sensitive = os.selected == 1 && save.sensitive; });
+            os.notify["selected"].connect(() => { downloads.sensitive = os.selected == 1 && save.sensitive; });
             windows.add_suffix(downloads);
             help.add(windows);
             var linux_row = new Adw.ActionRow();
@@ -93,12 +104,40 @@ namespace Rigs {
             options.wrap = true;
             options.xalign = 0;
             qemu.add(options);
+            var agent_help = new Adw.PreferencesGroup();
+            agent_help.title = _("Guest Agent Channel");
+            agent_help.description = vm.vm_type == "libvirt"
+                ? _("In your VM manager, add a VirtIO channel named org.qemu.guest_agent.0. Install QEMU Guest Agent in Windows from the VirtIO ISO. Rigs then uses the libvirt agent connection without Windows passwords.")
+                : _("Guest Agent uses a separate socket from QMP. Configure a VirtIO serial channel named org.qemu.guest_agent.0 before the first agent installation. Keep existing controllers and channels; do not add duplicates.");
+            page.add(agent_help);
+            if (vm.vm_type != "libvirt") {
+                var agent_options = new Gtk.Label("-chardev socket,id=qga0,path=/path/to/qga.sock,server=on,wait=off\n-device virtio-serial-pci\n-device virtserialport,chardev=qga0,name=org.qemu.guest_agent.0");
+                agent_options.add_css_class("monospace");
+                agent_options.selectable = true;
+                agent_options.wrap = true;
+                agent_options.xalign = 0;
+                agent_help.add(agent_options);
+            }
             save.clicked.connect(() => {
-                vm.guest_os = os.selected == 1 ? "windows" : "linux";
-                if (vm.vm_type != "libvirt") vm.qmp_socket = socket.text.strip();
-                settings_saved();
+                save_connection(vm, os, socket, agent_socket);
                 close();
             });
+        }
+
+        private bool valid_settings(VmModel vm, Adw.ComboRow os, Adw.EntryRow qmp, Adw.EntryRow agent) {
+            if (os.selected == 0) return false;
+            if (vm.vm_type == "libvirt") return true;
+            return (qmp.text.strip().length == 0 || qmp.text.strip().has_prefix("/")) &&
+                (agent.text.strip().length == 0 || agent.text.strip().has_prefix("/"));
+        }
+
+        private void save_connection(VmModel vm, Adw.ComboRow os, Adw.EntryRow qmp, Adw.EntryRow agent) {
+            vm.guest_os = os.selected == 1 ? "windows" : "linux";
+            if (vm.vm_type != "libvirt") {
+                vm.qmp_socket = qmp.text.strip();
+                vm.guest_agent_socket = agent.text.strip();
+            }
+            settings_saved();
         }
     }
 }

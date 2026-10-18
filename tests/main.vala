@@ -43,5 +43,20 @@ int main(string[] args) {
     Test.add_func("/managed-driver/container", TestManagedDriver.test_container_status);
     Test.add_func("/managed-driver/libvirt", TestManagedDriver.test_libvirt_status);
     Test.add_func("/managed-driver/invalid", TestManagedDriver.test_invalid_targets);
+    Test.add_func("/guest-agent/libvirt", TestGuestAgent.test_libvirt);
+    Test.add_func("/guest-agent/socket", TestGuestAgent.test_socket);
+    Test.add_func("/guest-agent/errors", TestGuestAgent.test_errors);
+    Test.add_func("/guest-media/qmp", TestGuestMedia.test_qmp_media);
+    Test.add_func("/guest-media/libvirt", TestGuestMedia.test_libvirt_media);
+    Test.add_func("/guest-media/invalid", TestGuestMedia.test_invalid_targets);
+    Test.add_func("/guest-media/container-mounts", TestGuestMedia.test_container_mounts);
+    Test.add_func("/guest-media/iso", TestGuestMedia.test_iso_validation);
+    Test.add_func("/guest-packages/download", TestGuestToolsPackages.test_download);
+    Test.add_func("/guest-packages/local", TestGuestToolsPackages.test_local_files);
+    Test.add_func("/guest-install/probe", TestWindowsGuestInstaller.test_probe);
+    Test.add_func("/guest-install/install", TestWindowsGuestInstaller.test_install);
+    Test.add_func("/guest-install/failures", TestWindowsGuestInstaller.test_failures);
+    Test.add_func("/guest-install/scripts", TestWindowsGuestInstaller.test_scripts);
+    Test.add_func("/guest-install/resume", TestWindowsGuestInstaller.test_resume);
     return Test.run();
 }

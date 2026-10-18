@@ -511,3 +511,239 @@ msgstr "Не вдалося прочитати конфігурацію ресу
 
 msgid "The resource configuration contains invalid or duplicate entries. Repair vms.json or restore a backup."
 msgstr "Конфігурація містить некоректні або повторювані записи. Виправте vms.json або відновіть резервну копію."
+
+
+msgid "Windows Guest Drivers"
+msgstr "Гостьові драйвери Windows"
+
+msgid "Guest Connection"
+msgstr "Підключення до гостьової системи"
+
+msgid "Checking the guest agent, Windows and CD drives…"
+msgstr "Перевірка гостьового агента, Windows і CD-приводів…"
+
+msgid "Automatic setup requires a running Windows guest agent and administrator access. Missing statistics alone do not prove that drivers are missing."
+msgstr "Для автоматичного налаштування потрібні запущений гостьовий агент Windows і права адміністратора. Відсутність статистики сама по собі не доводить відсутність драйверів."
+
+msgid "Verified Driver Installer"
+msgstr "Перевірений інсталятор драйверів"
+
+msgid "The official pinned package is checked by SHA256. Windows must also verify its Red Hat digital signature before installation."
+msgstr "Офіційний пакет визначеної версії перевіряється за SHA256. Перед встановленням Windows також має перевірити його цифровий підпис Red Hat."
+
+msgid "No installer prepared."
+msgstr "Інсталятор ще не підготовлено."
+
+msgid "Prepare Installer"
+msgstr "Підготувати інсталятор"
+
+msgid "Choose Local Installer"
+msgstr "Вибрати локальний інсталятор"
+
+msgid "Install Drivers"
+msgstr "Встановити драйвери"
+
+msgid "Check Installation Result"
+msgstr "Перевірити результат встановлення"
+
+msgid "Cancel Download"
+msgstr "Скасувати завантаження"
+
+msgid "Open Installation Journal"
+msgstr "Відкрити журнал встановлення"
+
+msgid "Restart Windows"
+msgstr "Перезапустити Windows"
+
+msgid "Set Up Through the Windows Console"
+msgstr "Налаштувати через консоль Windows"
+
+msgid "If the guest agent is unavailable, one manual installation step is needed. The VM also needs a virtio-serial channel named org.qemu.guest_agent.0 connected to its dedicated guest-agent socket; configure it in your VM manager and restart the VM if necessary."
+msgstr "Якщо гостьовий агент недоступний, потрібен один ручний крок встановлення. VM також потрібен канал virtio-serial з назвою org.qemu.guest_agent.0, підключений до окремого сокета гостьового агента; налаштуйте його в менеджері VM і за потреби перезапустіть VM."
+
+msgid "Checking for an empty CD drive…"
+msgstr "Пошук порожнього CD-приводу…"
+
+msgid "Empty CD Drive"
+msgstr "Порожній CD-привід"
+
+msgid "Download and Attach VirtIO ISO"
+msgstr "Завантажити й підключити ISO VirtIO"
+
+msgid "Choose Local ISO"
+msgstr "Вибрати локальний ISO"
+
+msgid "After attachment, open the Windows console, open the CD drive and run virtio-win-guest-tools.exe as administrator. Keep the Balloon driver and QEMU Guest Agent selected. Rigs never replaces media in an occupied drive."
+msgstr "Після підключення відкрийте консоль Windows, відкрийте CD-привід і запустіть virtio-win-guest-tools.exe від імені адміністратора. Залиште вибраними драйвер Balloon і QEMU Guest Agent. Rigs не замінює носії в зайнятих приводах."
+
+msgid "Downloaded %s of %s"
+msgstr "Завантажено %s із %s"
+
+msgid "Downloaded %s"
+msgstr "Завантажено %s"
+
+msgid "Operation could not be completed: %s"
+msgstr "Не вдалося завершити операцію: %s"
+
+msgid "An earlier installation has no verified outcome yet. Check its result before starting another installation."
+msgstr "Результат попереднього встановлення ще не підтверджено. Перевірте його, перш ніж починати нове встановлення."
+
+msgid "Architecture: %s · Version: %s"
+msgstr "Архітектура: %s · Версія: %s"
+
+msgid "BalloonService is running."
+msgstr "BalloonService працює."
+
+msgid "BalloonService was not confirmed running."
+msgstr "Роботу BalloonService не підтверджено."
+
+msgid "Guest agent check failed: %s\nUse the ISO setup below, then check the guest-agent channel and reopen this dialog."
+msgstr "Не вдалося перевірити гостьовий агент: %s\nСкористайтеся налаштуванням через ISO нижче, потім перевірте канал гостьового агента й знову відкрийте цей діалог."
+
+msgid "CD drives could not be checked: %s"
+msgstr "Не вдалося перевірити CD-приводи: %s"
+
+msgid "Empty CD drives: %u · Occupied CD drives: %u"
+msgstr "Порожніх CD-приводів: %u · Зайнятих CD-приводів: %u"
+
+msgid "Add an empty CD drive in your VM manager to use ISO setup."
+msgstr "Для налаштування через ISO додайте порожній CD-привід у менеджері VM."
+
+msgid "Package: %s\nSHA256: %s\nFile: %s"
+msgstr "Пакет: %s\nSHA256: %s\nФайл: %s"
+
+msgid "Host journal: %s\nWindows installation logs: %s"
+msgstr "Журнал на хості: %s\nЖурнали встановлення у Windows: %s"
+
+msgid "Install Windows Drivers?"
+msgstr "Встановити драйвери Windows?"
+
+msgid "Install %s (%s) on %s? Windows will verify the Red Hat signature, then install drivers with administrator privileges. Windows will not be forcibly restarted."
+msgstr "Встановити %s (%s) на %s? Windows перевірить підпис Red Hat, потім встановить драйвери з правами адміністратора. Примусового перезапуску Windows не буде."
+
+msgid "Restart Windows?"
+msgstr "Перезапустити Windows?"
+
+msgid "Restart %s to finish driver setup? Save all work in Windows first; unsaved changes may be lost."
+msgstr "Перезапустити %s для завершення налаштування драйверів? Спочатку збережіть усі дані у Windows; незбережені зміни може бути втрачено."
+
+msgid "Restart requested. Reopen guest integration after Windows starts to verify statistics."
+msgstr "Запит на перезапуск надіслано. Після запуску Windows знову відкрийте гостьову інтеграцію, щоб перевірити статистику."
+
+msgid "Choose VirtIO ISO"
+msgstr "Вибрати ISO VirtIO"
+
+msgid "Choose VirtIO Windows Installer"
+msgstr "Вибрати інсталятор VirtIO для Windows"
+
+msgid "ISO Images"
+msgstr "Образи ISO"
+
+msgid "Windows Installers"
+msgstr "Інсталятори Windows"
+
+msgid "Choose a local file with an accessible filesystem path."
+msgstr "Виберіть локальний файл із доступним шляхом у файловій системі."
+
+msgid "File selection failed: %s"
+msgstr "Не вдалося вибрати файл: %s"
+
+msgid "VirtIO ISO attached. Open the Windows console and run virtio-win-guest-tools.exe from the CD drive as administrator, keeping Balloon and QEMU Guest Agent selected. Reopen this dialog after setup."
+msgstr "ISO VirtIO підключено. Відкрийте консоль Windows і запустіть virtio-win-guest-tools.exe із CD-приводу від імені адміністратора, залишивши вибраними Balloon і QEMU Guest Agent. Після налаштування знову відкрийте цей діалог."
+
+msgid "ISO package: %s\nSHA256: %s"
+msgstr "Пакет ISO: %s\nSHA256: %s"
+
+msgid "The official VirtIO download is unavailable. Try again or choose a local file."
+msgstr "Офіційне завантаження VirtIO недоступне. Спробуйте ще раз або виберіть локальний файл."
+
+msgid "Choose a regular VirtIO installer or ISO within the supported size limit."
+msgstr "Виберіть звичайний файл інсталятора VirtIO або ISO допустимого розміру."
+
+msgid "The selected file is not a Windows executable installer."
+msgstr "Вибраний файл не є виконуваним інсталятором Windows."
+
+msgid "VirtIO package checksum verification failed. The file will not be used."
+msgstr "Не вдалося перевірити контрольну суму пакета VirtIO. Файл не використовуватиметься."
+
+msgid "Local file"
+msgstr "Локальний файл"
+
+msgid "No verified package is available for this download."
+msgstr "Для цього завантаження немає перевіреного пакета."
+
+msgid "Cannot create the VirtIO download cache."
+msgstr "Не вдалося створити кеш завантажень VirtIO."
+
+msgid "The VirtIO download exceeds the supported size limit."
+msgstr "Завантаження VirtIO перевищує допустимий розмір."
+
+msgid "Guest agent installation commands are unavailable or disabled."
+msgstr "Команди встановлення через гостьовий агент недоступні або вимкнені."
+
+msgid "This Windows version or architecture requires manual driver setup."
+msgstr "Для цієї версії або архітектури Windows потрібне ручне налаштування драйверів."
+
+msgid "Windows guest is ready for driver installation."
+msgstr "Гостьова Windows готова до встановлення драйверів."
+
+msgid "The Windows guest agent requires administrator privileges."
+msgstr "Гостьовому агенту Windows потрібні права адміністратора."
+
+msgid "Drivers installed. Restart Windows to finish setup."
+msgstr "Драйвери встановлено. Перезапустіть Windows, щоб завершити налаштування."
+
+msgid "Drivers installed and BalloonService is running."
+msgstr "Драйвери встановлено, BalloonService працює."
+
+msgid "The installer unexpectedly started a restart. Verify Windows and driver status."
+msgstr "Інсталятор несподівано почав перезапуск. Перевірте стан Windows і драйверів."
+
+msgid "Driver installation or BalloonService verification failed. Check the guest installation log."
+msgstr "Не вдалося встановити драйвери або перевірити BalloonService. Перегляньте журнал встановлення в гостьовій системі."
+
+msgid "Installation status is unknown. Check the guest installation log before retrying."
+msgstr "Стан встановлення невідомий. Перед повторною спробою перегляньте журнал встановлення в гостьовій системі."
+
+msgid "Checking Windows guest and installer…"
+msgstr "Перевірка гостьової Windows та інсталятора…"
+
+msgid "Uploading verified driver installer…"
+msgstr "Передавання перевіреного інсталятора драйверів…"
+
+msgid "Installing Windows guest drivers…"
+msgstr "Встановлення гостьових драйверів Windows…"
+
+msgid "Driver setup failed before a verified outcome. Check the installation journal."
+msgstr "Налаштування драйверів завершилося без підтвердженого результату. Перегляньте журнал встановлення."
+
+msgid "Guest Agent Socket on the Host"
+msgstr "Сокет гостьового агента на хості"
+
+msgid "Set Up Windows Drivers…"
+msgstr "Налаштувати драйвери Windows…"
+
+msgid "Guest Agent Channel"
+msgstr "Канал гостьового агента"
+
+msgid "In your VM manager, add a VirtIO channel named org.qemu.guest_agent.0. Install QEMU Guest Agent in Windows from the VirtIO ISO. Rigs then uses the libvirt agent connection without Windows passwords."
+msgstr "У менеджері VM додайте канал VirtIO з назвою org.qemu.guest_agent.0. Встановіть QEMU Guest Agent у Windows з ISO VirtIO. Після цього Rigs використовуватиме підключення агента через libvirt без паролів Windows."
+
+msgid "Guest Agent uses a separate socket from QMP. Configure a VirtIO serial channel named org.qemu.guest_agent.0 before the first agent installation. Keep existing controllers and channels; do not add duplicates."
+msgstr "Гостьовий агент використовує окремий від QMP сокет. Перед першим встановленням агента налаштуйте послідовний канал VirtIO з назвою org.qemu.guest_agent.0. Збережіть наявні контролери й канали; не додавайте дублікати."
+
+#: src/windows_guest_installer.vala
+msgid "Guest installer SHA256 verification failed. The installer was not started."
+msgstr "Не вдалося перевірити SHA256 гостьового інсталятора. Інсталятор не запускався."
+
+#: src/windows_guest_installer.vala
+msgid "Windows could not validate the installer signature. The installer was not started."
+msgstr "Windows не змогла перевірити підпис інсталятора. Інсталятор не запускався."
+
+#: src/windows_guest_installer.vala
+msgid "The installer is not signed by the expected Red Hat publisher. The installer was not started."
+msgstr "Інсталятор не підписано очікуваним видавцем Red Hat. Інсталятор не запускався."
+
+#: src/windows_guest_installer.vala
+msgid "Windows could not complete the driver installer. Check the guest setup-error.txt and install.log files."
+msgstr "Windows не змогла завершити встановлення драйверів. Перегляньте файли setup-error.txt та install.log у гостьовій системі."

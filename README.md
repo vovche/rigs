@@ -89,6 +89,7 @@ and [Snap Docker interfaces](https://snapcraft.io/docs/reference/interfaces/dock
 - `libadwaita-1` (>= 1.5)
 - `gtk4` (>= 4.10)
 - `json-glib-1.0`
+- `libsoup-3.0`
 - `gettext`
 - `socat` (for QEMU monitor control)
 
@@ -152,8 +153,8 @@ OS and configure statistics. Rigs distinguishes an unconfigured channel,
 connection failure, missing `balloon0` device, guest not reporting, stale
 samples, and unsupported counters. The setup dialog links official VirtIO-Win
 downloads and explains the Balloon driver/service. These observations do not
-prove that drivers are missing; Rigs does not install guest software or restart
-VMs automatically. Known dockur/dockurr Windows VM images expose this setup
+prove that drivers are missing. **Set Up Windows Drivers…** opens the driver
+setup workflow described below. Known dockur/dockurr Windows VM images expose this setup
 action when discovered; generic containers are not treated as Windows VMs.
 
 Libvirt VMs use `virsh dommemstat` with five-second live polling, without a
@@ -164,3 +165,62 @@ Flatpak and Snap installation/build tests remain separate release checks.
 Configuration follows `XDG_CONFIG_HOME` (normally `~/.config/rigs`). Flatpak and
 Snap use their own application configuration directories; they do not silently
 import the native configuration or its custom commands.
+
+### Windows driver setup
+
+Rigs uses QEMU Guest Agent (QGA) for automatic Windows driver installation.
+WinRM is not part of this workflow. A working agent with administrator rights
+is required; Rigs checks the guest OS, x86/x64 architecture and required QGA
+commands before enabling installation. Supported versions are Windows 10/11
+and Server 2016/2019/2022/2025.
+
+For libvirt, configure a virtio channel named `org.qemu.guest_agent.0` in your
+VM manager. For standalone QEMU, create a **separate** QGA Unix socket, for
+example (omit controllers already present):
+
+```sh
+-chardev socket,path=/storage/rigs-qga.sock,server=on,wait=off,id=rigs-qga \
+-device virtio-serial-pci \
+-device virtserialport,chardev=rigs-qga,name=org.qemu.guest_agent.0
+```
+
+Configure its host path through guest integration or `guest_agent_socket` in
+`vms.json`. This is distinct from `qmp_socket`, which provides balloon telemetry
+and CD control. Keep both sockets accessible only to the VM owner. A new
+virtual device/channel may require a VM restart.
+
+The setup dialog downloads a pinned official VirtIO-Win package over HTTPS,
+verifies SHA256, uploads it through QGA, and requires Windows to validate its
+Red Hat Authenticode signature before execution. A local EXE is also supported;
+its digest is checked again inside Windows and the same signer validation
+applies. Installing requires an explicit confirmation naming the VM. The
+installer runs with `/quiet /norestart`; a requested restart is a separate
+confirmed action. An untrusted or unverifiable signature blocks installation.
+Tiny/custom Windows images must retain PowerShell and certificate validation.
+
+If QGA is missing, use **Download and Attach VirtIO ISO** or choose a local ISO.
+Rigs enumerates optical drives and accepts only an empty one. Open the Windows
+console and run `virtio-win-guest-tools.exe` as administrator, retaining the
+Balloon driver and QEMU Guest Agent. This initial bootstrap needs one manual
+step. Rigs cannot execute software in an unprepared guest. A local ISO is
+format-checked; use a trusted source. Downloaded ISO images also have a pinned
+SHA256. No CD drive is created automatically.
+
+Jobs retain private host journals under `$XDG_STATE_HOME/rigs/guest-tools`
+(normally `~/.local/state/rigs/guest-tools`) and Windows logs under
+`C:\ProgramData\Rigs\GuestTools\<job>`. If an agent restart interrupts the
+connection, **Check Installation Result** recovers the existing outcome.
+Unknown jobs block another installation until a result is verified. Rigs does
+not kill Windows installers on timeout. Package cache uses
+`$XDG_CACHE_HOME/rigs/guest-tools`.
+
+Flatpak still requires access to the socket and media paths. Container media
+uses an existing bind mount, or is staged in a writable `/storage` bind mount.
+Libvirt requires host-readable media paths; portal-only paths may be unsuitable.
+Strict Snap cannot access arbitrary host Unix sockets or libvirt: use a native
+installation for these flows. Packaging manifests are not a claim of completed
+Flatpak/Snap integration testing.
+
+The package catalog and verification provenance are recorded in
+[the VirtIO package catalog](docs/virtio-package-catalog.md). Headless tests use
+fake agents/transports; they do not install software in a live Windows VM.

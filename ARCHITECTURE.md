@@ -142,4 +142,31 @@ Guest integration has diagnostic states independent from host RAM. QMP checks
 that balloon0 exists; libvirt uses live dommemstat polling. Windows/Linux
 counter semantics remain distinct. `GuestToolsDialog` configures the OS/channel
 and provides official driver/setup guidance, without claiming driver absence
-from missing statistics or automatically installing/restarting anything.
+from missing statistics. Its Windows driver action opens `GuestDriverSetupDialog`.
+
+
+## 5. Windows guest driver setup
+
+`GuestAgent` owns a dedicated QGA socket transport (sync-delimited framing,
+limits and deadlines) or libvirt `qemu-agent-command`. `GuestMedia` separately
+uses QMP/libvirt to enumerate and attach media only to empty optical drives.
+QMP insertion uses an owned read-only block node and atomic insert, avoiding
+replacement of media inserted concurrently. Container mount inspection maps
+host paths or stages a private verified copy in a writable storage bind mount.
+
+`GuestToolsPackages` uses libsoup HTTPS with a fixed version/hash catalog,
+private cache and temporary files, size/time limits and cancellation. Local
+artifacts retain their computed SHA256. `WindowsGuestInstaller` checks enabled
+QGA commands, OS and privileges, uploads through guest-file APIs, and runs a
+fixed encoded PowerShell helper. SHA256 and a valid Red Hat Authenticode signer
+are checked in the guest before executing the package with no forced restart.
+Neither execution policy nor certificate verification is disabled.
+
+Private durable journals and per-target markers prevent duplicate installs.
+After a QGA service restart, recovery reads the existing Windows outcome rather
+than launching another installer. Unknown outcomes remain pending; only verified
+terminal outcomes release the marker. A reboot is a separate UI confirmation.
+`GuestDriverSetupDialog` performs I/O on worker threads using a model snapshot;
+installation/recovery cannot be dismissed while active, downloads can be canceled.
+Without an agent, the ISO route requires an initial manual Windows console step.
+WinRM is deliberately outside this product workflow.

@@ -42,6 +42,11 @@ namespace Rigs {
             try {
                 var host = new HostCommand();
                 var result = host.run({vm.runtime, "inspect", "--format", "{{.State.Running}}", vm.container_name});
+                // A reachable runtime without this container means stopped, not unavailable: Start must stay usable.
+                if (result.exit_status != 0 && is_missing_container(result)) {
+                    st.status_available = true;
+                    return st;
+                }
                 string state = result.output.strip();
                 if (result.exit_status != 0 || (state != "true" && state != "false")) return st;
                 st.status_available = true;
@@ -59,6 +64,11 @@ namespace Rigs {
                 }
             } catch (Error e) { }
             return st;
+        }
+
+        // Podman and Docker both report an absent container as "no such object" / "No such container".
+        public static bool is_missing_container(CommandResult result) {
+            return (result.output + result.error_output).down().contains("no such");
         }
 
         public void insert_iso(VmModel vm, string iso_path) { }

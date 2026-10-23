@@ -58,6 +58,15 @@ namespace Rigs.Tests {
             assert(st.ram_str == "0 MB");
         }
 
+        public static void test_compose_missing_container_detection() {
+            var missing = new CommandResult("", "Error: no such object: \"tiny10-vm\"\n", 125);
+            assert(ComposeDriver.is_missing_container(missing));
+            var missing_docker = new CommandResult("", "Error: No such container: win10e-vm\n", 1);
+            assert(ComposeDriver.is_missing_container(missing_docker));
+            var unreachable = new CommandResult("", "Cannot connect to the Docker daemon\n", 1);
+            assert(!ComposeDriver.is_missing_container(unreachable));
+        }
+
         public static void test_qemu_start_spawns_process() {
             var driver = DriverRegistry.get_default().get_driver("qemu");
             var vm = new VmModel();

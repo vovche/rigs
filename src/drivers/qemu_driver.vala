@@ -1,3 +1,5 @@
+using GLib.Intl;
+
 /* qemu_driver.vala — Standalone QEMU / KVM driver implementation */
 
 namespace Rigs {
@@ -60,45 +62,95 @@ namespace Rigs {
             return best;
         }
 
+        // Injectable for headless tests (fake command results, fake /proc).
+        public HostCommand host;
+        // How long to wait after a quick, successful start script before looking for the VM process.
+        public uint settle_ms = 3000;
+        public int64 startup_window_us = StartupDiagnostics.STARTUP_WINDOW_US;
+        // vm.id → a stop was requested while the start command still runs (its exit is expected).
+        private HashTable<string, bool> stopping = new HashTable<string, bool>(str_hash, str_equal);
+        private Mutex stopping_lock = Mutex();
+
+        public QemuDriver(HostCommand? host = null) {
+            this.host = host ?? new HostCommand();
+        }
+
+        private void set_stopping(string id, bool value) {
+            stopping_lock.lock();
+            if (value) stopping.insert(id, true); else stopping.remove(id);
+            stopping_lock.unlock();
+        }
+
+        private bool is_stopping(string id) {
+            stopping_lock.lock();
+            bool result = stopping.contains(id);
+            stopping_lock.unlock();
+            return result;
+        }
+
         public void start(VmModel vm) {
-            new Thread<void*>("qemu-starter", () => {
-                try {
-                    string? working_dir = vm.dir.length > 0 ? vm.dir : null;
-                    string cmd = (vm.start_cmd.length > 0) ? vm.start_cmd : "./run-vm.sh";
-                    string[] argv = { "/bin/bash", "-c", cmd };
-                    new HostCommand().launch(argv, working_dir);
-                } catch (Error e) {
-                    warning("Failed to start QEMU VM: %s", e.message);
-                }
-                return null;
-            });
+            StartupDiagnostics.run_in_background(vm, "qemu-starter", () => start_blocking(vm));
+        }
+
+        // The start script may daemonize QEMU (exits at once) or run it in the foreground
+        // (exits when the VM ends). Public for headless tests.
+        public StartupIssue? start_blocking(VmModel vm) {
+            set_stopping(vm.id, false);
+            string? working_dir = vm.dir.length > 0 ? vm.dir : null;
+            string cmd = (vm.start_cmd.length > 0) ? vm.start_cmd : "./run-vm.sh";
+            int64 began = get_monotonic_time();
+            CommandResult result;
+            try {
+                result = host.run_capture_tail({ "/bin/bash", "-c", cmd }, working_dir);
+            } catch (Error e) {
+                return StartupDiagnostics.from_error(e);
+            }
+            if (is_stopping(vm.id)) return null;
+            bool quick = get_monotonic_time() - began < startup_window_us;
+            if (result.exit_status != 0) {
+                var issue = StartupDiagnostics.diagnose(host, "", "", result, vm.guest_os);
+                if (issue != null && !quick) issue.operation = ResourceOperation.RUN;
+                return issue;
+            }
+            if (!quick || vm.process_name.length == 0 || !process_status_available()) return null;
+            // A daemonized QEMU can still fail right after the script returned.
+            if (settle_ms > 0) Thread.usleep(settle_ms * 1000);
+            if (is_stopping(vm.id)) return null;
+            if (find_vm_pid(proc_root, vm.process_name, (int) Posix.getpid()) > 0) return null;
+            var issue = StartupDiagnostics.analyze(result.error_output, vm.guest_os);
+            return issue ?? StartupDiagnostics.not_running(
+                _("No process matching “%s” is running.").printf(vm.process_name));
         }
 
         public void stop(VmModel vm) {
-            new Thread<void*>("qemu-stopper", () => {
+            set_stopping(vm.id, true);
+            StartupDiagnostics.run_in_background(vm, "qemu-stopper", () => {
+                string? directory = vm.dir.length > 0 ? vm.dir : null;
+                if (vm.stop_cmd.length > 0)
+                    return StartupDiagnostics.check_command(host, { "/bin/bash", "-c", vm.stop_cmd }, directory,
+                        ResourceOperation.STOP, 120000);
+                if (vm.monitor_socket.length == 0) return null;
                 try {
-                    var host = new HostCommand();
-                    string? directory = vm.dir.length > 0 ? vm.dir : null;
-                    if (vm.stop_cmd.length > 0) {
-                        host.run({"/bin/bash", "-c", vm.stop_cmd}, directory, 120000);
-                    } else if (vm.monitor_socket.length > 0) {
-                        HmpMonitor.send(vm.monitor_socket, "system_powerdown");
-                    }
-                } catch (Error e) { warning("Failed to stop QEMU VM: %s", e.message); }
+                    HmpMonitor.execute(vm.monitor_socket, "system_powerdown");
+                } catch (Error e) {
+                    return StartupDiagnostics.from_error(e, ResourceOperation.STOP);
+                }
                 return null;
             });
         }
 
         public void connect_vm(VmModel vm) {
-            if (vm.connect_cmd.length > 0) {
-                try {
-                    string? working_dir = vm.dir.length > 0 ? vm.dir : null;
-                    string[] argv = { "/bin/bash", "-c", vm.connect_cmd };
-                    new HostCommand().launch(argv, working_dir);
-                } catch (Error e) {
-                    warning("Failed to connect QEMU VM: %s", e.message);
-                }
-            }
+            if (vm.connect_cmd.length == 0) return;
+            StartupDiagnostics.run_in_background(vm, "qemu-connect", () => {
+                string? working_dir = vm.dir.length > 0 ? vm.dir : null;
+                return StartupDiagnostics.check_command(host, { "/bin/bash", "-c", vm.connect_cmd }, working_dir,
+                    ResourceOperation.CONNECT);
+            });
+        }
+
+        // Host procfs is visible only to unconfined deployments.
+        private bool process_status_available() {
+            return host.mode == "native" || host.mode == "snap-classic";
         }
 
         public VmStatus check_status(VmModel vm) {
@@ -109,8 +161,7 @@ namespace Rigs {
 
             // Direct process monitoring requires the host procfs. Sandboxed
             // deployments should use libvirt's stable domain interface.
-            string mode = new HostCommand().mode;
-            if (mode != "native" && mode != "snap-classic") return st;
+            if (!process_status_available()) return st;
             st.status_available = true;
             if (vm.process_name.length == 0) return st;
 
@@ -204,24 +255,24 @@ namespace Rigs {
 
         public void insert_iso(VmModel vm, string iso_path) {
             if (vm.monitor_socket.length == 0) return;
-            string command;
-            try {
-                command = "change cdrom " + HmpMonitor.quote(iso_path);
-            } catch (Error e) {
-                warning("Refusing ISO path: %s", e.message);
-                return;
-            }
-            send_async(vm.monitor_socket, command);
+            StartupDiagnostics.run_in_background(vm, "qemu-hmp", () => {
+                try {
+                    HmpMonitor.execute(vm.monitor_socket, "change cdrom " + HmpMonitor.quote(iso_path));
+                } catch (Error e) {
+                    return StartupDiagnostics.from_error(e, ResourceOperation.MEDIA);
+                }
+                return null;
+            });
         }
 
         public void eject_iso(VmModel vm) {
-            if (vm.monitor_socket.length > 0) send_async(vm.monitor_socket, "eject -f cdrom");
-        }
-
-        private static void send_async(string socket_path, string command) {
-            new Thread<void*>("qemu-hmp", () => {
-                try { HmpMonitor.send(socket_path, command); }
-                catch (Error e) { warning("QEMU monitor command failed: %s", e.message); }
+            if (vm.monitor_socket.length == 0) return;
+            StartupDiagnostics.run_in_background(vm, "qemu-hmp", () => {
+                try {
+                    HmpMonitor.execute(vm.monitor_socket, "eject -f cdrom");
+                } catch (Error e) {
+                    return StartupDiagnostics.from_error(e, ResourceOperation.MEDIA);
+                }
                 return null;
             });
         }

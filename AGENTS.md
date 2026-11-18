@@ -34,6 +34,8 @@ Do **NOT** load the entire codebase into context. Follow this order:
   - User start scripts run through `run_capture_tail` (never blocks on backgrounded children); short queries through `run` with a timeout.
   - Socket protocols (QMP, HMP, guest agent) use GIO sockets in-process; see `HmpMonitor`, `GuestMedia`.
 
+- **Failures are never silent:** a driver operation that fails returns or publishes a `StartupIssue` (toast + card icon + details dialog). Drivers never call `warning()` and never start threads directly; see `StartupDiagnostics.run_in_background`.
+
 - **Guardrails are mechanical:** `./build.sh` runs `scripts/lint.sh` as the meson test `lint`.
   When lint reports a rule ID, or before you add a process call, a model signal connection, telemetry arithmetic, an interface or a new source/test file, read `docs/guardrails.md`.
 

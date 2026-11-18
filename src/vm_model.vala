@@ -196,10 +196,20 @@ namespace Rigs {
             return true;
         }
 
-        public static void save_vms(GenericArray<VmModel> vms) {
-            if (load_error != null) return;
+        // Why the last save_vms() failed; null after a successful save.
+        public static string? save_error = null;
+
+        // Returns false (and sets save_error) when the changes did not reach the disk.
+        public static bool save_vms(GenericArray<VmModel> vms) {
+            if (load_error != null) {
+                save_error = _("Changes are not saved while vms.json needs repair.");
+                return false;
+            }
             string dir = get_config_dir();
-            DirUtils.create_with_parents(dir, 0755);
+            if (DirUtils.create_with_parents(dir, 0755) != 0) {
+                save_error = _("Cannot create %s: %s").printf(dir, strerror(errno));
+                return false;
+            }
 
             var array = new Json.Array();
             for (int i = 0; i < vms.length; i++) {
@@ -218,8 +228,11 @@ namespace Rigs {
             try {
                 generator.to_file(get_vms_file());
             } catch (Error e) {
-                warning("Failed to save vms.json: %s", e.message);
+                save_error = e.message;
+                return false;
             }
+            save_error = null;
+            return true;
         }
 
     }

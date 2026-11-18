@@ -201,7 +201,7 @@ namespace Rigs {
         private void refresh_issue() {
             var issue = vm.last_startup_issue;
             issue_btn.visible = issue != null;
-            if (issue != null) issue_btn.tooltip_text = _("Failed to start: %s").printf(issue.title);
+            if (issue != null) issue_btn.tooltip_text = "%s: %s".printf(StartupDiagnostics.headline(issue.operation, vm.name), issue.title);
         }
 
         public void update_status(VmStatus status) {

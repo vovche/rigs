@@ -439,3 +439,81 @@ msgstr ""
 
 msgid "Close"
 msgstr ""
+
+#, c-format
+msgid "Failed to stop %s"
+msgstr ""
+
+#, c-format
+msgid "Could not connect to %s"
+msgstr ""
+
+#, c-format
+msgid "Could not change the optical media of %s"
+msgstr ""
+
+#, c-format
+msgid "%s stopped with an error"
+msgstr ""
+
+msgid "The command timed out"
+msgstr ""
+
+msgid "The command did not finish within its time limit."
+msgstr ""
+
+msgid "Run the command in a terminal to see where it stops."
+msgstr ""
+
+msgid "Program not found"
+msgstr ""
+
+msgid "A program this resource needs is not installed or not in PATH."
+msgstr ""
+
+msgid "Install the missing program or fix the command in the resource settings."
+msgstr ""
+
+msgid "Not supported in this installation"
+msgstr ""
+
+msgid "Use the native package for this kind of resource."
+msgstr ""
+
+msgid "The operation failed"
+msgstr ""
+
+msgid "Rigs could not run the command for this resource."
+msgstr ""
+
+msgid "The resource stopped right after start"
+msgstr ""
+
+msgid "The start command finished, but the resource is not running."
+msgstr ""
+
+#, c-format
+msgid "Inspect it with `%s`."
+msgstr ""
+
+#, c-format
+msgid "No process matching “%s” is running."
+msgstr ""
+
+msgid "Changes are not saved while vms.json needs repair."
+msgstr ""
+
+#, c-format
+msgid "Cannot create %s: %s"
+msgstr ""
+
+#, c-format
+msgid "Could not save changes: %s"
+msgstr ""
+
+#, c-format
+msgid "Could not open the disk image: %s"
+msgstr ""
+
+msgid "Only local files can be inserted."
+msgstr ""

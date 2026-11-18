@@ -216,7 +216,7 @@ namespace Rigs {
             card.eject_iso_requested.connect((v) => { eject_iso(v, card); });
             card.guest_tools_requested.connect((v, state) => {
                 var dialog = new GuestToolsDialog(v, state);
-                dialog.settings_saved.connect(() => { ConfigManager.save_vms(vms); monitor.set_vms(vms); });
+                dialog.settings_saved.connect(() => { persist(); monitor.set_vms(vms); });
                 dialog.present(this);
             });
 
@@ -269,7 +269,7 @@ namespace Rigs {
             }
             vms.add(vm);
             monitor.set_vms(vms);
-            ConfigManager.save_vms(vms);
+            persist();
             render_vm_card(vm);
             update_empty_state();
             save_window_state();
@@ -356,9 +356,10 @@ namespace Rigs {
                 try {
                     var file = dialog.open.end(res);
                     if (file != null) {
-                        string iso_path = file.get_path();
+                        string? iso_path = file.get_path();
+                        if (iso_path == null) throw new IOError.NOT_SUPPORTED(_("Only local files can be inserted."));
                         vm.attached_iso = iso_path;
-                        ConfigManager.save_vms(vms);
+                        persist();
                         card.update_iso_subtitle();
 
                         // Hot-swap via driver
@@ -371,13 +372,16 @@ namespace Rigs {
                         toast_overlay.add_toast(toast);
                         notify_user(_("Optical Drive (ISO)"), _("Inserted '%s' into %s").printf(Path.get_basename(iso_path), vm.name));
                     }
-                } catch (Error e) {}
+                } catch (Error e) {
+                    if (e.matches(Gtk.DialogError.quark(), Gtk.DialogError.DISMISSED)) return;
+                    toast_overlay.add_toast(new Adw.Toast(_("Could not open the disk image: %s").printf(e.message)));
+                }
             });
         }
 
         private void eject_iso(VmModel vm, VmCard card) {
             vm.attached_iso = "";
-            ConfigManager.save_vms(vms);
+            persist();
             card.update_iso_subtitle();
 
             // Hot-eject via driver
@@ -403,8 +407,16 @@ namespace Rigs {
             }
         }
 
+        // Every configuration write goes through here so a failed save is never silent.
+        private void persist() {
+            if (ConfigManager.save_vms(vms)) return;
+            var toast = new Adw.Toast(_("Could not save changes: %s").printf(ConfigManager.save_error ?? ""));
+            toast.priority = Adw.ToastPriority.HIGH;
+            toast_overlay.add_toast(toast);
+        }
+
         private void show_startup_failure(VmModel vm, StartupIssue issue) {
-            var toast = new Adw.Toast(_("Failed to start %s: %s").printf(vm.name, issue.title));
+            var toast = new Adw.Toast("%s: %s".printf(StartupDiagnostics.headline(issue.operation, vm.name), issue.title));
             toast.button_label = _("Details");
             // Keep the default timeout: a persistent toast would block the overlay queue.
             // The card's warning icon keeps the details reachable.
@@ -416,6 +428,7 @@ namespace Rigs {
             var toast = new Adw.Toast(_("Stopping %s…").printf(vm.name));
             toast_overlay.add_toast(toast);
             notify_user(_("Stopping %s…").printf(vm.name), _("Virtual machine shutdown requested"));
+            vm.last_startup_issue = null;
 
             Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
             if (driver != null) {
@@ -462,7 +475,7 @@ namespace Rigs {
             VmModel removed = vms[idx];
             vms.remove_index(idx);
             monitor.set_vms(vms);
-            ConfigManager.save_vms(vms);
+            persist();
 
             VmCard card = cards.lookup(removed.id);
             if (card != null) {
@@ -483,7 +496,7 @@ namespace Rigs {
                 int restore_index = idx < (int)vms.length ? idx : (int)vms.length;
                 vms.insert(restore_index, removed);
                 monitor.set_vms(vms);
-                ConfigManager.save_vms(vms);
+                persist();
                 render_vm_card(removed);
                 reorder_cards();
                 update_empty_state();

@@ -50,6 +50,29 @@ namespace Rigs {
             return reply.str;
         }
 
+        // Text QEMU printed in response to the command: between the first and the second
+        // prompt, minus the echoed command line and terminal escapes. "" when unknown.
+        public static string command_output(string reply) {
+            int first = reply.index_of("(qemu)");
+            if (first < 0) return "";
+            int second = reply.index_of("(qemu)", first + 6);
+            if (second < 0) return "";
+            string body = reply.substring(first + 6, second - first - 6);
+            try {
+                body = new Regex("\\x1b\\[[0-9;]*[A-Za-z]").replace(body, -1, 0, "");
+            } catch (RegexError e) { }
+            int echo_end = body.index_of_char('\n');
+            if (echo_end < 0) return "";
+            return body.substring(echo_end + 1).replace("\r", "").strip();
+        }
+
+        // For commands that print nothing on success (change, eject, system_powerdown):
+        // any output is QEMU's error message and is thrown.
+        public static void execute(string socket_path, string command, uint timeout_s = 2) throws Error {
+            string output = command_output(send(socket_path, command, timeout_s));
+            if (output.length > 0) throw new IOError.FAILED("QEMU: %s", output);
+        }
+
         private static int count_prompts(string text) {
             int count = 0, index = 0;
             while ((index = text.index_of("(qemu)", index)) >= 0) { count++; index += 6; }

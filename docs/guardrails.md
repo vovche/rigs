@@ -10,6 +10,9 @@ Adding a rule: add the check to `lint.sh`, an injected violation to `lint_selfte
 
 | ID | Wrong | Right |
 |----|-------|-------|
+| SILENT-01 | `warning("Start failed: %s", e.message)` in a driver (goes to the journal; the user sees nothing) | return a `StartupIssue`: `StartupDiagnostics.from_error(e, op)`, `check_command(...)`, `diagnose(...)` |
+| SILENT-02 | `new Thread<void*>(…)` in a driver (its result has nowhere to go) | `StartupDiagnostics.run_in_background(vm, "name", () => job_returning_issue_or_null())` |
+| SILENT-03 | `ConfigManager.save_vms(vms);` as a statement (a failed write loses the user's edits silently) | `Window.persist()`, which toasts `ConfigManager.save_error` |
 | SPAWN-01 | `Process.spawn_*` (shell-parses the string, bypasses sandbox modes) | `new HostCommand().run({ argv… }, dir, timeout_ms)` |
 | SPAWN-02 | `communicate_utf8` (throws on any non-UTF-8 byte, e.g. container logs) | `HostCommand.run`; for raw bytes `HostCommand.bytes_to_text(bytes)` |
 | SPAWN-03 | shelling out to `socat` / `python3` for socket I/O | GIO `SocketClient` in-process: `HmpMonitor.send`, `GuestMedia` |
@@ -32,6 +35,11 @@ Adding a rule: add the check to `lint.sh`, an injected violation to `lint_selfte
 - **Process lookup** uses `QemuDriver.find_vm_pid` (literal substring of `/proc/<pid>/cmdline`, skips self, zombies and kernel threads, largest RSS wins). Never `pgrep`.
 - **Startup diagnostics** (`src/startup_diagnostics.vala`): each rule needs a test with the runtime's real wording (Podman, Docker, crun and QEMU word the same failure differently, e.g. a missing bind mount is `statfs …: no such file or directory` in rootless Podman).
 - **Window state:** save `default_width`/`default_height` (the unmaximized size), debounced.
+
+- **Every driver operation reports failure** (start, stop, connect, media, and a running VM exiting with an error). Pick the `ResourceOperation`; the toast, card tooltip and dialog derive their headline from it (`StartupDiagnostics.headline`). There is no fire-and-forget `HostCommand.launch`: long-running user commands (viewers, foreground VMs) go through `check_command(..., timeout_ms = 0)`, which waits on a worker thread.
+- **No false alarms:** QEMU checks "process gone after start" only when `process_name` is set; an exit after a stop request is expected; a nonzero exit later than `STARTUP_WINDOW_US` is `RUN`, not `START`.
+- **Known gap:** a compose resource without `container_name` cannot be checked after a successful `up -d` (service names and project labels differ between podman-compose and docker compose). Set `container_name` to get the check.
+- **HMP errors:** `change`, `eject` and `system_powerdown` print nothing on success; `HmpMonitor.execute` throws QEMU's text otherwise.
 
 ## Vala test pitfalls
 

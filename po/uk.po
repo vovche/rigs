@@ -851,3 +851,81 @@ msgstr "Скопійовано"
 
 msgid "Raw output"
 msgstr "Сирий вивід"
+
+#, c-format
+msgid "Failed to stop %s"
+msgstr "Не вдалося зупинити %s"
+
+#, c-format
+msgid "Could not connect to %s"
+msgstr "Не вдалося підключитися до %s"
+
+#, c-format
+msgid "Could not change the optical media of %s"
+msgstr "Не вдалося змінити оптичний носій у %s"
+
+#, c-format
+msgid "%s stopped with an error"
+msgstr "%s зупинилася з помилкою"
+
+msgid "The command timed out"
+msgstr "Команда перевищила час очікування"
+
+msgid "The command did not finish within its time limit."
+msgstr "Команда не завершилася за відведений час."
+
+msgid "Run the command in a terminal to see where it stops."
+msgstr "Запустіть команду в терміналі, щоб побачити, де вона зупиняється."
+
+msgid "Program not found"
+msgstr "Програму не знайдено"
+
+msgid "A program this resource needs is not installed or not in PATH."
+msgstr "Програма, потрібна цьому ресурсу, не встановлена або відсутня в PATH."
+
+msgid "Install the missing program or fix the command in the resource settings."
+msgstr "Встановіть відсутню програму або виправте команду в налаштуваннях ресурсу."
+
+msgid "Not supported in this installation"
+msgstr "Не підтримується в цьому встановленні"
+
+msgid "Use the native package for this kind of resource."
+msgstr "Для такого ресурсу використовуйте нативний пакет."
+
+msgid "The operation failed"
+msgstr "Операція не вдалася"
+
+msgid "Rigs could not run the command for this resource."
+msgstr "Rigs не вдалося виконати команду для цього ресурсу."
+
+msgid "The resource stopped right after start"
+msgstr "Ресурс зупинився одразу після старту"
+
+msgid "The start command finished, but the resource is not running."
+msgstr "Команда старту завершилася, але ресурс не працює."
+
+#, c-format
+msgid "Inspect it with `%s`."
+msgstr "Перевірте його командою `%s`."
+
+#, c-format
+msgid "No process matching “%s” is running."
+msgstr "Не запущено жодного процесу, що відповідає «%s»."
+
+msgid "Changes are not saved while vms.json needs repair."
+msgstr "Зміни не зберігаються, доки vms.json потребує виправлення."
+
+#, c-format
+msgid "Cannot create %s: %s"
+msgstr "Не вдалося створити %s: %s"
+
+#, c-format
+msgid "Could not save changes: %s"
+msgstr "Не вдалося зберегти зміни: %s"
+
+#, c-format
+msgid "Could not open the disk image: %s"
+msgstr "Не вдалося відкрити образ диска: %s"
+
+msgid "Only local files can be inserted."
+msgstr "Вставляти можна лише локальні файли."

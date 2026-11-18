@@ -8,11 +8,25 @@ namespace Rigs {
         CONTAINER_CONFLICT,
         PERMISSIONS_KVM,
         RESOURCE_EXHAUSTION,
+        MISSING_PROGRAM,
+        TIMEOUT,
+        UNSUPPORTED,
         GENERIC_ERROR
+    }
+
+    // What the user asked for when the failure happened; selects the headline wording.
+    public enum ResourceOperation {
+        START,
+        STOP,
+        CONNECT,
+        MEDIA,
+        // The resource was running and its start command exited with an error later.
+        RUN
     }
 
     public class StartupIssue : Object {
         public FailureCategory category { get; set; default = FailureCategory.GENERIC_ERROR; }
+        public ResourceOperation operation { get; set; default = ResourceOperation.START; }
         public string title { get; set; default = ""; }
         public string description { get; set; default = ""; }
         // Human-readable advice (may mention a command in backticks).
@@ -24,6 +38,9 @@ namespace Rigs {
 
     public class StartupDiagnostics : Object {
         private const int MAX_INPUT = 65536;
+        // Nonzero exits of long-running user commands (foreground QEMU, viewers) count
+        // as start/connect failures only this soon after launch; later ones are RUN issues.
+        public const int64 STARTUP_WINDOW_US = 60 * 1000000;
         private const int MAX_SNIPPET = 400;
 
         // Returns the captured named groups (in `names` order) of the first match, or null.
@@ -50,7 +67,7 @@ namespace Rigs {
         }
 
         private static StartupIssue make(FailureCategory category, string title, string description,
-                string? action, string? command, string snippet) {
+                string? action, string? command, string? snippet) {
             var issue = new StartupIssue();
             issue.category = category;
             issue.title = title;
@@ -173,6 +190,78 @@ namespace Rigs {
             } catch (Error e) {
                 return false;
             }
+        }
+
+        // One headline per operation, shared by the toast, the card tooltip and the dialog.
+        public static string headline(ResourceOperation operation, string name) {
+            switch (operation) {
+                case ResourceOperation.STOP: return _("Failed to stop %s").printf(name);
+                case ResourceOperation.CONNECT: return _("Could not connect to %s").printf(name);
+                case ResourceOperation.MEDIA: return _("Could not change the optical media of %s").printf(name);
+                case ResourceOperation.RUN: return _("%s stopped with an error").printf(name);
+                default: return _("Failed to start %s").printf(name);
+            }
+        }
+
+        // An exception from HostCommand/GIO (program missing, timeout, unsupported package) as an issue.
+        public static StartupIssue from_error(Error e, ResourceOperation operation = ResourceOperation.START) {
+            StartupIssue issue;
+            if (e.matches(IOError.quark(), IOError.TIMED_OUT)) {
+                issue = make(FailureCategory.TIMEOUT, _("The command timed out"),
+                    _("The command did not finish within its time limit."),
+                    _("Run the command in a terminal to see where it stops."), null, e.message);
+            } else if (e.matches(SpawnError.quark(), SpawnError.NOENT) ||
+                       e.matches(IOError.quark(), IOError.NOT_FOUND)) {
+                issue = make(FailureCategory.MISSING_PROGRAM, _("Program not found"),
+                    _("A program this resource needs is not installed or not in PATH."),
+                    _("Install the missing program or fix the command in the resource settings."), null, e.message);
+            } else if (e.matches(IOError.quark(), IOError.NOT_SUPPORTED)) {
+                issue = make(FailureCategory.UNSUPPORTED, _("Not supported in this installation"),
+                    e.message, _("Use the native package for this kind of resource."), null, null);
+            } else {
+                issue = make(FailureCategory.GENERIC_ERROR, _("The operation failed"),
+                    _("Rigs could not run the command for this resource."),
+                    _("Check the output below for details."), null, e.message);
+            }
+            issue.operation = operation;
+            return issue;
+        }
+
+        // The command finished without an error, yet the resource is not running.
+        public static StartupIssue not_running(string detail, string? suggested_command = null) {
+            return make(FailureCategory.GENERIC_ERROR, _("The resource stopped right after start"),
+                _("The start command finished, but the resource is not running."),
+                suggested_command != null ? _("Inspect it with `%s`.").printf(suggested_command)
+                                          : _("Check the output below for details."),
+                suggested_command, detail);
+        }
+
+        // Runs a user-configured command and turns a nonzero exit or an exception into an issue.
+        // timeout_ms == 0: long-running command (viewer, foreground VM) via run_capture_tail.
+        public static StartupIssue? check_command(HostCommand host, string[] argv, string? directory,
+                ResourceOperation operation, uint timeout_ms = 0) {
+            try {
+                var result = timeout_ms == 0 ? host.run_capture_tail(argv, directory)
+                                             : host.run(argv, directory, timeout_ms);
+                if (result.exit_status == 0) return null;
+                var issue = diagnose(host, "", "", result);
+                if (issue != null) issue.operation = operation;
+                return issue;
+            } catch (Error e) {
+                return from_error(e, operation);
+            }
+        }
+
+        // The only way drivers run work off the main thread: whatever the job
+        // returns is published, so a failure cannot be dropped on the floor.
+        public delegate StartupIssue? Job();
+
+        public static void run_in_background(VmModel vm, string thread_name, owned Job job) {
+            new Thread<void*>(thread_name, () => {
+                StartupIssue? issue = job();
+                if (issue != null) publish(vm, issue);
+                return null;
+            });
         }
 
         // Safe from worker threads: model changes happen on the main context.

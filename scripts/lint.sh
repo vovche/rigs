@@ -46,6 +46,15 @@ while IFS= read -r hit; do
     fi
 done < <(grep -nHE '"-c"' $SRC 2>/dev/null)
 
+# --- Silent failures ---------------------------------------------------------
+DRIVERS=$(find src/drivers -name '*.vala' | sort)
+grep_rule SILENT-01 '\bwarning *\(|\bmessage *\(|\bdebug *\(' \
+    "Drivers must not log failures where the user cannot see them; return a StartupIssue (StartupDiagnostics.from_error / check_command)." $DRIVERS
+grep_rule SILENT-02 'new Thread *<' \
+    "Drivers run background work only through StartupDiagnostics.run_in_background, which publishes the returned issue." $DRIVERS
+grep_rule SILENT-03 '^[[:space:]]*ConfigManager\.save_vms *\(' \
+    "save_vms() returns false when changes did not reach the disk; call it through a helper that tells the user (Window.persist)." $SRC
+
 # --- GTK / application -------------------------------------------------------
 grep_rule APP-01 'active_window as Window' \
     "active_window is null while any other window has focus; use Application.main_window()." $SRC

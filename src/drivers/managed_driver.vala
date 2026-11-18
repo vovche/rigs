@@ -47,52 +47,56 @@ namespace Rigs {
                 if (result.exit_status != 0) {
                     return StartupDiagnostics.diagnose(commands, vm.runtime, container, result, vm.guest_os);
                 }
+                if (settle_ms > 0) Thread.usleep(settle_ms * 1000);
                 if (kind == "container") {
-                    if (settle_ms > 0) Thread.usleep(settle_ms * 1000);
                     if (StartupDiagnostics.exited_after_start(commands, vm.runtime, container))
                         return StartupDiagnostics.diagnose(commands, vm.runtime, container, null, vm.guest_os);
+                } else {
+                    return libvirt_exited_after_start(vm);
                 }
             } catch (Error e) {
-                warning("Managed resource operation failed: %s", e.message);
+                return StartupDiagnostics.from_error(e);
             }
             return null;
         }
 
-        private void change_state(VmModel vm, bool starting) {
-            string[] argv = lifecycle_argv(vm, starting);
-            if (argv.length == 0) return;
-            new Thread<void*>("managed-lifecycle", () => {
-                if (starting) {
-                    var issue = start_blocking(vm);
-                    if (issue != null) StartupDiagnostics.publish(vm, issue);
-                    return null;
-                }
-                try {
-                    var result = commands.run(argv, null, 35000);
-                    if (result.exit_status != 0)
-                        warning("Managed resource operation failed: %s", result.error_output);
-                } catch (Error e) {
-                    warning("Managed resource operation failed: %s", e.message);
-                }
-                return null;
-            });
+        // `virsh start` succeeds before QEMU has fully come up; a domain that died at once is "shut off"/"crashed".
+        private StartupIssue? libvirt_exited_after_start(VmModel vm) throws Error {
+            var state = commands.run({ "virsh", "--connect", vm.connection_uri, "domstate", "--reason", vm.resource_id });
+            string text = state.output.strip();
+            if (state.exit_status != 0 || !(text.has_prefix("shut off") || text.has_prefix("crashed"))) return null;
+            return StartupDiagnostics.not_running(text,
+                "virsh --connect %s dominfo %s".printf(vm.connection_uri, vm.resource_id));
         }
 
-        public void start(VmModel vm) { change_state(vm, true); }
-        public void stop(VmModel vm) { change_state(vm, false); }
+        public void start(VmModel vm) {
+            if (lifecycle_argv(vm, true).length == 0) return;
+            StartupDiagnostics.run_in_background(vm, "managed-start", () => start_blocking(vm));
+        }
+
+        public void stop(VmModel vm) {
+            string[] argv = lifecycle_argv(vm, false);
+            if (argv.length == 0) return;
+            StartupDiagnostics.run_in_background(vm, "managed-stop", () =>
+                StartupDiagnostics.check_command(commands, argv, null, ResourceOperation.STOP, 35000));
+        }
+
+        // Public for headless tests; empty when there is nothing safe to run.
+        public string[] connect_argv(VmModel vm, out string? directory) {
+            directory = null;
+            if (!valid_target(vm)) return {};
+            if (kind == "libvirt") return { "virt-viewer", "--connect", vm.connection_uri, vm.resource_id };
+            if (vm.connect_cmd.length == 0) return {};
+            directory = vm.dir.length > 0 ? vm.dir : null;
+            return { "/bin/bash", "-c", vm.connect_cmd };
+        }
 
         public void connect_vm(VmModel vm) {
-            if (!valid_target(vm)) return;
-            try {
-                if (kind == "libvirt") {
-                    commands.launch({ "virt-viewer", "--connect", vm.connection_uri, vm.resource_id });
-                } else if (vm.connect_cmd.length > 0) {
-                    commands.launch({ "/bin/bash", "-c", vm.connect_cmd },
-                        vm.dir.length > 0 ? vm.dir : null);
-                }
-            } catch (Error e) {
-                warning("Could not open resource viewer: %s", e.message);
-            }
+            string? directory;
+            string[] argv = connect_argv(vm, out directory);
+            if (argv.length == 0) return;
+            StartupDiagnostics.run_in_background(vm, "managed-connect", () =>
+                StartupDiagnostics.check_command(commands, argv, directory, ResourceOperation.CONNECT));
         }
 
         public VmStatus check_status(VmModel vm) {

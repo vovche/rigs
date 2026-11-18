@@ -14,10 +14,6 @@ namespace Rigs.Tests {
             if (argv[1] == "inspect") return new CommandResult(state, "", inspect_exit);
             return new CommandResult(stats, "", stats_exit);
         }
-
-        public override void launch(string[] argv, string? directory = null) throws Error {
-            calls.add(string.joinv("|", argv));
-        }
     }
 
     public class TestManagedDriver {
@@ -75,8 +71,8 @@ namespace Rigs.Tests {
             assert(!driver.check_status(vm).status_available);
             assert(string.joinv("|", driver.lifecycle_argv(vm, false)) ==
                 "virsh|--connect|qemu:///session|shutdown|" + vm.resource_id);
-            driver.connect_vm(vm);
-            assert(commands.calls[commands.calls.length - 1] ==
+            string? directory;
+            assert(string.joinv("|", driver.connect_argv(vm, out directory)) ==
                 "virt-viewer|--connect|qemu:///session|" + vm.resource_id);
         }
 
@@ -87,7 +83,8 @@ namespace Rigs.Tests {
             vm.resource_id = "--all";
             assert(!container.check_status(vm).status_available);
             assert(container.lifecycle_argv(vm, false).length == 0);
-            container.connect_vm(vm);
+            string? directory;
+            assert(container.connect_argv(vm, out directory).length == 0);
             vm.resource_id = "0123456789abcdef";
             vm.runtime = "/bin/bash";
             assert(!container.check_status(vm).status_available);
@@ -97,7 +94,7 @@ namespace Rigs.Tests {
             vm.connection_uri = "qemu+ssh://host/system";
             assert(!libvirt.check_status(vm).status_available);
             assert(libvirt.lifecycle_argv(vm, false).length == 0);
-            libvirt.connect_vm(vm);
+            assert(libvirt.connect_argv(vm, out directory).length == 0);
             vm.connection_uri = "qemu:///system";
             vm.resource_id = "example";
             assert(!libvirt.check_status(vm).status_available);

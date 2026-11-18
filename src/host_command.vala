@@ -173,10 +173,5 @@ namespace Rigs {
             }
             return bytes_to_text(new Bytes(buffer[0:(int)total]));
         }
-
-        public virtual void launch(string[] argv, string? directory = null) throws Error {
-            string[] prepared = prepare(argv, directory);
-            launcher(SubprocessFlags.NONE, directory).spawnv(prepared);
-        }
     }
 }

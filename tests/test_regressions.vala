@@ -13,6 +13,30 @@ namespace Rigs.Tests {
         public void end_query() { depth--; }
     }
 
+    // Scripted host: run_capture_tail returns tail_result (or throws tail_error); run answers by argv[0..1].
+    private class ScriptedCommands : HostCommand {
+        public CommandResult tail_result = new CommandResult();
+        public Error? tail_error = null;
+        public Error? run_error = null;
+        public string domstate = "running\n";
+        public GenericArray<string> calls = new GenericArray<string>();
+
+        public ScriptedCommands() { base("native"); }
+
+        public override CommandResult run_capture_tail(string[] argv, string? directory = null) throws Error {
+            calls.add(string.joinv("|", argv));
+            if (tail_error != null) throw tail_error;
+            return tail_result;
+        }
+
+        public override CommandResult run(string[] argv, string? directory = null, uint timeout_ms = 3000) throws Error {
+            calls.add(string.joinv("|", argv));
+            if (run_error != null) throw run_error;
+            if (argv[0] == "virsh" && argv[3] == "domstate") return new CommandResult(domstate, "", 0);
+            return new CommandResult("", "", 0);
+        }
+    }
+
     public class TestRegressions {
         // Class: data concatenated into a command language (shell, HMP).
         public static void test_hmp_quoting() {
@@ -173,6 +197,98 @@ namespace Rigs.Tests {
                 provider.launch_search({ "x" }, 0);
             } catch (Error e) { assert_not_reached(); }
             assert(target.depth == 0 && target.max_depth == 1);
+        }
+        // Class: failures logged with warning() where the user never sees them.
+        public static void test_hmp_command_output() {
+            assert(HmpMonitor.command_output("QEMU 9.0 monitor\r\n(qemu) change cdrom \"/x\"\r\n(qemu) ") == "");
+            assert(HmpMonitor.command_output("(qemu) \x1b[Keject -f cdrom\r\nDevice 'cdrom' not found\r\n(qemu) ")
+                == "Device 'cdrom' not found");
+            assert(HmpMonitor.command_output("(qemu) system_powerdown") == ""); // no second prompt: unknown
+        }
+
+        public static void test_error_to_issue() {
+            var timeout = StartupDiagnostics.from_error(new IOError.TIMED_OUT("slow"), ResourceOperation.STOP);
+            assert(timeout.category == FailureCategory.TIMEOUT && timeout.operation == ResourceOperation.STOP);
+            var missing = StartupDiagnostics.from_error(new SpawnError.NOENT("podman: not found"));
+            assert(missing.category == FailureCategory.MISSING_PROGRAM && missing.operation == ResourceOperation.START);
+            var unsupported = StartupDiagnostics.from_error(new IOError.NOT_SUPPORTED("Restricted Snap"));
+            assert(unsupported.category == FailureCategory.UNSUPPORTED && unsupported.description == "Restricted Snap");
+            var other = StartupDiagnostics.from_error(new IOError.FAILED("QEMU: boom"), ResourceOperation.MEDIA);
+            assert(other.matched_snippet == "QEMU: boom");
+            foreach (var op in new ResourceOperation[] { ResourceOperation.START, ResourceOperation.STOP,
+                    ResourceOperation.CONNECT, ResourceOperation.MEDIA, ResourceOperation.RUN })
+                assert(StartupDiagnostics.headline(op, "vm1").contains("vm1"));
+            var host = new ScriptedCommands();
+            host.run_error = new IOError.TIMED_OUT("slow");
+            var stop = StartupDiagnostics.check_command(host, { "/bin/bash", "-c", "x" }, null, ResourceOperation.STOP, 1000);
+            assert(stop != null && stop.operation == ResourceOperation.STOP && stop.category == FailureCategory.TIMEOUT);
+            host.run_error = null;
+            assert(StartupDiagnostics.check_command(host, { "true" }, null, ResourceOperation.STOP, 1000) == null);
+            host.tail_result = new CommandResult("", "remote-viewer: cannot connect\n", 1);
+            var connect = StartupDiagnostics.check_command(host, { "x" }, null, ResourceOperation.CONNECT);
+            assert(connect != null && connect.operation == ResourceOperation.CONNECT);
+        }
+
+        public static void test_qemu_start_failures() {
+            string root = "";
+            try { root = DirUtils.make_tmp("rigs-proc-XXXXXX"); } catch (Error e) { assert_not_reached(); }
+            var host = new ScriptedCommands();
+            var driver = new QemuDriver(host);
+            driver.proc_root = root;
+            driver.settle_ms = 0;
+            var vm = new VmModel();
+            vm.id = "win10";
+            vm.start_cmd = "./run-vm.sh";
+            // Script fails: diagnosed from its own output.
+            host.tail_result = new CommandResult("", "qemu-system-x86_64: Could not access KVM kernel module\n", 1);
+            var issue = driver.start_blocking(vm);
+            assert(issue != null && issue.category == FailureCategory.PERMISSIONS_KVM && issue.operation == ResourceOperation.START);
+            // Spawning itself fails.
+            host.tail_error = new SpawnError.NOENT("bash missing");
+            issue = driver.start_blocking(vm);
+            assert(issue != null && issue.category == FailureCategory.MISSING_PROGRAM);
+            host.tail_error = null;
+            // Script succeeded (daemonized QEMU) but no matching process exists.
+            host.tail_result = new CommandResult("", "", 0);
+            vm.process_name = "-name win10";
+            issue = driver.start_blocking(vm);
+            assert(issue != null && issue.matched_snippet.contains("-name win10"));
+            // ...and with the process present there is nothing to report.
+            fake_process(root, 21, { "qemu-system-x86_64", "-name", "win10" }, "S", 1000);
+            assert(driver.start_blocking(vm) == null);
+            // Without process_name nothing can be checked: no false alarm.
+            vm.process_name = "";
+            assert(driver.start_blocking(vm) == null);
+            // A late nonzero exit (foreground VM crashed) is reported as RUN, not START.
+            driver.startup_window_us = 0;
+            host.tail_result = new CommandResult("", "qemu: terminating on signal 11\n", 139);
+            issue = driver.start_blocking(vm);
+            assert(issue != null && issue.operation == ResourceOperation.RUN);
+            remove_tree(root);
+        }
+
+        public static void test_managed_start_failures() {
+            var host = new ScriptedCommands();
+            var libvirt = new ManagedDriver("libvirt", host);
+            libvirt.settle_ms = 0;
+            var vm = new VmModel();
+            vm.resource_id = "01234567-89ab-cdef-0123-456789abcdef";
+            vm.connection_uri = "qemu:///session";
+            assert(libvirt.start_blocking(vm) == null);
+            host.domstate = "shut off (failed)\n";
+            var issue = libvirt.start_blocking(vm);
+            assert(issue != null && issue.matched_snippet == "shut off (failed)");
+            assert(issue.suggested_command.has_prefix("virsh --connect qemu:///session dominfo "));
+            host.run_error = new IOError.TIMED_OUT("virsh hung");
+            issue = libvirt.start_blocking(vm);
+            assert(issue != null && issue.category == FailureCategory.TIMEOUT);
+        }
+
+        public static void test_save_failure_reported() {
+            ConfigManager.load_error = "broken";
+            assert(!ConfigManager.save_vms(new GenericArray<VmModel>()));
+            assert(ConfigManager.save_error != null);
+            ConfigManager.load_error = null;
         }
     }
 }

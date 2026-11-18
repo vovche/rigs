@@ -16,3 +16,4 @@ src/guest_agent.vala
 src/guest_media.vala
 src/startup_diagnostics.vala
 src/startup_issue_dialog.vala
+src/drivers/qemu_driver.vala

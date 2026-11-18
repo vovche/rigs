@@ -5,44 +5,44 @@ namespace Rigs {
 
         public string vm_type { get { return "compose"; } }
 
-        private void lifecycle(VmModel vm, bool starting) {
-            new Thread<void*>("compose-lifecycle", () => {
-                try {
-                    if (vm.runtime != "podman" && vm.runtime != "docker") return null;
-                    string cmd = starting ? vm.start_cmd : vm.stop_cmd;
-                    var host = new HostCommand();
-                    string? directory = vm.dir.length > 0 ? vm.dir : null;
-                    string[] argv;
-                    if (cmd.length > 0) argv = { "/bin/bash", "-c", cmd };
-                    else argv = starting ? new string[] { vm.runtime, "compose", "up", "-d" }
-                                         : new string[] { vm.runtime, "compose", "down" };
-                    if (!starting) {
-                        host.run(argv, directory, 120000);
-                        return null;
-                    }
-                    var result = host.run_capture_tail(argv, directory);
-                    StartupIssue? issue = null;
-                    if (result.exit_status != 0) {
-                        issue = StartupDiagnostics.diagnose(host, vm.runtime, vm.container_name, result, vm.guest_os);
-                    } else {
-                        Thread.usleep(SETTLE_MS * 1000);
-                        if (StartupDiagnostics.exited_after_start(host, vm.runtime, vm.container_name))
-                            issue = StartupDiagnostics.diagnose(host, vm.runtime, vm.container_name, null, vm.guest_os);
-                    }
-                    if (issue != null) StartupDiagnostics.publish(vm, issue);
-                } catch (Error e) { warning("Compose command failed: %s", e.message); }
-                return null;
-            });
+        private StartupIssue? lifecycle_blocking(VmModel vm, bool starting) {
+            if (vm.runtime != "podman" && vm.runtime != "docker") return null;
+            string cmd = starting ? vm.start_cmd : vm.stop_cmd;
+            var host = new HostCommand();
+            string? directory = vm.dir.length > 0 ? vm.dir : null;
+            string[] argv;
+            if (cmd.length > 0) argv = { "/bin/bash", "-c", cmd };
+            else argv = starting ? new string[] { vm.runtime, "compose", "up", "-d" }
+                                 : new string[] { vm.runtime, "compose", "down" };
+            if (!starting)
+                return StartupDiagnostics.check_command(host, argv, directory, ResourceOperation.STOP, 120000);
+            try {
+                var result = host.run_capture_tail(argv, directory);
+                if (result.exit_status != 0)
+                    return StartupDiagnostics.diagnose(host, vm.runtime, vm.container_name, result, vm.guest_os);
+                // Without container_name the services cannot be checked after `up -d` (see docs/guardrails.md).
+                Thread.usleep(SETTLE_MS * 1000);
+                if (StartupDiagnostics.exited_after_start(host, vm.runtime, vm.container_name))
+                    return StartupDiagnostics.diagnose(host, vm.runtime, vm.container_name, null, vm.guest_os);
+            } catch (Error e) {
+                return StartupDiagnostics.from_error(e);
+            }
+            return null;
         }
 
-        public void start(VmModel vm) { lifecycle(vm, true); }
-        public void stop(VmModel vm) { lifecycle(vm, false); }
+        public void start(VmModel vm) {
+            StartupDiagnostics.run_in_background(vm, "compose-start", () => lifecycle_blocking(vm, true));
+        }
+
+        public void stop(VmModel vm) {
+            StartupDiagnostics.run_in_background(vm, "compose-stop", () => lifecycle_blocking(vm, false));
+        }
 
         public void connect_vm(VmModel vm) {
             if (vm.connect_cmd.length == 0) return;
-            try {
-                new HostCommand().launch({"/bin/bash", "-c", vm.connect_cmd}, vm.dir.length > 0 ? vm.dir : null);
-            } catch (Error e) { warning("Failed to connect: %s", e.message); }
+            StartupDiagnostics.run_in_background(vm, "compose-connect", () =>
+                StartupDiagnostics.check_command(new HostCommand(), { "/bin/bash", "-c", vm.connect_cmd },
+                    vm.dir.length > 0 ? vm.dir : null, ResourceOperation.CONNECT));
         }
 
         public VmStatus check_status(VmModel vm) {

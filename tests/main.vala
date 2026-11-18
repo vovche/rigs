@@ -78,5 +78,10 @@ int main(string[] args) {
     Test.add_func("/regressions/parse-mem", TestRegressions.test_parse_mem);
     Test.add_func("/regressions/capture-tail", TestRegressions.test_capture_tail);
     Test.add_func("/regressions/search-target-balanced", TestRegressions.test_search_target_balanced);
+    Test.add_func("/regressions/hmp-command-output", TestRegressions.test_hmp_command_output);
+    Test.add_func("/regressions/error-to-issue", TestRegressions.test_error_to_issue);
+    Test.add_func("/regressions/qemu-start-failures", TestRegressions.test_qemu_start_failures);
+    Test.add_func("/regressions/managed-start-failures", TestRegressions.test_managed_start_failures);
+    Test.add_func("/regressions/save-failure-reported", TestRegressions.test_save_failure_reported);
     return Test.run();
 }

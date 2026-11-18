@@ -2,7 +2,8 @@
 
 namespace Rigs {
     public class SystemDiagnostics : Object {
-        public static string get_report() {
+        // toolkit_versions: lines from the UI layer (GTK/Libadwaita), which core cannot link.
+        public static string get_report(string toolkit_versions = "") {
             var sb = new StringBuilder();
             sb.append("=== Rigs Diagnostics Report ===\n\n");
 
@@ -59,8 +60,7 @@ namespace Rigs {
             sb.append("\n### Desktop & Windowing\n");
             sb.append_printf("- Display Server: %s\n", Environment.get_variable("XDG_SESSION_TYPE") ?? "unknown");
             sb.append_printf("- Desktop Environment: %s\n", Environment.get_variable("XDG_CURRENT_DESKTOP") ?? "unknown");
-            sb.append_printf("- GTK Version: %u.%u.%u\n", Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version());
-            sb.append_printf("- Libadwaita Version: %u.%u.%u\n", Adw.get_major_version(), Adw.get_minor_version(), Adw.get_micro_version());
+            sb.append(toolkit_versions);
             sb.append_printf("- GLib Version: %u.%u.%u\n", GLib.Version.major, GLib.Version.minor, GLib.Version.micro);
 
             // 5. Drivers & Tooling

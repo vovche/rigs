@@ -59,39 +59,12 @@ test_sources = [
   'tests/test_regressions.vala',
   'tests/test_search_provider.vala',
   'tests/mock_driver.vala',
-  'src/vm_model.vala',
-  'src/guest_memory.vala',
-  'src/guest_agent.vala',
-  'src/guest_media.vala',
-  'src/guest_tools_packages.vala',
-  'src/windows_guest_installer.vala',
-  'src/host_command.vala',
-  'src/startup_diagnostics.vala',
-  'src/resource_discovery.vala',
-  'src/drivers/managed_driver.vala',
-  'src/search_provider.vala',
-  'src/system_diagnostics.vala',
-  'src/drivers/driver.vala',
-  'src/drivers/qemu_driver.vala',
-  'src/drivers/compose_driver.vala',
-  'src/drivers/driver_registry.vala',
-  'src/metrics.vala',
-  'src/qemu_monitor.vala',
-  config_vala,
 ]
 
 test_exe = executable('rigs-tests',
   test_sources,
-  dependencies: [
-    gtk_dep,
-    adw_dep,
-    glib_dep,
-    gio_dep,
-    gio_unix_dep,
-    soup_dep,
-    json_dep,
-    posix_dep,
-  ],
+  # Core only: tests cannot depend on GTK, so they stay headless by construction.
+  dependencies: [rigs_core_dep],
 )
 
 test('unit-tests', test_exe)

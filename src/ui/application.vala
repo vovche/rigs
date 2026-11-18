@@ -140,6 +140,13 @@ namespace Rigs {
             launcher.launch.begin(this.active_window, null);
         }
 
+        // GTK/Libadwaita versions for the diagnostics report (core does not link GTK).
+        public static string toolkit_versions() {
+            return "- GTK Version: %u.%u.%u\n- Libadwaita Version: %u.%u.%u\n".printf(
+                Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version(),
+                Adw.get_major_version(), Adw.get_minor_version(), Adw.get_micro_version());
+        }
+
         private void show_about() {
             var about = new Adw.AboutDialog();
             about.application_name = "Rigs";
@@ -150,7 +157,7 @@ namespace Rigs {
             about.website = "https://github.com/vovche/rigs";
             about.issue_url = "https://github.com/vovche/rigs/issues/new/choose";
             about.license_type = Gtk.License.APACHE_2_0;
-            about.debug_info = SystemDiagnostics.get_report();
+            about.debug_info = SystemDiagnostics.get_report(Rigs.Application.toolkit_versions());
             about.debug_info_filename = "rigs-diagnostics.txt";
 
             about.present(this.active_window);

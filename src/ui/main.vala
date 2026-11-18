@@ -16,7 +16,7 @@ int main(string[] args) {
 
     for (int i = 1; i < args.length; i++) {
         if (args[i] == "--debug-info" || args[i] == "-d" || args[i] == "--diagnostics") {
-            print("%s", Rigs.SystemDiagnostics.get_report());
+            print("%s", Rigs.SystemDiagnostics.get_report(Rigs.Application.toolkit_versions()));
             return 0;
         } else if (args[i] == "--version" || args[i] == "-v") {
             print("Rigs %s\n", Rigs.Config.VERSION);

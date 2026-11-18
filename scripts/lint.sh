@@ -47,13 +47,20 @@ while IFS= read -r hit; do
 done < <(grep -nHE '"-c"' $SRC 2>/dev/null)
 
 # --- Silent failures ---------------------------------------------------------
-DRIVERS=$(find src/drivers -name '*.vala' | sort)
+DRIVERS=$(find src/core/drivers -name '*.vala' | sort)
 grep_rule SILENT-01 '\bwarning *\(|\bmessage *\(|\bdebug *\(' \
     "Drivers must not log failures where the user cannot see them; return a StartupIssue (StartupDiagnostics.from_error / check_command)." $DRIVERS
 grep_rule SILENT-02 'new Thread *<' \
     "Drivers run background work only through StartupDiagnostics.run_in_background, which publishes the returned issue." $DRIVERS
 grep_rule SILENT-03 '^[[:space:]]*ConfigManager\.save_vms *\(' \
     "save_vms() returns false when changes did not reach the disk; call it through a helper that tells the user (Window.persist)." $SRC
+
+# --- Layering -----------------------------------------------------------------
+CORE=$(find src/core -name '*.vala' | sort)
+grep_rule CORE-01 '\b(Gtk|Adw|Gdk)\.' \
+    "src/core is GLib-only (tests link it without GTK); move widget code to src/ui and pass data across." $CORE
+grep_rule CORE-02 '^core_deps.*(gtk|adw)' \
+    "Never add GTK/Libadwaita to core_deps: that would let widget code into the headless layer." src/meson.build
 
 # --- GTK / application -------------------------------------------------------
 grep_rule APP-01 'active_window as Window' \
@@ -62,7 +69,7 @@ grep_rule UI-01 '\.timeout *= *0\b' \
     "A persistent toast blocks the ToastOverlay queue; keep the default timeout." $SRC
 
 # Signals of long-lived models: every connection must be removable (VmCard.track / detach).
-model_signals=$(grep -oE 'public signal void [a-z_]+' src/vm_model.vala | awk '{print $4}' | paste -sd'|')
+model_signals=$(grep -oE 'public signal void [a-z_]+' src/core/resource.vala | awk '{print $4}' | paste -sd'|')
 if [[ -n "$model_signals" ]]; then
     grep_rule MODEL-01 "\\bvm\\.(${model_signals})\\.connect\\(|\\bvm\\.notify\\[[^]]*\\]\\.connect\\(" \
         "Connections to a VmModel outlive the widget; wrap in track(...) and call detach() on removal." $SRC
@@ -74,7 +81,7 @@ grep_rule VALA-01 '\)\[-?[0-9]*:-?[0-9]*\]' \
 grep_rule VALA-02 'split\("\\0"\)' \
     "A Vala string ends at the first NUL; split binary data (cmdline) as uint8[] instead." $SRC
 grep_rule VALA-03 'uint64 [a-z_]+ = [^;]*[a-z_)] - ' \
-    "Unsigned counter subtraction wraps around; use Metrics.saturating_delta()." $(grep -v 'src/metrics.vala' <<<"$SRC")
+    "Unsigned counter subtraction wraps around; use Metrics.saturating_delta()." $(grep -v 'src/core/metrics.vala' <<<"$SRC")
 grep_rule VERSION-01 '"[0-9]+\.[0-9]+\.[0-9]+"' \
     "Do not hardcode the app version; use Config.VERSION (from meson.build)." $SRC
 

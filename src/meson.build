@@ -1,49 +1,52 @@
-rigs_sources = [
-  'main.vala',
-  'application.vala',
-  'window.vala',
-  'vm_card.vala',
-  'sparkline.vala',
-  'add_dialog.vala',
-  'vm_model.vala',
-  'monitor.vala',
-  'guest_memory.vala',
-  'guest_tools_dialog.vala',
-  'guest_driver_setup_dialog.vala',
-  'guest_agent.vala',
-  'guest_media.vala',
-  'guest_tools_packages.vala',
-  'windows_guest_installer.vala',
-  'host_command.vala',
-  'startup_diagnostics.vala',
-  'metrics.vala',
-  'qemu_monitor.vala',
-  'startup_issue_dialog.vala',
-  'resource_discovery.vala',
-  'discovery_dialog.vala',
-  'drivers/managed_driver.vala',
-  'drivers/driver.vala',
-  'drivers/qemu_driver.vala',
-  'drivers/compose_driver.vala',
-  'drivers/driver_registry.vala',
-  'system_diagnostics.vala',
-  'search_provider.vala',
+# Two layers (see ARCHITECTURE.md):
+#   core/ — models, drivers, host commands, diagnostics. GLib/GIO only: it is built
+#           WITHOUT gtk4/libadwaita, so any widget code here fails to compile.
+#   ui/   — GTK widgets and the application; depends on core.
+core_sources = [
+  'core/host_command.vala',
+  'core/metrics.vala',
+  'core/qemu_monitor.vala',
+  'core/resource.vala',
+  'core/resource_issue.vala',
+  'core/monitor.vala',
+  'core/resource_discovery.vala',
+  'core/search_provider.vala',
+  'core/system_diagnostics.vala',
+  'core/guest_agent.vala',
+  'core/guest_memory.vala',
+  'core/guest_media.vala',
+  'core/guest_tools_packages.vala',
+  'core/windows_guest_installer.vala',
+  'core/drivers/driver.vala',
+  'core/drivers/driver_registry.vala',
+  'core/drivers/compose_driver.vala',
+  'core/drivers/managed_driver.vala',
+  'core/drivers/scripted_qemu_driver.vala',
   config_vala,
 ]
 
+core_deps = [glib_dep, gio_dep, gio_unix_dep, json_dep, soup_dep, posix_dep, m_dep]
+
+rigs_core = static_library('rigs-core', core_sources, dependencies: core_deps)
+rigs_core_dep = declare_dependency(link_with: rigs_core, dependencies: core_deps,
+  include_directories: include_directories('.'))
+
+ui_sources = [
+  'ui/main.vala',
+  'ui/application.vala',
+  'ui/window.vala',
+  'ui/resource_card.vala',
+  'ui/sparkline.vala',
+  'ui/add_dialog.vala',
+  'ui/discovery_dialog.vala',
+  'ui/guest_tools_dialog.vala',
+  'ui/guest_driver_setup_dialog.vala',
+  'ui/issue_dialog.vala',
+]
+
 executable('rigs',
-  rigs_sources,
+  ui_sources,
   resources,
-  dependencies: [
-    gtk_dep,
-    adw_dep,
-    json_dep,
-    glib_dep,
-    gio_dep,
-    gio_unix_dep,
-    soup_dep,
-    posix_dep,
-    m_dep,
-  ],
+  dependencies: [rigs_core_dep, gtk_dep, adw_dep],
   install: true,
 )

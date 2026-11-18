@@ -16,6 +16,8 @@ rigs_sources = [
   'windows_guest_installer.vala',
   'host_command.vala',
   'startup_diagnostics.vala',
+  'metrics.vala',
+  'qemu_monitor.vala',
   'startup_issue_dialog.vala',
   'resource_discovery.vala',
   'discovery_dialog.vala',

@@ -13,6 +13,12 @@ namespace Rigs {
         public signal void eject_iso_requested(VmModel vm);
         public signal void guest_tools_requested(VmModel vm, GuestMemoryState state);
         public signal void startup_issue_requested(VmModel vm, StartupIssue issue);
+        // Re-emitted from the model so listeners live and die with the card.
+        public signal void startup_failed(VmModel vm, StartupIssue issue);
+
+        // Models outlive cards (Undo restores the same VmModel). Every connection to
+        // `vm` must go through track() so detach() can remove it; see docs/guardrails.md (MODEL-01).
+        private ulong[] model_handlers = {};
 
         private Gtk.Label status_lbl;
         private Gtk.Button issue_btn;
@@ -54,7 +60,8 @@ namespace Rigs {
                 if (vm.last_startup_issue != null) startup_issue_requested(vm, vm.last_startup_issue);
             });
             this.add_suffix(issue_btn);
-            vm.notify["last-startup-issue"].connect(refresh_issue);
+            track(vm.notify["last-startup-issue"].connect(refresh_issue));
+            track(vm.startup_failed.connect((issue) => { startup_failed(vm, issue); }));
             refresh_issue();
 
             // Button box
@@ -179,6 +186,16 @@ namespace Rigs {
                 iso_row.subtitle = _("[ No Media / Ejected ]");
                 if (eject_btn != null) eject_btn.visible = false;
             }
+        }
+
+        private void track(ulong handler_id) {
+            model_handlers += handler_id;
+        }
+
+        // Call before dropping the card; otherwise the model keeps it alive and signals reach it.
+        public void detach() {
+            foreach (ulong id in model_handlers) SignalHandler.disconnect(vm, id);
+            model_handlers = {};
         }
 
         private void refresh_issue() {

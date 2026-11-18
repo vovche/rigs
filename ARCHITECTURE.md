@@ -28,7 +28,7 @@ Rigs is architected as a modular, responsive desktop control center following GN
                                       │               │
                                  QemuDriver     ComposeDriver
                                       │               │
-                                 socat/qemu       podman CLI
+                              HMP socket/qemu     podman CLI
 ```
 
 ---
@@ -52,7 +52,8 @@ To support diverse hypervisor and container runtimes seamlessly without coupling
 
 - **`QemuDriver` (`src/drivers/qemu_driver.vala`):**
   - Manages explicitly configured QEMU/KVM scripts. Host procfs monitoring requires native/classic deployment; sandboxed users should use libvirt.
-  - Communicates with the QEMU Monitor socket via UNIX domain sockets (`socat`) to issue `system_powerdown`, `change cdrom <path>`, and `eject -f cdrom`.
+  - Talks to the QEMU human monitor in-process (`HmpMonitor`, `src/qemu_monitor.vala`) over its Unix socket to issue `system_powerdown`, `change cdrom "<path>"` (quoted, control characters rejected) and `eject -f cdrom`.
+  - Finds the VM process by scanning `/proc/*/cmdline` (`QemuDriver.find_vm_pid`); CPU% is a share of the whole host.
   - Parses `/proc/[pid]/statm` for resident set size (RSS) memory consumption.
 
 - **`ComposeDriver` (`src/drivers/compose_driver.vala`):**

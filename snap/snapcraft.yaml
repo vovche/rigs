@@ -54,5 +54,4 @@ parts:
       - libsoup-3.0-dev
       - gettext
     stage-packages:
-      - socat
       - libsoup-3.0-0

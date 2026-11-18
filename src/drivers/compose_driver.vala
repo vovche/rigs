@@ -20,7 +20,7 @@ namespace Rigs {
                         host.run(argv, directory, 120000);
                         return null;
                     }
-                    var result = host.run_to_completion(argv, directory);
+                    var result = host.run_capture_tail(argv, directory);
                     StartupIssue? issue = null;
                     if (result.exit_status != 0) {
                         issue = StartupDiagnostics.diagnose(host, vm.runtime, vm.container_name, result, vm.guest_os);
@@ -68,7 +68,7 @@ namespace Rigs {
                     if (result.exit_status == 0) {
                         var parts = result.output.strip().split("\t");
                         if (parts.length == 2) {
-                            st.cpu_pct = double.parse(parts[0].replace("%", "")).clamp(0, 100);
+                            st.cpu_pct = Metrics.container_cpu_share(parts[0]);
                             st.ram_str = parts[1].split("/")[0].strip();
                         }
                     }

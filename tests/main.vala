@@ -71,5 +71,12 @@ int main(string[] args) {
     Test.add_func("/guest-install/failures", TestWindowsGuestInstaller.test_failures);
     Test.add_func("/guest-install/scripts", TestWindowsGuestInstaller.test_scripts);
     Test.add_func("/guest-install/resume", TestWindowsGuestInstaller.test_resume);
+    Test.add_func("/regressions/hmp-quoting", TestRegressions.test_hmp_quoting);
+    Test.add_func("/regressions/hmp-send", TestRegressions.test_hmp_send);
+    Test.add_func("/regressions/find-vm-pid", TestRegressions.test_find_vm_pid);
+    Test.add_func("/regressions/metrics", TestRegressions.test_metrics);
+    Test.add_func("/regressions/parse-mem", TestRegressions.test_parse_mem);
+    Test.add_func("/regressions/capture-tail", TestRegressions.test_capture_tail);
+    Test.add_func("/regressions/search-target-balanced", TestRegressions.test_search_target_balanced);
     return Test.run();
 }

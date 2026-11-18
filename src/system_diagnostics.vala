@@ -8,7 +8,7 @@ namespace Rigs {
 
             // 1. Application info
             sb.append("### Application\n");
-            sb.append_printf("- Version: %s\n", "0.9.0");
+            sb.append_printf("- Version: %s\n", Config.VERSION);
             sb.append("- Architecture: Native Vala (GObject/C compiled)\n");
 
             // 2. Packaging & Sandbox detection
@@ -71,7 +71,6 @@ namespace Rigs {
             sb.append("\n### Virtualization & Container Tooling\n");
             check_binary(sb, "QEMU x86_64", "qemu-system-x86_64");
             check_binary(sb, "QEMU aarch64", "qemu-system-aarch64");
-            check_binary(sb, "Socat (QEMU Monitor)", "socat");
             check_binary(sb, "Podman", "podman");
             check_binary(sb, "Docker", "docker");
             check_binary(sb, "Docker Compose", "docker-compose");

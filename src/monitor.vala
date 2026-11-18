@@ -9,7 +9,8 @@ namespace Rigs {
     }
 
     public class SystemMonitor : Object {
-        private bool active = false;
+        // Read by the worker thread: always access through AtomicInt.
+        private int active = 0;
         private Thread<void*>? worker_thread = null;
         private MonitorInterval interval = MonitorInterval.BACKGROUND;
         private Mutex mutex = Mutex();
@@ -31,14 +32,14 @@ namespace Rigs {
 
         public void start(GenericArray<VmModel> vms) {
             set_vms(vms);
-            active = true;
+            AtomicInt.set(ref active, 1);
             worker_thread = new Thread<void*>("rigs-monitor", () => {
-                while (active) {
+                while (AtomicInt.get(ref active) == 1) {
                     mutex.lock();
-                    while (active && interval == MonitorInterval.SUSPENDED) {
+                    while (AtomicInt.get(ref active) == 1 && interval == MonitorInterval.SUSPENDED) {
                         cond.wait(mutex);
                     }
-                    if (!active) {
+                    if (AtomicInt.get(ref active) == 0) {
                         mutex.unlock();
                         break;
                     }
@@ -56,14 +57,14 @@ namespace Rigs {
                     }
 
                     Idle.add(() => {
-                        if (active) {
+                        if (AtomicInt.get(ref active) == 1) {
                             updated(host, results);
                         }
                         return Source.REMOVE;
                     });
 
                     mutex.lock();
-                    if (active) {
+                    if (AtomicInt.get(ref active) == 1) {
                         int64 end_time = get_monotonic_time() + ((int64)sleep_ms * 1000);
                         cond.wait_until(mutex, end_time);
                     }
@@ -90,7 +91,7 @@ namespace Rigs {
 
         public void stop() {
             mutex.lock();
-            active = false;
+            AtomicInt.set(ref active, 0);
             cond.signal();
             mutex.unlock();
         }
@@ -128,11 +129,7 @@ namespace Rigs {
                     uint64 total_non_idle = user + nice + sys + irq + softirq + steal;
                     uint64 total = total_idle + total_non_idle;
 
-                    if (prev_total > 0 && total > prev_total) {
-                        uint64 delta_total = total - prev_total;
-                        uint64 delta_idle = total_idle - prev_idle;
-                        status.cpu_pct = ((double)(delta_total - delta_idle) / (double)delta_total) * 100.0;
-                    }
+                    if (prev_total > 0) status.cpu_pct = Metrics.busy_percent(prev_idle, prev_total, total_idle, total);
 
                     prev_idle = total_idle;
                     prev_total = total;
@@ -158,7 +155,7 @@ namespace Rigs {
                 }
 
                 if (total_kb > 0) {
-                    uint64 used_kb = total_kb - avail_kb;
+                    uint64 used_kb = Metrics.saturating_delta(avail_kb, total_kb);
                     status.ram_total_gb = (double)total_kb / (1024.0 * 1024.0);
                     status.ram_used_gb = (double)used_kb / (1024.0 * 1024.0);
                     status.ram_pct = ((double)used_kb / (double)total_kb) * 100.0;

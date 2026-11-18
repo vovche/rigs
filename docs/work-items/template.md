@@ -18,7 +18,8 @@
 - Tests must be headless and complete in under 1 second.
 
 ## 5. Acceptance Criteria
-- [ ] `./build.sh` exits with 0 (clean compilation + all tests pass).
+- [ ] `./build.sh` exits with 0 (clean compilation + all tests pass, including `lint` and `lint-selftest`).
+- [ ] Bug fix: a reproduction in `tests/test_regressions.vala` failed before the fix and passes after it.
 - [ ] [Specific unit test assertion 1]
 - [ ] [Specific unit test assertion 2]
 

@@ -91,7 +91,6 @@ and [Snap Docker interfaces](https://snapcraft.io/docs/reference/interfaces/dock
 - `json-glib-1.0`
 - `libsoup-3.0`
 - `gettext`
-- `socat` (for QEMU monitor control)
 
 ### Build commands
 ```bash

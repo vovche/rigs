@@ -25,7 +25,7 @@ namespace Rigs {
             this.cache_dir = cache_dir ?? Path.build_filename(Environment.get_user_cache_dir(), "rigs", "guest-tools", VERSION);
             session = new Soup.Session();
             session.timeout = 30;
-            session.user_agent = "Rigs/0.9.0";
+            session.user_agent = "Rigs/" + Config.VERSION;
         }
 
         protected virtual string expected_hash(bool iso) { return iso ? ISO_SHA256 : EXE_SHA256; }

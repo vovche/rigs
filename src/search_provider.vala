@@ -8,8 +8,9 @@ namespace Rigs {
         public abstract GenericArray<VmModel> get_vms();
         public abstract void focus_vm(string id);
         public abstract void set_search_query(string query);
-        public virtual void hold() {}
-        public virtual void release() {}
+        // Abstract on purpose: a default no-op body would silently shadow GApplication.hold().
+        public abstract void begin_query();
+        public abstract void end_query();
     }
 
     [DBus (name = "org.gnome.Shell.SearchProvider2")]
@@ -53,7 +54,7 @@ namespace Rigs {
         }
 
         public string[] get_initial_result_set(string[] terms) throws GLib.Error {
-            if (target != null) target.hold();
+            if (target != null) target.begin_query();
             var matched_ids = new GenericArray<string>();
             var vms = get_vms();
 
@@ -68,12 +69,12 @@ namespace Rigs {
             for (int i = 0; i < matched_ids.length; i++) {
                 results[i] = matched_ids[i];
             }
-            if (target != null) target.release();
+            if (target != null) target.end_query();
             return results;
         }
 
         public string[] get_subsearch_result_set(string[] previous_results, string[] terms) throws GLib.Error {
-            if (target != null) target.hold();
+            if (target != null) target.begin_query();
             var matched_ids = new GenericArray<string>();
             var vms = get_vms();
 
@@ -93,12 +94,12 @@ namespace Rigs {
             for (int i = 0; i < matched_ids.length; i++) {
                 results[i] = matched_ids[i];
             }
-            if (target != null) target.release();
+            if (target != null) target.end_query();
             return results;
         }
 
         public HashTable<string, Variant>[] get_result_metas(string[] results) throws GLib.Error {
-            if (target != null) target.hold();
+            if (target != null) target.begin_query();
             var vms = get_vms();
             var vm_map = new HashTable<string, VmModel>(str_hash, str_equal);
             for (int i = 0; i < vms.length; i++) {
@@ -137,23 +138,23 @@ namespace Rigs {
             for (int i = 0; i < metas.length; i++) {
                 out_metas[i] = metas[i];
             }
-            if (target != null) target.release();
+            if (target != null) target.end_query();
             return out_metas;
         }
 
         public void activate_result(string id, string[] terms, uint32 timestamp) throws GLib.Error {
             if (target != null) {
-                target.hold();
+                target.begin_query();
                 target.focus_vm(id);
-                target.release();
+                target.end_query();
             }
         }
 
         public void launch_search(string[] terms, uint32 timestamp) throws GLib.Error {
             if (target != null) {
-                target.hold();
+                target.begin_query();
                 target.set_search_query(string.joinv(" ", terms));
-                target.release();
+                target.end_query();
             }
         }
     }

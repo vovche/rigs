@@ -3,4 +3,6 @@
 namespace Rigs.Config {
     public const string GETTEXT_PACKAGE = @GETTEXT_PACKAGE@;
     public const string LOCALEDIR = @LOCALEDIR@;
+    // Single source of truth: project(version:) in meson.build.
+    public const string VERSION = @VERSION@;
 }

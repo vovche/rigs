@@ -56,7 +56,8 @@ namespace Rigs.Tests {
                         var input = new DataInputStream(connection.input_stream);
                         size_t written;
                         connection.output_stream.write_all("{\"QMP\":{}}\n".data, out written);
-                        string[] names = {"qmp_capabilities", "qom-list", "qom-set", "qom-get"};
+                        string[] names = {"qmp_capabilities", "qom-list", "qom-get", "qom-set"};
+                        bool expect_set = expected == GuestMemoryState.GUEST_NOT_REPORTING || expected == GuestMemoryState.STALE;
                         for (int i = 0; i < 4; i++) {
                             string? line = input.read_line();
                             assert(line != null);
@@ -70,12 +71,12 @@ namespace Rigs.Tests {
                                 assert(req.get_object_member("arguments").get_string_member("path") == "/machine/peripheral");
                                 body = expected == GuestMemoryState.DEVICE_MISSING ? "[]" : "[{\"name\":\"balloon0\"}]";
                             }
-                            if (i == 2) {
+                            if (i == 3) {
                                 var args = req.get_object_member("arguments");
                                 assert(args.get_string_member("path") == "/machine/peripheral/balloon0");
                                 assert(args.get_int_member("value") == 5);
                             }
-                            if (i == 3) {
+                            if (i == 2) {
                                 // A real QMP event can arrive before the reply.
                                 connection.output_stream.write_all("{\"event\":\"BALLOON_CHANGE\"}\n".data, out written);
                                 int64 updated = get_real_time() / 1000000;
@@ -93,6 +94,7 @@ namespace Rigs.Tests {
                             connection.output_stream.write_all(reply.data, out written);
                             if (error_reply) break;
                             if (i == 1 && expected == GuestMemoryState.DEVICE_MISSING) break;
+                            if (i == 2 && !expect_set) break;
                         }
                         connection.close();
                     } catch (Error e) { assert_not_reached(); }
@@ -138,12 +140,12 @@ namespace Rigs.Tests {
             }
 
             public override CommandResult run(string[] argv, string? directory = null, uint timeout_ms = 3000) throws Error {
-                assert(argv.length == (calls == 0 ? 8 : 5));
+                assert(argv.length == (calls == 0 ? 5 : 8));
                 assert(argv[0] == "virsh" && argv[1] == "--connect");
                 assert(argv[2] == "qemu:///session" && argv[3] == "dommemstat");
                 assert(argv[4] == "12345678-1234-1234-1234-123456789abc");
                 assert(directory == null && timeout_ms == 3000);
-                if (calls == 0) assert(argv[5] == "--period" && argv[6] == "5" && argv[7] == "--live");
+                if (calls == 1) assert(argv[5] == "--period" && argv[6] == "5" && argv[7] == "--live");
                 calls++;
                 return new CommandResult(stats, "", calls >= fail_on_call ? status : 0);
             }
@@ -154,7 +156,8 @@ namespace Rigs.Tests {
             string fresh = "last_update %s\n".printf((get_real_time() / 1000000).to_string());
             var host = new FakeCommands(fresh + "available 1000\nunused 550\nusable 700\nactual 9000\nrss 8000\n");
             var result = GuestMemory.check_libvirt("qemu:///session", uuid, true, host);
-            assert(host.calls == 2 && result.state == GuestMemoryState.READY);
+            // Fresh statistics: read only, never touch the VM's polling setting.
+            assert(host.calls == 1 && result.state == GuestMemoryState.READY);
             assert(result.memory != null && result.memory.percent == 45.0 && result.memory.total_bytes == 1024000);
             host.calls = 0;
             result = GuestMemory.check_libvirt("qemu:///session", uuid, false, host);
@@ -176,6 +179,7 @@ namespace Rigs.Tests {
             assert(GuestMemory.check_libvirt("qemu:///session", uuid, true, host).state == GuestMemoryState.CONNECTION_UNAVAILABLE);
             assert(host.calls == 1);
             host.fail_on_call = 2;
+            host.stats = "last_update 0\navailable 1000\nunused 550\n";
             host.calls = 0;
             assert(GuestMemory.check_libvirt("qemu:///session", uuid, true, host).state == GuestMemoryState.CONNECTION_UNAVAILABLE);
             assert(host.calls == 2);

@@ -97,11 +97,11 @@ namespace Rigs {
                 deadline.mutex.unlock();
                 return null;
             });
-            string? output = null;
-            string? error_output = null;
+            Bytes? output = null;
+            Bytes? error_output = null;
             Error? failure = null;
             try {
-                process.communicate_utf8(null, cancellable, out output, out error_output);
+                process.communicate(null, cancellable, out output, out error_output);
             } catch (Error e) {
                 failure = e;
                 process.force_exit();
@@ -119,18 +119,59 @@ namespace Rigs {
                 throw new IOError.TIMED_OUT("Host command exceeded its %u ms deadline.", timeout_ms);
             if (failure != null) throw failure;
             int status = process.get_if_exited() ? process.get_exit_status() : 128 + process.get_term_sig();
-            return new CommandResult(output ?? "", error_output ?? "", status);
+            return new CommandResult(bytes_to_text(output), bytes_to_text(error_output), status);
         }
 
-        // Waits for the process without a deadline: startup commands may legitimately pull images for minutes.
-        public virtual CommandResult run_to_completion(string[] argv, string? directory = null) throws Error {
+        // Output may come from any program (logs, QEMU, Windows guests): never assume UTF-8.
+        public static string bytes_to_text(Bytes? bytes) {
+            if (bytes == null || bytes.get_size() == 0) return "";
+            unowned uint8[] data = bytes.get_data();
+            return ((string) data).substring(0, data.length).make_valid();
+        }
+
+        public const int CAPTURE_TAIL_BYTES = 65536;
+
+        // For user start scripts that may background long-lived children:
+        // output goes to a private file (children inheriting it cannot block us),
+        // only the direct child is awaited, and only the last CAPTURE_TAIL_BYTES are read.
+        public virtual CommandResult run_capture_tail(string[] argv, string? directory = null) throws Error {
             string[] prepared = prepare(argv, directory);
-            var process = launcher(SubprocessFlags.STDOUT_PIPE | SubprocessFlags.STDERR_PIPE, directory).spawnv(prepared);
-            string? output = null;
-            string? error_output = null;
-            process.communicate_utf8(null, null, out output, out error_output);
-            int status = process.get_if_exited() ? process.get_exit_status() : 128 + process.get_term_sig();
-            return new CommandResult(output ?? "", error_output ?? "", status);
+            string log_path;
+            int fd = FileUtils.open_tmp("rigs-start-XXXXXX.log", out log_path);
+            FileUtils.unlink(log_path);
+            int err_fd = Posix.dup(fd);
+            var launch = launcher(SubprocessFlags.NONE, directory);
+            launch.take_stdout_fd(fd);
+            launch.take_stderr_fd(err_fd);
+            int status;
+            int read_fd = Posix.dup(fd);
+            try {
+                var process = launch.spawnv(prepared);
+                launch.close();
+                process.wait(null);
+                status = process.get_if_exited() ? process.get_exit_status() : 128 + process.get_term_sig();
+            } catch (Error e) {
+                Posix.close(read_fd);
+                throw e;
+            }
+            string text = read_tail(read_fd, CAPTURE_TAIL_BYTES);
+            Posix.close(read_fd);
+            return new CommandResult("", text, status);
+        }
+
+        private static string read_tail(int fd, int limit) {
+            Posix.off_t size = Posix.lseek(fd, 0, Posix.SEEK_END);
+            if (size <= 0) return "";
+            Posix.off_t start = size > limit ? size - limit : 0;
+            Posix.lseek(fd, start, Posix.SEEK_SET);
+            var buffer = new uint8[(int)(size - start)];
+            ssize_t total = 0;
+            while (total < buffer.length) {
+                ssize_t n = Posix.read(fd, (void*)((uint8*)buffer + total), buffer.length - total);
+                if (n <= 0) break;
+                total += n;
+            }
+            return bytes_to_text(new Bytes(buffer[0:(int)total]));
         }
 
         public virtual void launch(string[] argv, string? directory = null) throws Error {

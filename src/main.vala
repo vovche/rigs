@@ -19,7 +19,7 @@ int main(string[] args) {
             print("%s", Rigs.SystemDiagnostics.get_report());
             return 0;
         } else if (args[i] == "--version" || args[i] == "-v") {
-            print("Rigs 0.9.0\n");
+            print("Rigs %s\n", Rigs.Config.VERSION);
             return 0;
         }
     }

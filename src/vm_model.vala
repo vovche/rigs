@@ -107,26 +107,26 @@ namespace Rigs {
     }
 
     public class ConfigManager : Object {
+        // QEMU-style sizes: "4096", "4G", "4GiB", "512M", "2T". Unknown input → 0.
         public static double parse_mem_to_mb(string raw) {
             string s = raw.strip().up();
-            if (s.length == 0) return 0.0;
-            try {
-                if (s.has_suffix("GIB") || s.has_suffix("GB")) {
-                    return double.parse(s.replace("GIB", "").replace("GB", "").strip()) * 1024.0;
-                } else if (s.has_suffix("MIB") || s.has_suffix("MB")) {
-                    return double.parse(s.replace("MIB", "").replace("MB", "").strip());
-                } else if (s.has_suffix("KIB") || s.has_suffix("KB")) {
-                    return double.parse(s.replace("KIB", "").replace("KB", "").strip()) / 1024.0;
-                } else if (s.has_suffix("G")) {
-                    return double.parse(s.replace("G", "").strip()) * 1024.0;
-                } else if (s.has_suffix("M")) {
-                    return double.parse(s.replace("M", "").strip());
-                } else {
-                    return double.parse(s);
+            string[,] units = {
+                { "TIB", "1048576" }, { "TB", "1048576" }, { "T", "1048576" },
+                { "GIB", "1024" }, { "GB", "1024" }, { "G", "1024" },
+                { "MIB", "1" }, { "MB", "1" }, { "M", "1" },
+                { "KIB", "0.0009765625" }, { "KB", "0.0009765625" }, { "K", "0.0009765625" }
+            };
+            double factor = 1.0;
+            for (int i = 0; i < units.length[0]; i++) {
+                if (s.has_suffix(units[i, 0])) {
+                    s = s.substring(0, s.length - units[i, 0].length).strip();
+                    factor = double.parse(units[i, 1]);
+                    break;
                 }
-            } catch (Error e) {
-                return 0.0;
             }
+            double value = 0.0;
+            if (s.length == 0 || !double.try_parse(s, out value) || value < 0) return 0.0;
+            return value * factor;
         }
 
         public static string get_config_dir() {

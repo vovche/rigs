@@ -19,6 +19,8 @@ namespace Rigs {
         private Gtk.SearchBar search_bar;
         private Gtk.SearchEntry search_entry;
         private Gtk.ToggleButton search_toggle_btn;
+        private HashTable<string, bool> saved_expanded = new HashTable<string, bool>(str_hash, str_equal);
+        private uint save_state_source = 0;
 
         public Window(Adw.Application app) {
             Object(application: app);
@@ -219,12 +221,24 @@ namespace Rigs {
             });
 
             card.startup_issue_requested.connect((v, issue) => { new StartupIssueDialog(v, issue).present(this); });
-            vm.startup_failed.connect((issue) => { show_startup_failure(vm, issue); });
+            card.startup_failed.connect((v, issue) => { show_startup_failure(v, issue); });
+            bool expanded;
+            if (saved_expanded.lookup_extended(vm.id, null, out expanded)) card.expanded = expanded;
 
             card.notify["expanded"].connect(() => { save_window_state(); });
 
             vm_group.add(card);
             cards.insert(vm.id, card);
+        }
+
+        // PreferencesGroup can only append: re-append cards so the UI follows `vms` order.
+        private void reorder_cards() {
+            for (int i = 0; i < vms.length; i++) {
+                VmCard? card = cards.lookup(vms[i].id);
+                if (card == null) continue;
+                vm_group.remove(card);
+                vm_group.add(card);
+            }
         }
 
         public void open_add_dialog() {
@@ -392,7 +406,8 @@ namespace Rigs {
         private void show_startup_failure(VmModel vm, StartupIssue issue) {
             var toast = new Adw.Toast(_("Failed to start %s: %s").printf(vm.name, issue.title));
             toast.button_label = _("Details");
-            toast.timeout = 0;
+            // Keep the default timeout: a persistent toast would block the overlay queue.
+            // The card's warning icon keeps the details reachable.
             toast.button_clicked.connect(() => { new StartupIssueDialog(vm, issue).present(this); });
             toast_overlay.add_toast(toast);
         }
@@ -451,6 +466,7 @@ namespace Rigs {
 
             VmCard card = cards.lookup(removed.id);
             if (card != null) {
+                card.detach();
                 vm_group.remove(card);
                 cards.remove(removed.id);
             }
@@ -469,6 +485,7 @@ namespace Rigs {
                 monitor.set_vms(vms);
                 ConfigManager.save_vms(vms);
                 render_vm_card(removed);
+                reorder_cards();
                 update_empty_state();
                 save_window_state();
             });
@@ -505,9 +522,18 @@ namespace Rigs {
                         unowned Json.Object obj = root.get_object();
                         if (obj.has_member("window")) {
                             unowned Json.Object win_obj = obj.get_object_member("window");
-                            if (win_obj.has_member("width")) w = (int)win_obj.get_int_member("width");
-                            if (win_obj.has_member("height")) h = (int)win_obj.get_int_member("height");
+                            if (win_obj.has_member("width") && win_obj.get_member("width").get_value_type() == typeof(int64))
+                                w = ((int) win_obj.get_int_member("width")).clamp(360, 8192);
+                            if (win_obj.has_member("height") && win_obj.get_member("height").get_value_type() == typeof(int64))
+                                h = ((int) win_obj.get_int_member("height")).clamp(360, 8192);
                             if (win_obj.has_member("maximized")) max = win_obj.get_boolean_member("maximized");
+                        }
+                        if (obj.has_member("expanded") && obj.get_member("expanded").get_node_type() == Json.NodeType.OBJECT) {
+                            var exp = obj.get_object_member("expanded");
+                            foreach (string id in exp.get_members()) {
+                                var node = exp.get_member(id);
+                                if (node.get_value_type() == typeof(bool)) saved_expanded.insert(id, node.get_boolean());
+                            }
                         }
                     }
                 } catch (Error e) {
@@ -521,13 +547,24 @@ namespace Rigs {
             }
         }
 
+        // Debounced: size notifications fire for every pixel of a resize drag.
         private void save_window_state() {
+            if (save_state_source != 0) return;
+            save_state_source = Timeout.add(500, () => {
+                save_state_source = 0;
+                write_window_state();
+                return Source.REMOVE;
+            });
+        }
+
+        private void write_window_state() {
             string dir = ConfigManager.get_config_dir();
             DirUtils.create_with_parents(dir, 0755);
 
             var win_obj = new Json.Object();
-            win_obj.set_int_member("width", this.get_width());
-            win_obj.set_int_member("height", this.get_height());
+            // default-width/height hold the unmaximized size; get_width() would store the maximized one.
+            win_obj.set_int_member("width", this.default_width);
+            win_obj.set_int_member("height", this.default_height);
             win_obj.set_boolean_member("maximized", this.is_maximized());
 
             var exp_obj = new Json.Object();
@@ -555,7 +592,11 @@ namespace Rigs {
 
         private bool on_close_request() {
             monitor.stop();
-            save_window_state();
+            if (save_state_source != 0) {
+                Source.remove(save_state_source);
+                save_state_source = 0;
+            }
+            write_window_state();
             return false;
         }
     }

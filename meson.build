@@ -29,6 +29,7 @@ i18n = import('i18n')
 
 conf_data = configuration_data()
 conf_data.set_quoted('GETTEXT_PACKAGE', 'rigs')
+conf_data.set_quoted('VERSION', meson.project_version())
 conf_data.set_quoted('LOCALEDIR', get_option('prefix') / get_option('localedir'))
 
 config_vala = configure_file(
@@ -55,6 +56,7 @@ test_sources = [
   'tests/test_drivers.vala',
   'tests/test_diagnostics.vala',
   'tests/test_startup_diagnostics.vala',
+  'tests/test_regressions.vala',
   'tests/test_search_provider.vala',
   'tests/mock_driver.vala',
   'src/vm_model.vala',
@@ -73,6 +75,9 @@ test_sources = [
   'src/drivers/qemu_driver.vala',
   'src/drivers/compose_driver.vala',
   'src/drivers/driver_registry.vala',
+  'src/metrics.vala',
+  'src/qemu_monitor.vala',
+  config_vala,
 ]
 
 test_exe = executable('rigs-tests',
@@ -90,3 +95,8 @@ test_exe = executable('rigs-tests',
 )
 
 test('unit-tests', test_exe)
+
+# Guardrails: see docs/guardrails.md. Both run as part of ./build.sh (meson test).
+bash = find_program('bash')
+test('lint', bash, args: [files('scripts/lint.sh'), meson.project_source_root()])
+test('lint-selftest', bash, args: [files('scripts/lint_selftest.sh'), meson.project_source_root()])

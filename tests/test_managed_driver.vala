@@ -24,6 +24,7 @@ namespace Rigs.Tests {
         public static void test_container_status() {
             var commands = new ManagedCommands();
             var driver = new ManagedDriver("container", commands);
+            driver.cpu_count = 1;
             var vm = new VmModel();
             vm.resource_id = "0123456789abcdef";
             vm.runtime = "podman";

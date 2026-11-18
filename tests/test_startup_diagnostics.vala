@@ -30,6 +30,10 @@ namespace Rigs.Tests {
             i = StartupDiagnostics.analyze("Error response from daemon: invalid mount config for type \"bind\": bind source path does not exist: /home/u/my data\nmore");
             assert(i.category == FailureCategory.STORAGE_MOUNT);
             assert(i.suggested_command == "mkdir -p '/home/u/my data'");
+            // Rootless Podman wording (the tiny10 case).
+            i = StartupDiagnostics.analyze("Error: statfs /home/u/vms/tiny10/storage: no such file or directory");
+            assert(i.category == FailureCategory.STORAGE_MOUNT);
+            assert(i.suggested_command == "mkdir -p '/home/u/vms/tiny10/storage'");
         }
 
         public static void test_port() {

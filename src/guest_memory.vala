@@ -121,6 +121,10 @@ namespace Rigs {
             }
         }
 
+        private static bool needs_polling(GuestMemoryState state) {
+            return state == GuestMemoryState.GUEST_NOT_REPORTING || state == GuestMemoryState.STALE;
+        }
+
         public static GuestMemory? read(string socket_path, bool windows) {
             return check(socket_path, windows).memory;
         }
@@ -149,16 +153,20 @@ namespace Rigs {
                 if (!found) return new GuestMemoryCheck(GuestMemoryState.DEVICE_MISSING);
                 args = new Json.Object();
                 args.set_string_member("path", "/machine/peripheral/balloon0");
-                args.set_string_member("property", "guest-stats-polling-interval");
-                args.set_int_member("value", 5);
-                client.command("qom-set", args);
-                args = new Json.Object();
-                args.set_string_member("path", "/machine/peripheral/balloon0");
                 args.set_string_member("property", "guest-stats");
                 var result = client.command("qom-get", args);
                 if (result.get_node_type() != Json.NodeType.OBJECT)
                     throw new IOError.INVALID_DATA("Invalid QMP guest statistics");
-                return diagnose_stats(result.get_object(), windows, get_real_time() / 1000000);
+                var diagnosis = diagnose_stats(result.get_object(), windows, get_real_time() / 1000000);
+                // Polling is a VM setting (reset when QEMU restarts): write it only when stats are not flowing.
+                if (needs_polling(diagnosis.state)) {
+                    args = new Json.Object();
+                    args.set_string_member("path", "/machine/peripheral/balloon0");
+                    args.set_string_member("property", "guest-stats-polling-interval");
+                    args.set_int_member("value", 5);
+                    client.command("qom-set", args);
+                }
+                return diagnosis;
             } catch (Error e) {
                 return new GuestMemoryCheck(GuestMemoryState.CONNECTION_UNAVAILABLE);
             }
@@ -170,8 +178,6 @@ namespace Rigs {
                 return new GuestMemoryCheck(GuestMemoryState.NOT_CONFIGURED);
             var host = commands ?? new HostCommand();
             try {
-                var polling = host.run({ "virsh", "--connect", uri, "dommemstat", uuid, "--period", "5", "--live" });
-                if (polling.exit_status != 0) return new GuestMemoryCheck(GuestMemoryState.CONNECTION_UNAVAILABLE);
                 var response = host.run({ "virsh", "--connect", uri, "dommemstat", uuid });
                 if (response.exit_status != 0) return new GuestMemoryCheck(GuestMemoryState.CONNECTION_UNAVAILABLE);
                 var data = new Json.Object();
@@ -194,7 +200,12 @@ namespace Rigs {
                     else if (value <= int64.MAX / 1024) stats.set_int_member(key, value * 1024);
                 }
                 data.set_object_member("stats", stats);
-                return diagnose_stats(data, windows, get_real_time() / 1000000);
+                var diagnosis = diagnose_stats(data, windows, get_real_time() / 1000000);
+                if (needs_polling(diagnosis.state)) {
+                    var polling = host.run({ "virsh", "--connect", uri, "dommemstat", uuid, "--period", "5", "--live" });
+                    if (polling.exit_status != 0) return new GuestMemoryCheck(GuestMemoryState.CONNECTION_UNAVAILABLE);
+                }
+                return diagnosis;
             } catch (Error e) {
                 return new GuestMemoryCheck(GuestMemoryState.CONNECTION_UNAVAILABLE);
             }

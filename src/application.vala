@@ -17,8 +17,26 @@ namespace Rigs {
             );
         }
 
+        // The single main window, even while a secondary window (shortcuts) is active.
+        // Do not cast active_window: it is null whenever another window (shortcuts) has focus.
+        public Window? main_window() {
+            foreach (var w in get_windows()) {
+                var main = w as Window;
+                if (main != null) return main;
+            }
+            return null;
+        }
+
+        public Window ensure_main_window() {
+            return main_window() ?? new Window(this);
+        }
+
+        // SearchTarget: keep the D-Bus service alive while GNOME Shell is querying.
+        public void begin_query() { this.hold(); }
+        public void end_query() { this.release(); }
+
         public GenericArray<VmModel> get_vms() {
-            var win = this.active_window as Window;
+            var win = main_window();
             if (win != null) {
                 return win.get_vms();
             }
@@ -26,19 +44,13 @@ namespace Rigs {
         }
 
         public void focus_vm(string id) {
-            var win = this.active_window as Window;
-            if (win == null) {
-                win = new Window(this);
-            }
+            var win = ensure_main_window();
             win.present();
             win.focus_vm(id);
         }
 
         public void set_search_query(string query) {
-            var win = this.active_window as Window;
-            if (win == null) {
-                win = new Window(this);
-            }
+            var win = ensure_main_window();
             win.present();
             win.set_search_query(query);
         }
@@ -91,11 +103,7 @@ namespace Rigs {
         protected override void activate() {
             base.activate();
 
-            var win = this.active_window as Window;
-            if (win == null) {
-                win = new Window(this);
-            }
-            win.present();
+            ensure_main_window().present();
         }
 
         private void setup_actions() {
@@ -113,7 +121,7 @@ namespace Rigs {
 
             var add_action = new SimpleAction("add-vm", null);
             add_action.activate.connect(() => {
-                var win = this.active_window as Window;
+                var win = main_window();
                 if (win != null) {
                     win.open_add_dialog();
                 }
@@ -137,7 +145,7 @@ namespace Rigs {
             about.application_name = "Rigs";
             about.application_icon = "io.github.vovche.Rigs";
             about.developer_name = "vovche";
-            about.version = "0.9.0";
+            about.version = Config.VERSION;
             about.comments = _("Ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala.");
             about.website = "https://github.com/vovche/rigs";
             about.issue_url = "https://github.com/vovche/rigs/issues/new/choose";

@@ -34,6 +34,8 @@ namespace Rigs {
 
         // Milliseconds to wait before checking whether a started container exited at once.
         public uint settle_ms = 2000;
+        // 0 = host CPU count; tests pin it for deterministic percentages.
+        public uint cpu_count = 0;
 
         // Synchronous start; returns the diagnosed failure, if any. Public for headless tests.
         public StartupIssue? start_blocking(VmModel vm) {
@@ -110,9 +112,7 @@ namespace Rigs {
                     if (stats.exit_status == 0) {
                         string[] fields = stats.output.strip().split("\t");
                         if (fields.length == 2) {
-                            double cpu;
-                            if (double.try_parse(fields[0].replace("%", "").strip(), out cpu) && cpu >= 0 && cpu < double.MAX)
-                                status.cpu_pct = cpu;
+                            status.cpu_pct = Metrics.container_cpu_share(fields[0], cpu_count);
                             string used = fields[1].split("/")[0].strip();
                             if (used.length > 0 && used != "--") status.ram_str = used;
                         }

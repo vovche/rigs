@@ -82,6 +82,9 @@ namespace Rigs {
             found = search("cannot stat '(?<path>[^']+)': No such file", text, { "path" }, out snippet);
             if (found == null)
                 found = search("bind source path does not exist: *(?<path>[^\\n]+)", text, { "path" }, out snippet);
+            // Rootless Podman (the most common runtime here) reports a missing bind source via statfs.
+            if (found == null)
+                found = search("statfs (?<path>/[^:\\n]+): no such file or directory", text, { "path" }, out snippet);
             if (found != null) {
                 string command = "mkdir -p " + Shell.quote(found[0]);
                 return make(FailureCategory.STORAGE_MOUNT, _("Mount directory not found"),

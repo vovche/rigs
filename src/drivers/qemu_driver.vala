@@ -15,6 +15,51 @@ namespace Rigs {
         // Per-VM CPU delta state: vm.id → CpuState
         private HashTable<string, CpuState> cpu_prev = new HashTable<string, CpuState>(str_hash, str_equal);
 
+        // Overridable for headless tests with a fake procfs tree.
+        public string proc_root = "/proc";
+
+        private static uint64 page_size() {
+            long size = Posix.sysconf(Posix._SC_PAGESIZE);
+            return size > 0 ? (uint64) size : 4096;
+        }
+
+        // Native replacement for `pgrep -f`: substring match on the full command line,
+        // skipping ourselves, kernel threads and zombies. Several matches (wrapper
+        // scripts, editors, tail -f) resolve to the largest resident set: the VM itself.
+        public static int find_vm_pid(string proc_root, string pattern, int self_pid) {
+            if (pattern.strip().length == 0) return -1;
+            int best = -1;
+            uint64 best_rss = 0;
+            try {
+                var dir = Dir.open(proc_root);
+                string? name;
+                while ((name = dir.read_name()) != null) {
+                    int pid;
+                    if (!int.try_parse(name, out pid) || pid <= 0 || pid == self_pid) continue;
+                    string base_path = Path.build_filename(proc_root, name);
+                    try {
+                        uint8[] raw;
+                        FileUtils.get_data(Path.build_filename(base_path, "cmdline"), out raw);
+                        if (raw.length == 0) continue;
+                        for (int i = 0; i < raw.length; i++) if (raw[i] == 0) raw[i] = ' ';
+                        string cmdline = HostCommand.bytes_to_text(new Bytes(raw));
+                        if (!cmdline.contains(pattern)) continue;
+                        string status;
+                        FileUtils.get_contents(Path.build_filename(base_path, "status"), out status);
+                        if (Regex.match_simple("^State:\\s*Z", status, RegexCompileFlags.MULTILINE)) continue;
+                        string statm;
+                        FileUtils.get_contents(Path.build_filename(base_path, "statm"), out statm);
+                        string[] parts = statm.strip().split(" ");
+                        uint64 rss = parts.length > 1 ? uint64.parse(parts[1]) : 0;
+                        if (best < 0 || rss > best_rss) { best = pid; best_rss = rss; }
+                    } catch (Error e) {
+                        continue; // Processes exit while we scan.
+                    }
+                }
+            } catch (Error e) { }
+            return best;
+        }
+
         public void start(VmModel vm) {
             new Thread<void*>("qemu-starter", () => {
                 try {
@@ -37,9 +82,7 @@ namespace Rigs {
                     if (vm.stop_cmd.length > 0) {
                         host.run({"/bin/bash", "-c", vm.stop_cmd}, directory, 120000);
                     } else if (vm.monitor_socket.length > 0) {
-                        host.run({"python3", "-c",
-                            "import socket,sys; s=socket.socket(socket.AF_UNIX); s.settimeout(1); s.connect(sys.argv[1]); s.sendall(b'system_powerdown\\n'); s.close()",
-                            vm.monitor_socket}, directory);
+                        HmpMonitor.send(vm.monitor_socket, "system_powerdown");
                     }
                 } catch (Error e) { warning("Failed to stop QEMU VM: %s", e.message); }
                 return null;
@@ -71,174 +114,116 @@ namespace Rigs {
             st.status_available = true;
             if (vm.process_name.length == 0) return st;
 
-            try {
-                string stdout;
-                string stderr;
-                int exit_status;
-                Process.spawn_command_line_sync(
-                    "pgrep -f " + vm.process_name,
-                    out stdout, out stderr, out exit_status
-                );
-                if (exit_status == 0 && stdout.strip().length > 0) {
-                    string[] pids = stdout.strip().split("\n");
-                    foreach (string raw_pid in pids) {
-                        string pid = raw_pid.strip();
-                        if (pid.length == 0) continue;
-
-                        // Check process state in /proc/[pid]/status to skip zombies
-                        string proc_status;
-                        try {
-                            FileUtils.get_contents("/proc/" + pid + "/status", out proc_status);
-                            if (proc_status.contains("State:\tZ") || proc_status.contains("State: Z")) {
-                                continue;
-                            }
-                        } catch (Error e) {
-                            continue;
-                        }
-
-                        st.running = true;
-
-                        // --- VM CPU% via /proc/[pid]/stat delta ---
-                        try {
-                            // Read process CPU jiffies (utime=field14, stime=field15, sum of all threads via /proc/pid/stat)
-                            string proc_stat;
-                            FileUtils.get_contents("/proc/" + pid + "/stat", out proc_stat);
-                            int close_paren = proc_stat.last_index_of_char(')');
-                            if (close_paren > 0 && close_paren + 2 < proc_stat.length) {
-                                string after_paren = proc_stat.substring(close_paren + 2);
-                                string[] fields = after_paren.split(" ");
-                                // fields[0] is state (field 3), fields[11] is utime (14), fields[12] is stime (15)
-                                if (fields.length > 12) {
-                                    uint64 utime = uint64.parse(fields[11]);
-                                    uint64 stime = uint64.parse(fields[12]);
-                                    uint64 proc_jiffies = utime + stime;
-
-                                    // Read total system CPU jiffies from /proc/stat
-                                    string sys_stat;
-                                    uint64 cpu_total = 0;
-                                    FileUtils.get_contents("/proc/stat", out sys_stat);
-                                    string first_line = sys_stat.split("\n")[0];
-                                    string[] cpu_fields = first_line.split(" ");
-                                    for (int ci = 1; ci < cpu_fields.length; ci++) {
-                                        string token = cpu_fields[ci].strip();
-                                        if (token.length > 0) {
-                                            cpu_total += uint64.parse(token);
-                                        }
-                                    }
-
-                                    CpuState? prev = cpu_prev.lookup(vm.id);
-                                    if (prev != null && cpu_total > prev.cpu_total && prev.cpu_total > 0) {
-                                        uint64 delta_proc = (proc_jiffies >= prev.proc_jiffies) ? (proc_jiffies - prev.proc_jiffies) : 0;
-                                        uint64 delta_total = cpu_total - prev.cpu_total;
-                                        if (delta_total > 0) {
-                                            st.cpu_pct = ((double)delta_proc / (double)delta_total) * 100.0;
-                                            if (st.cpu_pct > 100.0) st.cpu_pct = 100.0;
-                                        }
-                                    }
-                                    cpu_prev.insert(vm.id, new CpuState(proc_jiffies, cpu_total));
-                                }
-                            }
-                        } catch (Error e) { }
-
-                        // Extract VM's allocated RAM limit from cmdline (-m flag)
-                        double limit_mb = 0.0;
-                        try {
-                            string cmdline;
-                            FileUtils.get_contents("/proc/" + pid + "/cmdline", out cmdline);
-                            string[] cmd_parts = cmdline.split("\0");
-                            for (int ci = 0; ci < cmd_parts.length; ci++) {
-                                if (cmd_parts[ci] == "-m" && ci + 1 < cmd_parts.length) {
-                                    limit_mb = ConfigManager.parse_mem_to_mb(cmd_parts[ci + 1]);
-                                    break;
-                                }
-                            }
-                        } catch (Error ce) { }
-
-                        // Fallback: check run-vm.sh in vm.dir if cmdline didn't yield -m
-                        if (limit_mb <= 0.0 && vm.dir.length > 0) {
-                            try {
-                                string run_script;
-                                string script_path = Path.build_filename(vm.dir, "run-vm.sh");
-                                if (FileUtils.test(script_path, FileTest.EXISTS)) {
-                                    FileUtils.get_contents(script_path, out run_script);
-                                    string[] s_lines = run_script.split("\n");
-                                    foreach (string sl in s_lines) {
-                                        string trimmed = sl.strip();
-                                        if (trimmed.has_prefix("-m ") || trimmed.has_prefix("-m\t")) {
-                                            string val = trimmed.substring(3).replace("\\", "").strip();
-                                            limit_mb = ConfigManager.parse_mem_to_mb(val);
-                                            break;
-                                        }
-                                    }
-                                }
-                            } catch (Error se) { }
-                        }
-
-                        // --- RAM via /proc/[pid]/statm ---
-                        try {
-                            string statm;
-                            FileUtils.get_contents("/proc/" + pid + "/statm", out statm);
-                            string[] parts = statm.split(" ");
-                            if (parts.length > 1) {
-                                uint64 resident_pages = uint64.parse(parts[1]);
-                                uint64 ram_mb = (resident_pages * 4096) / (1024 * 1024);
-                                if (limit_mb > 0.0) {
-                                    st.ram_pct = ((double)ram_mb / (double)limit_mb) * 100.0;
-                                    if (st.ram_pct > 100.0) st.ram_pct = 100.0;
-                                    st.ram_str = "%.2f GB / %.1f GB".printf((double)ram_mb / 1024.0, limit_mb / 1024.0);
-                                } else {
-                                    if (ram_mb > 1024) {
-                                        st.ram_str = "%.2f GB".printf((double)ram_mb / 1024.0);
-                                    } else {
-                                        st.ram_str = "%lu MB".printf((ulong)ram_mb);
-                                    }
-                                    st.ram_pct = 0.0;
-                                }
-                            }
-                        } catch (Error e) { }
-                        break;
-                    }
-                }
-
-                if (!st.running) {
-                    // Clear stale CPU delta state when VM is not running
-                    cpu_prev.remove(vm.id);
-                }
-            } catch (Error e) {
-                // Ignore
+            int pid = find_vm_pid(proc_root, vm.process_name, (int) Posix.getpid());
+            if (pid <= 0) {
+                cpu_prev.remove(vm.id);
+                return st;
             }
-
+            st.running = true;
+            string pid_dir = Path.build_filename(proc_root, pid.to_string());
+            st.cpu_pct = process_cpu_percent(vm.id, pid_dir);
+            double limit_mb = allocated_mb(pid_dir, vm.dir);
+            uint64 ram_mb = resident_mb(pid_dir);
+            if (limit_mb > 0.0) {
+                st.ram_pct = double.min(100.0, ram_mb / limit_mb * 100.0);
+                st.ram_str = "%.2f GB / %.1f GB".printf(ram_mb / 1024.0, limit_mb / 1024.0);
+            } else {
+                st.ram_str = ram_mb > 1024 ? "%.2f GB".printf(ram_mb / 1024.0) : "%lu MB".printf((ulong) ram_mb);
+            }
             return st;
         }
 
-        public void insert_iso(VmModel vm, string iso_path) {
-            if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                new Thread<void*>("qemu-iso-insert", () => {
-                    try {
-                        string cmd = "echo 'change cdrom " + iso_path + "' | socat - UNIX-CONNECT:" + vm.monitor_socket;
-                        string[] argv = { "/bin/bash", "-c", cmd };
-                        new HostCommand().run(argv, vm.dir.length > 0 ? vm.dir : null);
-                    } catch (Error e) {
-                        warning("Failed to hot-insert ISO: %s", e.message);
-                    }
-                    return null;
-                });
+        // Share of the whole host (all CPUs), matching the host overview and container drivers.
+        private double process_cpu_percent(string vm_id, string pid_dir) {
+            try {
+                string proc_stat;
+                FileUtils.get_contents(Path.build_filename(pid_dir, "stat"), out proc_stat);
+                int close_paren = proc_stat.last_index_of_char(')');
+                if (close_paren <= 0 || close_paren + 2 >= proc_stat.length) return 0.0;
+                // After ")": fields[0] is state (field 3), [11] utime (14), [12] stime (15).
+                string[] fields = proc_stat.substring(close_paren + 2).split(" ");
+                if (fields.length <= 12) return 0.0;
+                uint64 proc_jiffies = uint64.parse(fields[11]) + uint64.parse(fields[12]);
+
+                string sys_stat;
+                FileUtils.get_contents(Path.build_filename(proc_root, "stat"), out sys_stat);
+                uint64 cpu_total = 0;
+                // Keep the split result in a local: slicing a temporary array is a use-after-free in Vala.
+                string[] cpu_fields = sys_stat.split("\n")[0].split(" ");
+                for (int i = 1; i < cpu_fields.length; i++) {
+                    if (cpu_fields[i].strip().length > 0) cpu_total += uint64.parse(cpu_fields[i].strip());
+                }
+
+                CpuState? prev = cpu_prev.lookup(vm_id);
+                cpu_prev.insert(vm_id, new CpuState(proc_jiffies, cpu_total));
+                if (prev == null) return 0.0;
+                return Metrics.delta_percent(prev.proc_jiffies, proc_jiffies, prev.cpu_total, cpu_total);
+            } catch (Error e) {
+                return 0.0;
             }
         }
 
-        public void eject_iso(VmModel vm) {
-            if (vm.monitor_socket.length > 0 && FileUtils.test(vm.monitor_socket, FileTest.EXISTS)) {
-                new Thread<void*>("qemu-iso-eject", () => {
-                    try {
-                        string cmd = "echo 'eject -f cdrom' | socat - UNIX-CONNECT:" + vm.monitor_socket;
-                        string[] argv = { "/bin/bash", "-c", cmd };
-                        new HostCommand().run(argv, vm.dir.length > 0 ? vm.dir : null);
-                    } catch (Error e) {
-                        warning("Failed to hot-eject ISO: %s", e.message);
-                    }
-                    return null;
-                });
+        // VM RAM limit from the QEMU "-m" argument, else from run-vm.sh in the VM directory.
+        private static double allocated_mb(string pid_dir, string vm_dir) {
+            try {
+                uint8[] raw;
+                FileUtils.get_data(Path.build_filename(pid_dir, "cmdline"), out raw);
+                string[] args = {};
+                int start = 0;
+                for (int i = 0; i < raw.length; i++) {
+                    if (raw[i] != 0) continue;
+                    args += HostCommand.bytes_to_text(new Bytes(raw[start:i]));
+                    start = i + 1;
+                }
+                for (int i = 0; i + 1 < args.length; i++) {
+                    if (args[i] == "-m") return ConfigManager.parse_mem_to_mb(args[i + 1]);
+                }
+            } catch (Error e) { }
+            if (vm_dir.length == 0) return 0.0;
+            try {
+                string script;
+                FileUtils.get_contents(Path.build_filename(vm_dir, "run-vm.sh"), out script);
+                foreach (string line in script.split("\n")) {
+                    string trimmed = line.strip();
+                    if (trimmed.has_prefix("-m ") || trimmed.has_prefix("-m\t"))
+                        return ConfigManager.parse_mem_to_mb(trimmed.substring(3).replace("\\", "").strip());
+                }
+            } catch (Error e) { }
+            return 0.0;
+        }
+
+        private static uint64 resident_mb(string pid_dir) {
+            try {
+                string statm;
+                FileUtils.get_contents(Path.build_filename(pid_dir, "statm"), out statm);
+                string[] parts = statm.strip().split(" ");
+                if (parts.length > 1) return uint64.parse(parts[1]) * page_size() / (1024 * 1024);
+            } catch (Error e) { }
+            return 0;
+        }
+
+        public void insert_iso(VmModel vm, string iso_path) {
+            if (vm.monitor_socket.length == 0) return;
+            string command;
+            try {
+                command = "change cdrom " + HmpMonitor.quote(iso_path);
+            } catch (Error e) {
+                warning("Refusing ISO path: %s", e.message);
+                return;
             }
+            send_async(vm.monitor_socket, command);
+        }
+
+        public void eject_iso(VmModel vm) {
+            if (vm.monitor_socket.length > 0) send_async(vm.monitor_socket, "eject -f cdrom");
+        }
+
+        private static void send_async(string socket_path, string command) {
+            new Thread<void*>("qemu-hmp", () => {
+                try { HmpMonitor.send(socket_path, command); }
+                catch (Error e) { warning("QEMU monitor command failed: %s", e.message); }
+                return null;
+            });
         }
     }
 }

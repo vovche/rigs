@@ -5,8 +5,10 @@ using Rigs;
 namespace Rigs.Tests {
 
     public class MockDriver : Object, Driver {
-        public string custom_kind { get; set; default = "mock"; }
-        public string kind { get { return custom_kind; } }
+        public ResourceKind mock_kind = ResourceKind.QEMU;
+        public ResourceKind kind { get { return mock_kind; } }
+        // Returned by every operation; null = success.
+        public ResourceIssue? next_issue = null;
 
         public GenericArray<string> started = new GenericArray<string>();
         public GenericArray<string> stopped = new GenericArray<string>();
@@ -15,36 +17,41 @@ namespace Rigs.Tests {
         public GenericArray<string> ejected_isos = new GenericArray<string>();
         public ResourceStatus mock_status;
 
-        public MockDriver(string type_name = "mock") {
-            this.custom_kind = type_name;
+        public MockDriver(ResourceKind kind = ResourceKind.QEMU) {
+            this.mock_kind = kind;
             this.mock_status = ResourceStatus();
             this.mock_status.running = false;
             this.mock_status.cpu_pct = 0.0;
             this.mock_status.ram_str = "0 MB";
         }
 
-        public void start(Resource resource) {
+        public ResourceIssue? start(Resource resource) {
             started.add(resource.id);
+            return next_issue;
         }
 
-        public void stop(Resource resource) {
+        public ResourceIssue? stop(Resource resource) {
             stopped.add(resource.id);
+            return next_issue;
         }
 
-        public void open_console(Resource resource) {
+        public ResourceIssue? open_console(Resource resource) {
             connected.add(resource.id);
+            return next_issue;
         }
 
         public ResourceStatus check_status(Resource resource) {
             return mock_status;
         }
 
-        public void insert_iso(Resource resource, string iso_path) {
+        public ResourceIssue? insert_iso(Resource resource, string iso_path) {
             inserted_isos.insert(resource.id, iso_path);
+            return next_issue;
         }
 
-        public void eject_iso(Resource resource) {
+        public ResourceIssue? eject_iso(Resource resource) {
             ejected_isos.add(resource.id);
+            return next_issue;
         }
 
         public void reset() {

@@ -38,10 +38,10 @@ namespace Rigs {
         }
 
         private string failure_message(string detail) {
-            if (commands.mode == "snap-restricted")
+            if (commands.mode == ExecutionMode.SNAP_RESTRICTED)
                 return _("Connect the Docker interfaces in a supported Snap package to discover Docker resources. Podman and libvirt require a native package, classic Snap, or host broker.");
             string lower = detail.down();
-            if (commands.mode.has_prefix("snap") &&
+            if (commands.mode.is_snap() &&
                 (lower.contains("not supported") || lower.contains("supports only the connected docker")))
                 return _("This Snap supports Docker through connected Docker interfaces. Podman and libvirt require a native package, classic Snap, or host broker.");
             if (lower.contains("deadline") || lower.contains("timed out"))
@@ -61,15 +61,16 @@ namespace Rigs {
             var domains = new HashTable<string, bool>(str_hash, str_equal);
             for (uint i = 0; i < existing.length; i++) {
                 var resource = existing[i];
-                if (resource.kind == "container" || resource.kind == "compose") {
+                if (resource.kind == ResourceKind.CONTAINER || resource.kind == ResourceKind.COMPOSE) {
                     if (resource.resource_id.length > 0) container_ids.insert(resource.resource_id.down(), true);
-                    if (resource.kind == "compose" && resource.container_name.length > 0)
-                        legacy_names.insert(resource.runtime + ":" + resource.container_name, true);
-                } else if (resource.kind == "libvirt") {
+                    if (resource.kind == ResourceKind.COMPOSE && resource.container_name.length > 0)
+                        legacy_names.insert(resource.runtime.command() + ":" + resource.container_name, true);
+                } else if (resource.kind == ResourceKind.LIBVIRT) {
                     domains.insert(resource.connection_uri + ":" + resource.resource_id.down(), true);
                 }
             }
-            foreach (string engine in new string[] { "podman", "docker" }) {
+            foreach (var runtime in new ContainerRuntime[] { ContainerRuntime.PODMAN, ContainerRuntime.DOCKER }) {
+                string engine = runtime.command();
                 var source = new DiscoverySource(engine);
                 result.sources.add(source);
                 try {
@@ -95,8 +96,8 @@ namespace Rigs {
                         var resource = new Resource();
                         resource.id = engine + ":" + identity;
                         resource.name = fields[1];
-                        resource.kind = "container";
-                        resource.runtime = engine;
+                        resource.kind = ResourceKind.CONTAINER;
+                        resource.runtime = runtime;
                         resource.resource_id = identity;
                         resource.container_name = fields[1];
                         resource.subtitle = engine + " • " + fields[2];
@@ -136,7 +137,7 @@ namespace Rigs {
                         var resource = new Resource();
                         resource.id = identity;
                         resource.name = line.substring(36).strip();
-                        resource.kind = "libvirt";
+                        resource.kind = ResourceKind.LIBVIRT;
                         resource.resource_id = uuid;
                         resource.connection_uri = uri;
                         resource.subtitle = "libvirt • " + uri;

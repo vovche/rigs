@@ -53,9 +53,9 @@ int main(string[] args) {
     Test.add_func("/discovery/libvirt", TestDiscovery.test_libvirt);
     Test.add_func("/discovery/failures", TestDiscovery.test_failures);
     Test.add_func("/discovery/duplicates", TestDiscovery.test_duplicates);
-    Test.add_func("/managed-driver/container", TestManagedDriver.test_container_status);
-    Test.add_func("/managed-driver/libvirt", TestManagedDriver.test_libvirt_status);
-    Test.add_func("/managed-driver/invalid", TestManagedDriver.test_invalid_targets);
+    Test.add_func("/managed-driver/container", TestRuntimeDrivers.test_container_status);
+    Test.add_func("/managed-driver/libvirt", TestRuntimeDrivers.test_libvirt_status);
+    Test.add_func("/managed-driver/invalid", TestRuntimeDrivers.test_invalid_targets);
     Test.add_func("/guest-agent/libvirt", TestGuestAgent.test_libvirt);
     Test.add_func("/guest-agent/socket", TestGuestAgent.test_socket);
     Test.add_func("/guest-agent/errors", TestGuestAgent.test_errors);

@@ -8,43 +8,43 @@ namespace Rigs.Tests {
         public static void test_prepare() {
             try {
                 string[] argv = { "/path with spaces/tool", "literal ; $HOME && |" };
-                assert_argv(new HostCommand("native").prepare(argv, "/directory with spaces"), argv);
-                assert_argv(new HostCommand("snap-classic").prepare(argv), argv);
-                assert_argv(new HostCommand("snap-docker", "/snap root/rigs/42").prepare({
+                assert_argv(new HostCommand.with_mode(ExecutionMode.NATIVE).prepare(argv, "/directory with spaces"), argv);
+                assert_argv(new HostCommand.with_mode(ExecutionMode.SNAP_CLASSIC).prepare(argv), argv);
+                assert_argv(new HostCommand.with_mode(ExecutionMode.SNAP_DOCKER, "/snap root/rigs/42").prepare({
                     "docker", "inspect", "container with spaces", "literal ; $HOME && |"
                 }), {
                     "/snap root/rigs/42/docker-snap/bin/docker", "inspect",
                     "container with spaces", "literal ; $HOME && |"
                 });
-                var connected = new HostCommand("snap-docker");
+                var connected = new HostCommand.with_mode(ExecutionMode.SNAP_DOCKER);
                 assert_argv(connected.prepare({ "docker", "ps" }), {
                     Path.build_filename(connected.snap_root, "docker-snap", "bin", "docker"), "ps"
                 });
             } catch (Error e) { assert_not_reached(); }
             try {
-                new HostCommand("unsupported-sandbox").prepare({ "tool" });
+                new HostCommand.with_mode(ExecutionMode.UNSUPPORTED_SANDBOX).prepare({ "tool" });
                 assert_not_reached();
             } catch (Error e) { assert(e is IOError.NOT_SUPPORTED); }
             try {
-                new HostCommand("snap-restricted").prepare({ "tool" });
+                new HostCommand.with_mode(ExecutionMode.SNAP_RESTRICTED).prepare({ "tool" });
                 assert_not_reached();
             } catch (Error e) { assert(e is IOError.NOT_SUPPORTED); }
             string[] unsupported = { "podman", "virsh", "/bin/bash", "/usr/bin/docker", "docker; sh" };
             foreach (string executable in unsupported) {
                 try {
-                    new HostCommand("snap-docker").prepare({ executable });
+                    new HostCommand.with_mode(ExecutionMode.SNAP_DOCKER).prepare({ executable });
                     assert_not_reached();
                 } catch (Error e) { assert(e is IOError.NOT_SUPPORTED); }
             }
             try {
-                new HostCommand("native").prepare({});
+                new HostCommand.with_mode(ExecutionMode.NATIVE).prepare({});
                 assert_not_reached();
             } catch (Error e) { assert(e is IOError.INVALID_ARGUMENT); }
         }
 
         public static void test_native() {
             try {
-                var host = new HostCommand("native");
+                var host = new HostCommand.with_mode(ExecutionMode.NATIVE);
                 var literal = host.run({ "/usr/bin/printf", "%s", "a ; $HOME && | > b" });
                 assert(literal.output == "a ; $HOME && | > b");
                 assert(literal.error_output == "" && literal.exit_status == 0);
@@ -61,7 +61,7 @@ namespace Rigs.Tests {
         public static void test_timeout() {
             int64 started = get_monotonic_time();
             try {
-                new HostCommand("native").run({ "/bin/sleep", "5" }, null, 30);
+                new HostCommand.with_mode(ExecutionMode.NATIVE).run({ "/bin/sleep", "5" }, null, 30);
                 assert_not_reached();
             } catch (Error e) { assert(e is IOError.TIMED_OUT); }
             int64 elapsed = get_monotonic_time() - started;

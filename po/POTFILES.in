@@ -17,3 +17,9 @@ src/core/resource_issue.vala
 src/ui/issue_dialog.vala
 src/core/drivers/scripted_qemu_driver.vala
 src/core/resource_store.vala
+src/core/failure_rules.vala
+src/core/drivers/compose_driver.vala
+src/core/drivers/container_driver.vala
+src/core/drivers/libvirt_driver.vala
+src/ui/host_overview.vala
+src/ui/resource_list.vala

@@ -213,7 +213,7 @@ namespace Rigs {
         }
         private static string resource_key(Resource resource) {
             string identity;
-            if (resource.kind == "libvirt") identity = string.joinv("|", { "libvirt", resource.connection_uri, resource.resource_id.down() });
+            if (resource.kind == ResourceKind.LIBVIRT) identity = string.joinv("|", { "libvirt", resource.connection_uri, resource.resource_id.down() });
             else {
                 string socket = Posix.realpath(resource.guest_agent_socket) ?? File.new_for_path(resource.guest_agent_socket).get_path();
                 identity = "qga-socket|" + socket;

@@ -181,7 +181,7 @@ namespace Rigs {
             if (driver != null) {
                 var status = driver.check_status(resource);
                 if (status.running && (resource.guest_os == "windows" || resource.guest_os == "linux")) {
-                    var checked = resource.kind == "libvirt"
+                    var checked = resource.kind == ResourceKind.LIBVIRT
                         ? GuestMemory.check_libvirt(resource.connection_uri, resource.resource_id, resource.guest_os == "windows")
                         : GuestMemory.check(resource.qmp_socket, resource.guest_os == "windows");
                     status.guest_memory_state = checked.state;

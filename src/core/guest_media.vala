@@ -137,14 +137,14 @@ namespace Rigs {
         public virtual Json.Node qmp(Resource resource, string name, Json.Object? args = null) throws Error {
             if (!resource.qmp_socket.has_prefix("/"))
                 throw new IOError.NOT_CONNECTED("Configure the host QMP socket path before attaching an ISO.");
-            if (resource.kind != "qemu" && resource.kind != "compose" && resource.kind != "container")
+            if (resource.kind != ResourceKind.QEMU && resource.kind != ResourceKind.COMPOSE && resource.kind != ResourceKind.CONTAINER)
                 throw new IOError.NOT_SUPPORTED("This resource does not provide a supported QMP connection.");
             return new Client(resource.qmp_socket).command(name, args);
         }
 
         public virtual GenericArray<GuestOpticalDrive> list_drives(Resource resource) throws Error {
             var drives = new GenericArray<GuestOpticalDrive>();
-            if (resource.kind == "libvirt") {
+            if (resource.kind == ResourceKind.LIBVIRT) {
                 validate_libvirt(resource);
                 var result = commands.run({ "virsh", "--connect", resource.connection_uri, "domblklist", resource.resource_id, "--details" });
                 if (result.exit_status != 0) throw new IOError.FAILED("Cannot list CD drives: %s", result.error_output);
@@ -213,14 +213,12 @@ namespace Rigs {
         }
 
         private string container_iso(Resource resource, string iso_path) throws Error {
-            if (resource.runtime != "podman" && resource.runtime != "docker")
-                throw new IOError.INVALID_ARGUMENT("Only Podman or Docker containers are supported.");
-            string identity = resource.kind == "container" ? resource.resource_id : resource.container_name;
-            bool valid = resource.kind == "container"
+            string identity = resource.kind == ResourceKind.CONTAINER ? resource.resource_id : resource.container_name;
+            bool valid = resource.kind == ResourceKind.CONTAINER
                 ? Regex.match_simple("^[a-fA-F0-9]{12,64}$", identity)
                 : Regex.match_simple("^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$", identity);
             if (!valid) throw new IOError.INVALID_ARGUMENT("The container identity is missing or invalid.");
-            var inspected = commands.run({ resource.runtime, "inspect", "--format", "{{json .Mounts}}", identity });
+            var inspected = commands.run({ resource.runtime.command(), "inspect", "--format", "{{json .Mounts}}", identity });
             if (inspected.exit_status != 0) throw new IOError.FAILED("Cannot inspect container mounts: %s", inspected.error_output);
             var parser = new Json.Parser();
             parser.load_from_data(inspected.output);
@@ -306,9 +304,9 @@ namespace Rigs {
             if (selected == null) throw new IOError.NOT_FOUND("The selected CD-ROM drive is no longer available.");
             if (selected.current_iso.length > 0) throw new IOError.EXISTS("The selected CD-ROM drive already contains media. Eject it in your VM manager first.");
             string guest_path = iso_path;
-            if (resource.kind == "compose" || resource.kind == "container") guest_path = container_iso(resource, iso_path);
+            if (resource.kind == ResourceKind.COMPOSE || resource.kind == ResourceKind.CONTAINER) guest_path = container_iso(resource, iso_path);
             // Staging a large image may take time; check the tray again afterwards.
-            if (resource.kind == "compose" || resource.kind == "container") {
+            if (resource.kind == ResourceKind.COMPOSE || resource.kind == ResourceKind.CONTAINER) {
                 bool found_empty = false;
                 foreach (var drive in list_drives(resource).data) {
                     if (drive.id != drive_id) continue;
@@ -317,7 +315,7 @@ namespace Rigs {
                 }
                 if (!found_empty) throw new IOError.NOT_FOUND("The selected CD-ROM drive is no longer available.");
             }
-            if (resource.kind == "libvirt") {
+            if (resource.kind == ResourceKind.LIBVIRT) {
                 var result = commands.run({ "virsh", "--connect", resource.connection_uri, "change-media", resource.resource_id,
                     drive_id, guest_path, "--insert", "--live" });
                 if (result.exit_status != 0) throw new IOError.FAILED("Cannot attach the ISO: %s", result.error_output);

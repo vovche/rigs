@@ -517,3 +517,39 @@ msgstr ""
 
 msgid "Only local files can be inserted."
 msgstr ""
+
+msgid "Change libvirt media with virt-manager or virsh change-media."
+msgstr ""
+
+msgid "Compose resources have no optical drive control."
+msgstr ""
+
+msgid "Containers have no optical drive control."
+msgstr ""
+
+msgid "No QEMU monitor socket is configured for this VM."
+msgstr ""
+
+msgid "No connect command is configured for this VM."
+msgstr ""
+
+msgid "No connect command is configured for this resource."
+msgstr ""
+
+msgid "Not supported"
+msgstr ""
+
+msgid "Only local libvirt domains (qemu:///session or qemu:///system) with a UUID are supported."
+msgstr ""
+
+msgid "Rigs does not recognize the cause of this failure."
+msgstr ""
+
+msgid "The container ID in this resource is not valid."
+msgstr ""
+
+msgid "The container exited without any output"
+msgstr ""
+
+msgid "Unrecognized error"
+msgstr ""

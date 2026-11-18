@@ -105,9 +105,9 @@ namespace Rigs {
 
             // 2. RAM with Resources-style Bezier sparkline (Vivid Violet)
             ram_row = new Adw.ActionRow();
-            ram_row.title = resource.kind == "libvirt" ? _("Allocated RAM") : resource.kind == "qemu"
+            ram_row.title = resource.kind == ResourceKind.LIBVIRT ? _("Allocated RAM") : resource.kind == ResourceKind.QEMU
                 ? _("Host Memory / Allocated RAM") : _("Host Memory");
-            if (resource.kind == "qemu") {
+            if (resource.kind == ResourceKind.QEMU) {
                 ram_row.tooltip_text = _("QEMU process memory on the host / RAM allocated to the VM. Usage inside the guest OS is not available.");
             }
             ram_row.subtitle = "0 MB";
@@ -116,7 +116,7 @@ namespace Rigs {
             guest_ram_row = new Adw.ActionRow();
             guest_ram_row.title = _("Guest Memory Usage");
             guest_ram_row.subtitle = _("Guest statistics unavailable");
-            guest_ram_row.visible = resource.qmp_socket.length > 0 || resource.kind == "qemu" || resource.kind == "libvirt" || resource.guest_os.length > 0;
+            guest_ram_row.visible = resource.qmp_socket.length > 0 || resource.kind == ResourceKind.QEMU || resource.kind == ResourceKind.LIBVIRT || resource.guest_os.length > 0;
             guest_settings_btn.visible = !guest_ram_row.visible;
             var guest_setup = new Gtk.Button.from_icon_name("emblem-system-symbolic");
             guest_setup.valign = Gtk.Align.CENTER;
@@ -152,7 +152,7 @@ namespace Rigs {
 
             iso_row.add_suffix(iso_box);
             this.add_row(iso_row);
-            iso_row.visible = resource.kind == "qemu";
+            iso_row.visible = resource.kind == ResourceKind.QEMU;
 
             // 4. Ports & Endpoints
             var endpoint_row = new Adw.ActionRow();
@@ -201,12 +201,12 @@ namespace Rigs {
         private void refresh_issue() {
             var issue = resource.last_issue;
             issue_btn.visible = issue != null;
-            if (issue != null) issue_btn.tooltip_text = "%s: %s".printf(FailureRules.headline(issue.operation, resource.name), issue.title);
+            if (issue != null) issue_btn.tooltip_text = "%s: %s".printf(ResourceIssue.headline(issue.operation, resource.name), issue.title);
         }
 
         public void update_status(ResourceStatus status) {
             guest_state = status.guest_memory_state;
-            guest_ram_row.visible = resource.qmp_socket.length > 0 || resource.kind == "qemu" || resource.kind == "libvirt" || resource.guest_os.length > 0;
+            guest_ram_row.visible = resource.qmp_socket.length > 0 || resource.kind == ResourceKind.QEMU || resource.kind == ResourceKind.LIBVIRT || resource.guest_os.length > 0;
             guest_settings_btn.visible = !guest_ram_row.visible;
             if (!status.status_available) {
                 status_lbl.label = _("UNAVAILABLE");
@@ -224,7 +224,7 @@ namespace Rigs {
                 status_lbl.add_css_class("status-running");
 
                 start_btn.visible = false;
-                connect_btn.visible = resource.kind == "libvirt" || resource.connect_cmd.length > 0;
+                connect_btn.visible = resource.kind == ResourceKind.LIBVIRT || resource.connect_cmd.length > 0;
                 stop_btn.visible = true;
             } else {
                 status_lbl.label = _("STOPPED");
@@ -240,7 +240,7 @@ namespace Rigs {
             cpu_sparkline.add_value(status.running ? status.cpu_pct : 0.0);
 
             // Container usage / guest RAM is not a guest usage percentage.
-            string host_memory = resource.kind == "compose" ? status.ram_str.split(" / ")[0] : status.ram_str;
+            string host_memory = resource.kind == ResourceKind.COMPOSE ? status.ram_str.split(" / ")[0] : status.ram_str;
             ram_row.subtitle = _("Memory: %s").printf(host_memory);
             if (status.running && status.guest_ram_valid) {
                 guest_ram_row.subtitle = _("Memory: %s (%.1f%%)").printf(status.guest_ram_str, status.guest_ram_pct);

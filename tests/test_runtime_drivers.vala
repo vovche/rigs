@@ -16,21 +16,21 @@ namespace Rigs.Tests {
         }
     }
 
-    public class TestManagedDriver {
+    public class TestRuntimeDrivers {
         public static void test_container_status() {
             var commands = new ManagedCommands();
-            var driver = new ManagedDriver("container", commands);
+            var driver = new ContainerDriver(commands);
             driver.cpu_count = 1;
             var resource = new Resource();
             resource.resource_id = "0123456789abcdef";
-            resource.runtime = "podman";
+            resource.runtime = ContainerRuntime.PODMAN;
             var status = driver.check_status(resource);
             assert(status.status_available && status.running);
             assert(status.cpu_pct == 12.5);
             assert(status.ram_str == "1.8 GiB");
             assert(status.ram_pct == 0 && !status.guest_ram_valid);
             assert(commands.calls[1].contains("{{.CPU}}\t{{.MemUsage}}"));
-            resource.runtime = "docker";
+            resource.runtime = ContainerRuntime.DOCKER;
             driver.check_status(resource);
             assert(commands.calls[3].contains("{{.CPUPerc}}\t{{.MemUsage}}"));
             commands.stats_exit = 1;
@@ -52,7 +52,7 @@ namespace Rigs.Tests {
 
         public static void test_libvirt_status() {
             var commands = new ManagedCommands();
-            var driver = new ManagedDriver("libvirt", commands);
+            var driver = new LibvirtDriver(commands);
             var resource = new Resource();
             resource.resource_id = "01234567-89ab-cdef-0123-456789abcdef";
             resource.connection_uri = "qemu:///session";
@@ -71,30 +71,25 @@ namespace Rigs.Tests {
             assert(!driver.check_status(resource).status_available);
             assert(string.joinv("|", driver.lifecycle_argv(resource, false)) ==
                 "virsh|--connect|qemu:///session|shutdown|" + resource.resource_id);
-            string? directory;
-            assert(string.joinv("|", driver.connect_argv(resource, out directory)) ==
+            assert(string.joinv("|", driver.console_argv(resource)) ==
                 "virt-viewer|--connect|qemu:///session|" + resource.resource_id);
         }
 
         public static void test_invalid_targets() {
             var commands = new ManagedCommands();
-            var container = new ManagedDriver("container", commands);
+            var container = new ContainerDriver(commands);
             var resource = new Resource();
             resource.resource_id = "--all";
             assert(!container.check_status(resource).status_available);
             assert(container.lifecycle_argv(resource, false).length == 0);
             string? directory;
-            assert(container.connect_argv(resource, out directory).length == 0);
-            resource.resource_id = "0123456789abcdef";
-            resource.runtime = "/bin/bash";
-            assert(!container.check_status(resource).status_available);
-            assert(container.lifecycle_argv(resource, true).length == 0);
-            var libvirt = new ManagedDriver("libvirt", commands);
+            assert(container.console_argv(resource, out directory).length == 0);
+            var libvirt = new LibvirtDriver(commands);
             resource.resource_id = "01234567-89ab-cdef-0123-456789abcdef";
             resource.connection_uri = "qemu+ssh://host/system";
             assert(!libvirt.check_status(resource).status_available);
             assert(libvirt.lifecycle_argv(resource, false).length == 0);
-            assert(libvirt.connect_argv(resource, out directory).length == 0);
+            assert(libvirt.console_argv(resource).length == 0);
             resource.connection_uri = "qemu:///system";
             resource.resource_id = "example";
             assert(!libvirt.check_status(resource).status_available);

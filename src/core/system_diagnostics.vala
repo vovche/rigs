@@ -22,7 +22,7 @@ namespace Rigs {
                 sb.append_printf("- Snap Version: %s\n", Environment.get_variable("SNAP_VERSION") ?? "unknown");
                 sb.append_printf("- Snap Revision: %s\n", Environment.get_variable("SNAP_REVISION") ?? "unknown");
                 sb.append_printf("- Snap Architecture: %s\n", Environment.get_variable("SNAP_ARCH") ?? "unknown");
-                sb.append_printf("- Host execution: %s\n", new HostCommand().mode);
+                sb.append_printf("- Host execution: %s\n", new HostCommand().mode.to_label());
                 sb.append("- Strict Snap: Docker requires connected docker and docker-executables plugs; arbitrary host tools are unavailable.\n");
                 sb.append_printf("- Snap Root: %s\n", snap);
             } else if (FileUtils.test("/.flatpak-info", FileTest.EXISTS)) {

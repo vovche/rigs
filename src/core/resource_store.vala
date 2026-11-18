@@ -12,10 +12,6 @@ namespace Rigs {
             return Path.build_filename(get_config_dir(), "vms.json");
         }
 
-        public static string get_state_file() {
-            return Path.build_filename(get_config_dir(), "state.json");
-        }
-
         public static string? load_error = null;
 
         public static GenericArray<Resource> load(string? config_path = null) {
@@ -67,11 +63,15 @@ namespace Rigs {
             if (!obj.has_member("id") || !obj.has_member("name")) return false;
             string id = obj.get_string_member("id");
             if (id.length == 0 || obj.get_string_member("name").strip().length == 0 || ids.contains(id)) return false;
+            ResourceKind kind = ResourceKind.COMPOSE;
+            ContainerRuntime runtime = ContainerRuntime.PODMAN;
+            if (obj.has_member("type") && !ResourceKind.try_parse(obj.get_string_member("type"), out kind)) return false;
+            if (obj.has_member("runtime") && !ContainerRuntime.try_parse(obj.get_string_member("runtime"), out runtime)) return false;
             ids.insert(id, true);
             return true;
         }
 
-        // Why the last save_vms() failed; null after a successful save.
+        // Why the last save() failed; null after a successful save.
         public static string? save_error = null;
 
         // Returns false (and sets save_error) when the changes did not reach the disk.

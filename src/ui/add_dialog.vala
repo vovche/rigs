@@ -177,7 +177,7 @@ namespace Rigs {
             resource.id = Uuid.string_random();
             resource.name = name;
             resource.subtitle = sub_row.text.strip();
-            resource.kind = is_compose ? "compose" : "qemu";
+            resource.kind = is_compose ? ResourceKind.COMPOSE : ResourceKind.QEMU;
             resource.icon = is_compose ? "network-server-symbolic" : "computer-symbolic";
             resource.dir = dir_row.text.strip();
             resource.start_cmd = start_row.text.strip();

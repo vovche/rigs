@@ -49,9 +49,9 @@ done < <(grep -nHE '"-c"' $SRC 2>/dev/null)
 # --- Silent failures ---------------------------------------------------------
 DRIVERS=$(find src/core/drivers -name '*.vala' | sort)
 grep_rule SILENT-01 '\bwarning *\(|\bmessage *\(|\bdebug *\(' \
-    "Drivers must not log failures where the user cannot see them; return a StartupIssue (StartupDiagnostics.from_error / check_command)." $DRIVERS
+    "Drivers must not log failures where the user cannot see them; return a ResourceIssue (ResourceIssue.from_error, FailureRules.check_command / diagnose)." $DRIVERS
 grep_rule SILENT-02 'new Thread *<' \
-    "Drivers run background work only through StartupDiagnostics.run_in_background, which publishes the returned issue." $DRIVERS
+    "Drivers block and return; threads belong to ResourceActions, which publishes the returned issue." $DRIVERS
 grep_rule SILENT-03 '^[[:space:]]*ResourceStore\.save *\(' \
     "ResourceStore.save() returns false when changes did not reach the disk; call it through a helper that tells the user (Window.persist)." $SRC
 

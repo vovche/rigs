@@ -135,7 +135,7 @@ namespace Rigs.Tests {
             public int fail_on_call = 1;
 
             public FakeCommands(string stats) {
-                base("native");
+                base.with_mode(ExecutionMode.NATIVE);
                 this.stats = stats;
             }
 

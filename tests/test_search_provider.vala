@@ -11,7 +11,7 @@ namespace Rigs.Tests {
             vm1.id = "debian-12";
             vm1.name = "Debian 12 Dev";
             vm1.subtitle = "QEMU/KVM micro-VM";
-            vm1.kind = "qemu";
+            vm1.kind = ResourceKind.QEMU;
             vm1.icon = "computer-symbolic";
             vm1.details = "RAM: 4 GB • CPUs: 2 • Ports: 2222:22";
             list.add(vm1);
@@ -20,7 +20,7 @@ namespace Rigs.Tests {
             vm2.id = "postgres-16";
             vm2.name = "PostgreSQL 16";
             vm2.subtitle = "Docker Compose Stack";
-            vm2.kind = "compose";
+            vm2.kind = ResourceKind.COMPOSE;
             vm2.icon = "server-database-symbolic";
             vm2.details = "Services: db, pgadmin • Ports: 5432:5432";
             list.add(vm2);
@@ -29,7 +29,7 @@ namespace Rigs.Tests {
             vm3.id = "alpine-min";
             vm3.name = "Alpine Minimal";
             vm3.subtitle = "QEMU/KVM micro-VM";
-            vm3.kind = "qemu";
+            vm3.kind = ResourceKind.QEMU;
             vm3.icon = "utilities-terminal-symbolic";
             vm3.details = "RAM: 512 MB • CPUs: 1";
             list.add(vm3);

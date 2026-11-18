@@ -5,7 +5,7 @@ namespace Rigs.Tests {
             public int calls = 0;
             public bool rebooting = false;
 
-            public FakeCommands() { base("native"); }
+            public FakeCommands() { base.with_mode(ExecutionMode.NATIVE); }
 
             public override CommandResult run(string[] argv, string? directory = null, uint timeout_ms = 3000) throws Error {
                 calls++;
@@ -30,7 +30,7 @@ namespace Rigs.Tests {
 
         private static Resource domain() {
             var resource = new Resource();
-            resource.kind = "libvirt";
+            resource.kind = ResourceKind.LIBVIRT;
             resource.connection_uri = "qemu:///session";
             resource.resource_id = "12345678-1234-1234-1234-123456789abc";
             return resource;

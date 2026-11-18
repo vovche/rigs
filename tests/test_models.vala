@@ -9,7 +9,7 @@ namespace Rigs.Tests {
             var resource = new Resource();
             assert(resource.id == "");
             assert(resource.name == "");
-            assert(resource.kind == "compose");
+            assert(resource.kind == ResourceKind.COMPOSE);
             assert(resource.icon == "computer-symbolic");
             assert(resource.attached_iso == "");
             assert(resource.qmp_socket == "");
@@ -22,7 +22,7 @@ namespace Rigs.Tests {
             original.id = "test-vm";
             original.name = "Test Virtual Machine";
             original.subtitle = "Ubuntu 24.04 • QEMU";
-            original.kind = "qemu";
+            original.kind = ResourceKind.QEMU;
             original.icon = "distributor-logo-ubuntu";
             original.dir = "/var/lib/vms/test";
             original.start_cmd = "qemu-system-x86_64";
@@ -35,7 +35,7 @@ namespace Rigs.Tests {
             original.qmp_socket = "/tmp/rigs-test-qmp.sock";
             original.guest_agent_socket = "/tmp/rigs-test-qga.sock";
             original.guest_os = "windows";
-            original.runtime = "docker";
+            original.runtime = ContainerRuntime.DOCKER;
             original.resource_id = "0123456789abcdef";
 
             var json_obj = original.to_json_object();
@@ -46,7 +46,7 @@ namespace Rigs.Tests {
             assert(parsed.id == "test-vm");
             assert(parsed.name == "Test Virtual Machine");
             assert(parsed.subtitle == "Ubuntu 24.04 • QEMU");
-            assert(parsed.kind == "qemu");
+            assert(parsed.kind == ResourceKind.QEMU);
             assert(parsed.icon == "distributor-logo-ubuntu");
             assert(parsed.dir == "/var/lib/vms/test");
             assert(parsed.start_cmd == "qemu-system-x86_64");
@@ -59,7 +59,7 @@ namespace Rigs.Tests {
             assert(parsed.qmp_socket == original.qmp_socket);
             assert(parsed.guest_agent_socket == original.guest_agent_socket);
             assert(parsed.guest_os == "windows");
-            assert(parsed.runtime == "docker");
+            assert(parsed.runtime == ContainerRuntime.DOCKER);
             assert(parsed.resource_id == original.resource_id);
         }
 
@@ -88,6 +88,11 @@ namespace Rigs.Tests {
                 FileUtils.get_contents(path, out contents);
                 assert(contents == "broken configuration");
                 FileUtils.set_contents(path, "[{\"id\":\"a\",\"name\":\"A\",\"runtime\":42}]");
+                assert(ResourceStore.load(path).length == 0 && ResourceStore.load_error != null);
+                // Unknown kinds and runtimes are rejected, never mapped to a command.
+                FileUtils.set_contents(path, "[{\"id\":\"a\",\"name\":\"A\",\"runtime\":\"/bin/bash\"}]");
+                assert(ResourceStore.load(path).length == 0 && ResourceStore.load_error != null);
+                FileUtils.set_contents(path, "[{\"id\":\"a\",\"name\":\"A\",\"type\":\"hyperv\"}]");
                 assert(ResourceStore.load(path).length == 0 && ResourceStore.load_error != null);
                 FileUtils.set_contents(path, "[{\"id\":\"a\",\"name\":\"A\"},{\"id\":\"a\",\"name\":\"B\"}]");
                 assert(ResourceStore.load(path).length == 0 && ResourceStore.load_error != null);

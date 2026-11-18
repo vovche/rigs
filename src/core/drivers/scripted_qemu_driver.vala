@@ -1,6 +1,8 @@
 using GLib.Intl;
 
-/* scripted_qemu_driver.vala — Standalone QEMU / KVM driver implementation */
+/* scripted_qemu_driver.vala — a VM started by the user's own script (start_cmd, default ./run-vm.sh).
+ * Status comes from /proc (process_match = substring of the QEMU command line); control
+ * from the QEMU human monitor socket (monitor_socket). */
 
 namespace Rigs {
 
@@ -12,9 +14,9 @@ namespace Rigs {
     }
 
     public class ScriptedQemuDriver : Object, Driver {
-        public string kind { get { return "qemu"; } }
+        public ResourceKind kind { get { return ResourceKind.QEMU; } }
 
-        // Per-VM CPU delta state: vm.id → CpuState
+        // Per-resource CPU delta state: resource.id → CpuState
         private HashTable<string, CpuState> cpu_prev = new HashTable<string, CpuState>(str_hash, str_equal);
 
         // Overridable for headless tests with a fake procfs tree.
@@ -88,13 +90,9 @@ namespace Rigs {
             return result;
         }
 
-        public void start(Resource resource) {
-            FailureRules.run_in_background(resource, "qemu-starter", () => start_blocking(resource));
-        }
-
         // The start script may daemonize QEMU (exits at once) or run it in the foreground
-        // (exits when the VM ends). Public for headless tests.
-        public ResourceIssue? start_blocking(Resource resource) {
+        // (blocks until the VM ends; ResourceActions gives it its own thread).
+        public ResourceIssue? start(Resource resource) {
             set_stopping(resource.id, false);
             string? working_dir = resource.dir.length > 0 ? resource.dir : null;
             string cmd = (resource.start_cmd.length > 0) ? resource.start_cmd : "./run-vm.sh";
@@ -103,54 +101,61 @@ namespace Rigs {
             try {
                 result = host.run_capture_tail({ "/bin/bash", "-c", cmd }, working_dir);
             } catch (Error e) {
-                return FailureRules.from_error(e);
+                return ResourceIssue.from_error(e);
             }
             if (is_stopping(resource.id)) return null;
             bool quick = get_monotonic_time() - began < startup_window_us;
             if (result.exit_status != 0) {
-                var issue = FailureRules.diagnose(host, "", "", result, resource.guest_os);
+                var issue = FailureRules.diagnose(result, resource.guest_os);
                 if (issue != null && !quick) issue.operation = ResourceOperation.RUN;
                 return issue;
             }
-            if (!quick || resource.process_match.length == 0 || !process_status_available()) return null;
+            if (!quick || resource.process_match.length == 0 || !host.mode.sees_host_processes()) return null;
             // A daemonized QEMU can still fail right after the script returned.
             if (settle_ms > 0) Thread.usleep(settle_ms * 1000);
             if (is_stopping(resource.id)) return null;
             if (find_vm_pid(proc_root, resource.process_match, (int) Posix.getpid()) > 0) return null;
             var issue = FailureRules.analyze(result.error_output, resource.guest_os);
-            return issue ?? FailureRules.not_running(
+            return issue ?? ResourceIssue.not_running(
                 _("No process matching “%s” is running.").printf(resource.process_match));
         }
 
-        public void stop(Resource resource) {
+        public ResourceIssue? stop(Resource resource) {
             set_stopping(resource.id, true);
-            FailureRules.run_in_background(resource, "qemu-stopper", () => {
-                string? directory = resource.dir.length > 0 ? resource.dir : null;
-                if (resource.stop_cmd.length > 0)
-                    return FailureRules.check_command(host, { "/bin/bash", "-c", resource.stop_cmd }, directory,
-                        ResourceOperation.STOP, 120000);
-                if (resource.monitor_socket.length == 0) return null;
-                try {
-                    HmpMonitor.execute(resource.monitor_socket, "system_powerdown");
-                } catch (Error e) {
-                    return FailureRules.from_error(e, ResourceOperation.STOP);
-                }
+            string? directory = resource.dir.length > 0 ? resource.dir : null;
+            if (resource.stop_cmd.length > 0)
+                return FailureRules.check_command(host, { "/bin/bash", "-c", resource.stop_cmd }, directory, 120000);
+            return monitor_command(resource, "system_powerdown");
+        }
+
+        public ResourceIssue? open_console(Resource resource) {
+            if (resource.connect_cmd.length == 0)
+                return ResourceIssue.unsupported(_("No connect command is configured for this VM."));
+            string? directory = resource.dir.length > 0 ? resource.dir : null;
+            return FailureRules.check_command(host, { "/bin/bash", "-c", resource.connect_cmd }, directory);
+        }
+
+        public ResourceIssue? insert_iso(Resource resource, string iso_path) {
+            try {
+                return monitor_command(resource, "change cdrom " + HmpMonitor.quote(iso_path));
+            } catch (Error e) {
+                return ResourceIssue.from_error(e);
+            }
+        }
+
+        public ResourceIssue? eject_iso(Resource resource) {
+            return monitor_command(resource, "eject -f cdrom");
+        }
+
+        private ResourceIssue? monitor_command(Resource resource, string command) {
+            if (resource.monitor_socket.length == 0)
+                return ResourceIssue.unsupported(_("No QEMU monitor socket is configured for this VM."));
+            try {
+                HmpMonitor.execute(resource.monitor_socket, command);
                 return null;
-            });
-        }
-
-        public void open_console(Resource resource) {
-            if (resource.connect_cmd.length == 0) return;
-            FailureRules.run_in_background(resource, "qemu-connect", () => {
-                string? working_dir = resource.dir.length > 0 ? resource.dir : null;
-                return FailureRules.check_command(host, { "/bin/bash", "-c", resource.connect_cmd }, working_dir,
-                    ResourceOperation.CONNECT);
-            });
-        }
-
-        // Host procfs is visible only to unconfined deployments.
-        private bool process_status_available() {
-            return host.mode == "native" || host.mode == "snap-classic";
+            } catch (Error e) {
+                return ResourceIssue.from_error(e);
+            }
         }
 
         public ResourceStatus check_status(Resource resource) {
@@ -161,7 +166,7 @@ namespace Rigs {
 
             // Direct process monitoring requires the host procfs. Sandboxed
             // deployments should use libvirt's stable domain interface.
-            if (!process_status_available()) return st;
+            if (!host.mode.sees_host_processes()) return st;
             st.status_available = true;
             if (resource.process_match.length == 0) return st;
 
@@ -251,30 +256,6 @@ namespace Rigs {
                 if (parts.length > 1) return uint64.parse(parts[1]) * page_size() / (1024 * 1024);
             } catch (Error e) { }
             return 0;
-        }
-
-        public void insert_iso(Resource resource, string iso_path) {
-            if (resource.monitor_socket.length == 0) return;
-            FailureRules.run_in_background(resource, "qemu-hmp", () => {
-                try {
-                    HmpMonitor.execute(resource.monitor_socket, "change cdrom " + HmpMonitor.quote(iso_path));
-                } catch (Error e) {
-                    return FailureRules.from_error(e, ResourceOperation.MEDIA);
-                }
-                return null;
-            });
-        }
-
-        public void eject_iso(Resource resource) {
-            if (resource.monitor_socket.length == 0) return;
-            FailureRules.run_in_background(resource, "qemu-hmp", () => {
-                try {
-                    HmpMonitor.execute(resource.monitor_socket, "eject -f cdrom");
-                } catch (Error e) {
-                    return FailureRules.from_error(e, ResourceOperation.MEDIA);
-                }
-                return null;
-            });
         }
     }
 }

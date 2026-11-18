@@ -52,7 +52,7 @@ test_sources = [
   'tests/test_windows_guest_installer.vala',
   'tests/test_host_command.vala',
   'tests/test_discovery.vala',
-  'tests/test_managed_driver.vala',
+  'tests/test_runtime_drivers.vala',
   'tests/test_drivers.vala',
   'tests/test_diagnostics.vala',
   'tests/test_failure_rules.vala',

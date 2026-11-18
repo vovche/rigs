@@ -11,8 +11,37 @@ namespace Rigs {
         }
     }
 
+    // Where Rigs runs decides how (and whether) it may execute host programs.
+    public enum ExecutionMode {
+        NATIVE,               // distro package or ./build.sh: run argv directly
+        SNAP_CLASSIC,         // classic Snap: like native
+        SNAP_DOCKER,          // strict Snap with the Docker Snap connected: only `docker`
+        SNAP_RESTRICTED,      // strict Snap without Docker: nothing on the host
+        UNSUPPORTED_SANDBOX;  // Flatpak: refused with an explicit error
+
+        // /proc of the host (QEMU process status) is visible only outside a sandbox.
+        public bool sees_host_processes() {
+            return this == ExecutionMode.NATIVE || this == ExecutionMode.SNAP_CLASSIC;
+        }
+
+        public bool is_snap() {
+            return this == ExecutionMode.SNAP_CLASSIC || this == ExecutionMode.SNAP_DOCKER ||
+                this == ExecutionMode.SNAP_RESTRICTED;
+        }
+
+        public string to_label() {
+            switch (this) {
+                case ExecutionMode.SNAP_CLASSIC: return "snap-classic";
+                case ExecutionMode.SNAP_DOCKER: return "snap-docker";
+                case ExecutionMode.SNAP_RESTRICTED: return "snap-restricted";
+                case ExecutionMode.UNSUPPORTED_SANDBOX: return "unsupported-sandbox";
+                default: return "native";
+            }
+        }
+    }
+
     public class HostCommand : Object {
-        public string mode { get; private set; }
+        public ExecutionMode mode { get; private set; }
         public string snap_root { get; private set; }
 
         private class Deadline : Object {
@@ -22,48 +51,51 @@ namespace Rigs {
             public bool expired = false;
         }
 
-        public HostCommand(string? mode_override = null, string? snap_root_override = null) {
+        // Tests pass a mode; the app detects it from the environment.
+        public HostCommand.with_mode(ExecutionMode mode, string? snap_root_override = null) {
             snap_root = snap_root_override ?? Environment.get_variable("SNAP") ?? "/snap/rigs/current";
-            mode = mode_override ?? detect_mode();
+            this.mode = mode;
         }
 
-        private static string detect_mode() {
+        public HostCommand() {
+            this.with_mode(detect_mode());
+        }
+
+        private static ExecutionMode detect_mode() {
             // Flatpak is not a supported delivery channel: say so instead of failing obscurely.
             if (FileUtils.test("/.flatpak-info", FileTest.EXISTS) ||
                 Environment.get_variable("FLATPAK_ID") != null)
-                return "unsupported-sandbox";
+                return ExecutionMode.UNSUPPORTED_SANDBOX;
             string? snap = Environment.get_variable("SNAP");
-            if (snap == null) return "native";
+            if (snap == null) return ExecutionMode.NATIVE;
             try {
                 string manifest;
                 FileUtils.get_contents(Path.build_filename(snap, "meta", "snap.yaml"), out manifest);
                 foreach (string line in manifest.split("\n")) {
-                    if (line.strip() == "confinement: classic") return "snap-classic";
+                    if (line.strip() == "confinement: classic") return ExecutionMode.SNAP_CLASSIC;
                 }
             } catch (FileError e) {
                 // Missing or unreadable confinement metadata is never permission to escape.
             }
             if (FileUtils.test(Path.build_filename(snap, "docker-snap", "bin", "docker"), FileTest.IS_EXECUTABLE))
-                return "snap-docker";
-            return "snap-restricted";
+                return ExecutionMode.SNAP_DOCKER;
+            return ExecutionMode.SNAP_RESTRICTED;
         }
 
         public string[] prepare(string[] argv, string? directory = null) throws Error {
             if (argv.length == 0 || argv[0].length == 0)
                 throw new IOError.INVALID_ARGUMENT("A host command requires an executable.");
-            if (mode == "snap-restricted")
+            if (mode == ExecutionMode.SNAP_RESTRICTED)
                 throw new IOError.NOT_SUPPORTED("Restricted Snap supports only the connected Docker runtime. Install the Docker Snap and connect rigs:docker to docker:docker-daemon and rigs:docker-executables to docker:docker-executables. Use the native package for other host resources or custom scripts.");
-            if (mode == "snap-docker") {
+            if (mode == ExecutionMode.SNAP_DOCKER) {
                 if (argv[0] != "docker")
                     throw new IOError.NOT_SUPPORTED("Restricted Snap supports only the connected Docker runtime. Use the native package for Podman, libvirt, or custom host scripts.");
                 string[] prepared = { Path.build_filename(snap_root, "docker-snap", "bin", "docker") };
                 for (int i = 1; i < argv.length; i++) prepared += argv[i];
                 return prepared;
             }
-            if (mode == "unsupported-sandbox")
+            if (mode == ExecutionMode.UNSUPPORTED_SANDBOX)
                 throw new IOError.NOT_SUPPORTED("Rigs does not support Flatpak. Install the native package or the Snap.");
-            if (mode != "native" && mode != "snap-classic")
-                throw new IOError.NOT_SUPPORTED("Unknown host command execution mode.");
             return argv;
         }
 

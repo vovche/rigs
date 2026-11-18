@@ -11,7 +11,7 @@ namespace Rigs.Tests {
         public uint calls = 0;
 
         public DiscoveryCommands() {
-            base("native");
+            base.with_mode(ExecutionMode.NATIVE);
         }
 
         public override CommandResult run(string[] argv, string? directory = null, uint timeout_ms = 3000) throws Error {
@@ -53,7 +53,7 @@ namespace Rigs.Tests {
             assert(result.candidates.length == 2);
             var resource = result.candidates[0];
             assert(resource.id == "podman:" + CONTAINER_A);
-            assert(resource.runtime == "podman" && resource.kind == "container");
+            assert(resource.runtime == ContainerRuntime.PODMAN && resource.kind == ResourceKind.CONTAINER);
             assert(resource.name == "my VM; $(touch impossible)" && resource.container_name == resource.name);
             assert(resource.details == "exited" && resource.resource_id == CONTAINER_A);
             assert(resource.start_cmd == "" && resource.stop_cmd == "");
@@ -83,7 +83,7 @@ namespace Rigs.Tests {
             commands.system_output = DOMAIN + "\tSystem domain\ninvalid bad-domain\n";
             var result = new ResourceDiscovery(commands).scan(new GenericArray<Resource>());
             assert(commands.calls == 4 && result.candidates.length == 2);
-            assert(result.candidates[0].kind == "libvirt");
+            assert(result.candidates[0].kind == ResourceKind.LIBVIRT);
             assert(result.candidates[0].id == "qemu:///session:" + DOMAIN);
             assert(result.candidates[0].resource_id == DOMAIN);
             assert(result.candidates[0].name == "Domain with spaces; $data");
@@ -117,7 +117,7 @@ namespace Rigs.Tests {
             legacy.container_name = "legacy";
             existing.add(legacy);
             var domain = new Resource();
-            domain.kind = "libvirt";
+            domain.kind = ResourceKind.LIBVIRT;
             domain.resource_id = DOMAIN;
             existing.add(domain);
             var result = new ResourceDiscovery(commands).scan(existing);

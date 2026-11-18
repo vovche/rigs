@@ -42,7 +42,7 @@ namespace Rigs {
                 if (resource.name.down().contains(t)) term_matched = true;
                 else if (resource.subtitle.down().contains(t)) term_matched = true;
                 else if (resource.details.down().contains(t)) term_matched = true;
-                else if (resource.kind.down().contains(t)) term_matched = true;
+                else if (resource.kind.to_id().contains(t)) term_matched = true;
                 else if (resource.container_name.down().contains(t)) term_matched = true;
                 else if (resource.process_match.down().contains(t)) term_matched = true;
 

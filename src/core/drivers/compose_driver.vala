@@ -1,58 +1,70 @@
-/* compose_driver.vala — Explicitly configured compose projects. */
+using GLib.Intl;
+
+/* compose_driver.vala — a compose project directory (podman/docker compose up/down,
+ * or the user's start_cmd/stop_cmd). Status: the container named container_name. */
 namespace Rigs {
     public class ComposeDriver : Object, Driver {
-        private const uint SETTLE_MS = 2000;
+        // Milliseconds to wait before checking whether the container exited at once.
+        public uint settle_ms = 2000;
 
-        public string kind { get { return "compose"; } }
+        public ResourceKind kind { get { return ResourceKind.COMPOSE; } }
 
-        private ResourceIssue? lifecycle_blocking(Resource resource, bool starting) {
-            if (resource.runtime != "podman" && resource.runtime != "docker") return null;
-            string cmd = starting ? resource.start_cmd : resource.stop_cmd;
-            var host = new HostCommand();
-            string? directory = resource.dir.length > 0 ? resource.dir : null;
-            string[] argv;
-            if (cmd.length > 0) argv = { "/bin/bash", "-c", cmd };
-            else argv = starting ? new string[] { resource.runtime, "compose", "up", "-d" }
-                                 : new string[] { resource.runtime, "compose", "down" };
-            if (!starting)
-                return FailureRules.check_command(host, argv, directory, ResourceOperation.STOP, 120000);
+        private HostCommand host;
+
+        public ComposeDriver(HostCommand? host = null) {
+            this.host = host ?? new HostCommand();
+        }
+
+        private static string? directory_of(Resource resource) {
+            return resource.dir.length > 0 ? resource.dir : null;
+        }
+
+        public ResourceIssue? start(Resource resource) {
+            string[] argv = resource.start_cmd.length > 0
+                ? new string[] { "/bin/bash", "-c", resource.start_cmd }
+                : new string[] { resource.runtime.command(), "compose", "up", "-d" };
             try {
-                var result = host.run_capture_tail(argv, directory);
+                var result = host.run_capture_tail(argv, directory_of(resource));
                 if (result.exit_status != 0)
-                    return FailureRules.diagnose(host, resource.runtime, resource.container_name, result, resource.guest_os);
+                    return FailureRules.diagnose_container(host, resource.runtime, resource.container_name, result, resource.guest_os);
                 // Without container_name the services cannot be checked after `up -d` (see docs/guardrails.md).
-                Thread.usleep(SETTLE_MS * 1000);
-                if (FailureRules.exited_after_start(host, resource.runtime, resource.container_name))
-                    return FailureRules.diagnose(host, resource.runtime, resource.container_name, null, resource.guest_os);
+                if (resource.container_name.length == 0) return null;
+                if (settle_ms > 0) Thread.usleep(settle_ms * 1000);
+                if (FailureRules.container_exited(host, resource.runtime, resource.container_name))
+                    return FailureRules.diagnose_container(host, resource.runtime, resource.container_name, null, resource.guest_os);
             } catch (Error e) {
-                return FailureRules.from_error(e);
+                return ResourceIssue.from_error(e);
             }
             return null;
         }
 
-        public void start(Resource resource) {
-            FailureRules.run_in_background(resource, "compose-start", () => lifecycle_blocking(resource, true));
+        public ResourceIssue? stop(Resource resource) {
+            string[] argv = resource.stop_cmd.length > 0
+                ? new string[] { "/bin/bash", "-c", resource.stop_cmd }
+                : new string[] { resource.runtime.command(), "compose", "down" };
+            return FailureRules.check_command(host, argv, directory_of(resource), 120000);
         }
 
-        public void stop(Resource resource) {
-            FailureRules.run_in_background(resource, "compose-stop", () => lifecycle_blocking(resource, false));
+        public ResourceIssue? open_console(Resource resource) {
+            if (resource.connect_cmd.length == 0)
+                return ResourceIssue.unsupported(_("No connect command is configured for this resource."));
+            return FailureRules.check_command(host, { "/bin/bash", "-c", resource.connect_cmd }, directory_of(resource));
         }
 
-        public void open_console(Resource resource) {
-            if (resource.connect_cmd.length == 0) return;
-            FailureRules.run_in_background(resource, "compose-connect", () =>
-                FailureRules.check_command(new HostCommand(), { "/bin/bash", "-c", resource.connect_cmd },
-                    resource.dir.length > 0 ? resource.dir : null, ResourceOperation.CONNECT));
+        public ResourceIssue? insert_iso(Resource resource, string iso_path) {
+            return ResourceIssue.unsupported(_("Compose resources have no optical drive control."));
+        }
+
+        public ResourceIssue? eject_iso(Resource resource) {
+            return insert_iso(resource, "");
         }
 
         public ResourceStatus check_status(Resource resource) {
             ResourceStatus st = ResourceStatus();
             st.ram_str = "0 MB";
-            if (resource.container_name.length == 0 || resource.container_name.has_prefix("-") ||
-                (resource.runtime != "podman" && resource.runtime != "docker")) return st;
+            if (resource.container_name.length == 0 || resource.container_name.has_prefix("-")) return st;
             try {
-                var host = new HostCommand();
-                var result = host.run({resource.runtime, "inspect", "--format", "{{.State.Running}}", resource.container_name});
+                var result = host.run({resource.runtime.command(), "inspect", "--format", "{{.State.Running}}", resource.container_name});
                 // A reachable runtime without this container means stopped, not unavailable: Start must stay usable.
                 if (result.exit_status != 0 && is_missing_container(result)) {
                     st.status_available = true;
@@ -63,8 +75,8 @@ namespace Rigs {
                 st.status_available = true;
                 st.running = state == "true";
                 if (st.running) {
-                    string template = resource.runtime == "podman" ? "{{.CPU}}\t{{.MemUsage}}" : "{{.CPUPerc}}\t{{.MemUsage}}";
-                    result = host.run({resource.runtime, "stats", "--no-stream", "--format", template, resource.container_name});
+                    string template = resource.runtime == ContainerRuntime.PODMAN ? "{{.CPU}}\t{{.MemUsage}}" : "{{.CPUPerc}}\t{{.MemUsage}}";
+                    result = host.run({resource.runtime.command(), "stats", "--no-stream", "--format", template, resource.container_name});
                     if (result.exit_status == 0) {
                         var parts = result.output.strip().split("\t");
                         if (parts.length == 2) {
@@ -82,7 +94,5 @@ namespace Rigs {
             return (result.output + result.error_output).down().contains("no such");
         }
 
-        public void insert_iso(Resource resource, string iso_path) { }
-        public void eject_iso(Resource resource) { }
     }
 }

@@ -21,7 +21,7 @@ namespace Rigs.Tests {
         public string domstate = "running\n";
         public GenericArray<string> calls = new GenericArray<string>();
 
-        public ScriptedCommands() { base("native"); }
+        public ScriptedCommands() { base.with_mode(ExecutionMode.NATIVE); }
 
         public override CommandResult run_capture_tail(string[] argv, string? directory = null) throws Error {
             calls.add(string.joinv("|", argv));
@@ -130,7 +130,7 @@ namespace Rigs.Tests {
                 var resource = new Resource();
                 resource.id = "win10";
                 resource.process_match = "-name win10 -m";
-                if (new HostCommand().mode == "native") {
+                if (new HostCommand().mode == ExecutionMode.NATIVE) {
                     var st = driver.check_status(resource);
                     assert(st.running && st.status_available);
                     // "-m 4G" is read from the NUL-separated cmdline (it used to be truncated at argv[0]).
@@ -171,7 +171,7 @@ namespace Rigs.Tests {
         // Class: waiting on pipes that background children inherit; unbounded/invalid output.
         public static void test_capture_tail() {
             try {
-                var host = new HostCommand("native");
+                var host = new HostCommand.with_mode(ExecutionMode.NATIVE);
                 int64 started = get_monotonic_time();
                 var r = host.run_capture_tail({ "/bin/bash", "-c", "sleep 2 & echo out; echo err >&2; exit 3" });
                 assert(get_monotonic_time() - started < 1000000);
@@ -207,26 +207,34 @@ namespace Rigs.Tests {
         }
 
         public static void test_error_to_issue() {
-            var timeout = FailureRules.from_error(new IOError.TIMED_OUT("slow"), ResourceOperation.STOP);
-            assert(timeout.category == FailureCategory.TIMEOUT && timeout.operation == ResourceOperation.STOP);
-            var missing = FailureRules.from_error(new SpawnError.NOENT("podman: not found"));
-            assert(missing.category == FailureCategory.MISSING_PROGRAM && missing.operation == ResourceOperation.START);
-            var unsupported = FailureRules.from_error(new IOError.NOT_SUPPORTED("Restricted Snap"));
+            var timeout = ResourceIssue.from_error(new IOError.TIMED_OUT("slow"));
+            assert(timeout.category == FailureCategory.TIMEOUT);
+            var missing = ResourceIssue.from_error(new SpawnError.NOENT("podman: not found"));
+            assert(missing.category == FailureCategory.MISSING_PROGRAM);
+            var unsupported = ResourceIssue.from_error(new IOError.NOT_SUPPORTED("Restricted Snap"));
             assert(unsupported.category == FailureCategory.UNSUPPORTED && unsupported.description == "Restricted Snap");
-            var other = FailureRules.from_error(new IOError.FAILED("QEMU: boom"), ResourceOperation.MEDIA);
+            var other = ResourceIssue.from_error(new IOError.FAILED("QEMU: boom"));
             assert(other.matched_snippet == "QEMU: boom");
             foreach (var op in new ResourceOperation[] { ResourceOperation.START, ResourceOperation.STOP,
                     ResourceOperation.CONNECT, ResourceOperation.MEDIA, ResourceOperation.RUN })
-                assert(FailureRules.headline(op, "vm1").contains("vm1"));
+                assert(ResourceIssue.headline(op, "vm1").contains("vm1"));
             var host = new ScriptedCommands();
             host.run_error = new IOError.TIMED_OUT("slow");
-            var stop = FailureRules.check_command(host, { "/bin/bash", "-c", "x" }, null, ResourceOperation.STOP, 1000);
-            assert(stop != null && stop.operation == ResourceOperation.STOP && stop.category == FailureCategory.TIMEOUT);
+            var stop = FailureRules.check_command(host, { "/bin/bash", "-c", "x" }, null, 1000);
+            assert(stop != null && stop.category == FailureCategory.TIMEOUT);
             host.run_error = null;
-            assert(FailureRules.check_command(host, { "true" }, null, ResourceOperation.STOP, 1000) == null);
+            assert(FailureRules.check_command(host, { "true" }, null, 1000) == null);
             host.tail_result = new CommandResult("", "remote-viewer: cannot connect\n", 1);
-            var connect = FailureRules.check_command(host, { "x" }, null, ResourceOperation.CONNECT);
-            assert(connect != null && connect.operation == ResourceOperation.CONNECT);
+            assert(FailureRules.check_command(host, { "x" }, null) != null);
+            // The operation comes from ResourceActions, so every driver path is labelled correctly.
+            var registry = new DriverRegistry();
+            var mock = new MockDriver(ResourceKind.QEMU);
+            registry.register_driver(mock);
+            mock.next_issue = ResourceIssue.from_error(new IOError.FAILED("viewer"));
+            var resource = new Resource();
+            resource.kind = ResourceKind.QEMU;
+            var connect = new ResourceActions(registry).run_blocking(resource, ResourceOperation.CONNECT, (d) => d.open_console(resource));
+            assert(connect.operation == ResourceOperation.CONNECT);
         }
 
         public static void test_qemu_start_failures() {
@@ -241,46 +249,46 @@ namespace Rigs.Tests {
             resource.start_cmd = "./run-vm.sh";
             // Script fails: diagnosed from its own output.
             host.tail_result = new CommandResult("", "qemu-system-x86_64: Could not access KVM kernel module\n", 1);
-            var issue = driver.start_blocking(resource);
+            var issue = driver.start(resource);
             assert(issue != null && issue.category == FailureCategory.PERMISSIONS_KVM && issue.operation == ResourceOperation.START);
             // Spawning itself fails.
             host.tail_error = new SpawnError.NOENT("bash missing");
-            issue = driver.start_blocking(resource);
+            issue = driver.start(resource);
             assert(issue != null && issue.category == FailureCategory.MISSING_PROGRAM);
             host.tail_error = null;
             // Script succeeded (daemonized QEMU) but no matching process exists.
             host.tail_result = new CommandResult("", "", 0);
             resource.process_match = "-name win10";
-            issue = driver.start_blocking(resource);
+            issue = driver.start(resource);
             assert(issue != null && issue.matched_snippet.contains("-name win10"));
             // ...and with the process present there is nothing to report.
             fake_process(root, 21, { "qemu-system-x86_64", "-name", "win10" }, "S", 1000);
-            assert(driver.start_blocking(resource) == null);
-            // Without process_name nothing can be checked: no false alarm.
+            assert(driver.start(resource) == null);
+            // Without process_match nothing can be checked: no false alarm.
             resource.process_match = "";
-            assert(driver.start_blocking(resource) == null);
+            assert(driver.start(resource) == null);
             // A late nonzero exit (foreground VM crashed) is reported as RUN, not START.
             driver.startup_window_us = 0;
             host.tail_result = new CommandResult("", "qemu: terminating on signal 11\n", 139);
-            issue = driver.start_blocking(resource);
+            issue = driver.start(resource);
             assert(issue != null && issue.operation == ResourceOperation.RUN);
             remove_tree(root);
         }
 
         public static void test_managed_start_failures() {
             var host = new ScriptedCommands();
-            var libvirt = new ManagedDriver("libvirt", host);
+            var libvirt = new LibvirtDriver(host);
             libvirt.settle_ms = 0;
             var resource = new Resource();
             resource.resource_id = "01234567-89ab-cdef-0123-456789abcdef";
             resource.connection_uri = "qemu:///session";
-            assert(libvirt.start_blocking(resource) == null);
+            assert(libvirt.start(resource) == null);
             host.domstate = "shut off (failed)\n";
-            var issue = libvirt.start_blocking(resource);
+            var issue = libvirt.start(resource);
             assert(issue != null && issue.matched_snippet == "shut off (failed)");
             assert(issue.suggested_command.has_prefix("virsh --connect qemu:///session dominfo "));
             host.run_error = new IOError.TIMED_OUT("virsh hung");
-            issue = libvirt.start_blocking(resource);
+            issue = libvirt.start(resource);
             assert(issue != null && issue.category == FailureCategory.TIMEOUT);
         }
 

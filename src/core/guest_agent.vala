@@ -134,7 +134,7 @@ namespace Rigs {
         private Json.Node invoke(Resource resource, string name, Json.Object? args, uint timeout_ms, bool no_reply) throws Error {
             validate_name(name);
             string payload = serialize(name, args);
-            if (resource.kind != "libvirt")
+            if (resource.kind != ResourceKind.LIBVIRT)
                 return socket_exchange(resource.guest_agent_socket, payload, timeout_ms, no_reply);
             if ((resource.connection_uri != "qemu:///session" && resource.connection_uri != "qemu:///system") ||
                 !Regex.match_simple("\\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\\z", resource.resource_id))

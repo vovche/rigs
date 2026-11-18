@@ -93,36 +93,36 @@ namespace Rigs.Tests {
         public static void test_diagnose_logs_fallback() {
             var host = new LogCommands();
             host.logs = "crun: cannot stat '/mnt/x': No such file or directory";
-            var i = FailureRules.diagnose(host, "podman", "tiny10-vm", new CommandResult("", "", 1));
+            var i = FailureRules.diagnose_container(host, ContainerRuntime.PODMAN, "tiny10-vm", new CommandResult("", "", 1));
             assert(i.category == FailureCategory.STORAGE_MOUNT);
             assert(host.calls[0] == "podman|logs|--tail=30|tiny10-vm");
             // stderr wins; logs are not read.
             host = new LogCommands();
-            i = FailureRules.diagnose(host, "podman", "tiny10-vm", new CommandResult("", "bind: address already in use", 1));
+            i = FailureRules.diagnose_container(host, ContainerRuntime.PODMAN, "tiny10-vm", new CommandResult("", "bind: address already in use", 1));
             assert(i.category == FailureCategory.NETWORK_PORT && host.calls.length == 0);
             // Silent failure still yields an issue; hostile container names are never passed to the runtime.
-            i = FailureRules.diagnose(host, "podman", "-rf", new CommandResult("", "", 3));
+            i = FailureRules.diagnose_container(host, ContainerRuntime.PODMAN, "-rf", new CommandResult("", "", 3));
             assert(i != null && i.category == FailureCategory.GENERIC_ERROR && host.calls.length == 0);
-            assert(FailureRules.diagnose(host, "podman", "x", new CommandResult("", "", 0)) == null);
+            assert(FailureRules.diagnose_container(host, ContainerRuntime.PODMAN, "x", new CommandResult("", "", 0)) == null);
         }
 
         public static void test_managed_start() {
             var host = new LogCommands();
-            var driver = new ManagedDriver("container", host);
+            var driver = new ContainerDriver(host);
             driver.settle_ms = 0;
             var resource = new Resource();
             resource.resource_id = "0123456789abcdef";
-            resource.runtime = "podman";
+            resource.runtime = ContainerRuntime.PODMAN;
             host.running = "true\n";
-            assert(driver.start_blocking(resource) == null);
+            assert(driver.start(resource) == null);
             host.running = "false\n";
             host.logs = "Error: address already in use 0.0.0.0:5900: bind: address already in use";
-            var i = driver.start_blocking(resource);
+            var i = driver.start(resource);
             assert(i != null && i.category == FailureCategory.NETWORK_PORT);
             host.running = "true\n";
             host.start_exit = 125;
             host.start_stderr = "Error: rootless netns: kill network process: permission denied";
-            i = driver.start_blocking(resource);
+            i = driver.start(resource);
             assert(i != null && i.suggested_action.contains("podman system reset"));
         }
 

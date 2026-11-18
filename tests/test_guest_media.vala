@@ -76,7 +76,7 @@ namespace Rigs.Tests {
                 return null;
             });
             var resource = new Resource();
-            resource.kind = "qemu";
+            resource.kind = ResourceKind.QEMU;
             resource.qmp_socket = socket_path;
             var result = new GuestMedia().qmp(resource, "query-block");
             assert(result.get_node_type() == Json.NodeType.ARRAY);
@@ -90,7 +90,7 @@ namespace Rigs.Tests {
             try {
                 dir = DirUtils.make_tmp("rigs-media-test-XXXXXX");
                 string iso = make_iso(dir);
-                var resource = new Resource(); resource.kind = "qemu";
+                var resource = new Resource(); resource.kind = ResourceKind.QEMU;
                 var media = new FakeMedia();
                 var drives = media.list_drives(resource);
                 assert(drives.length == 2 && drives[0].id == "cd0");
@@ -137,7 +137,7 @@ namespace Rigs.Tests {
             try {
                 dir = DirUtils.make_tmp("rigs-media-test-XXXXXX");
                 string iso = make_iso(dir);
-                var resource = new Resource(); resource.kind = "libvirt";
+                var resource = new Resource(); resource.kind = ResourceKind.LIBVIRT;
                 resource.resource_id = "01234567-89ab-cdef-0123-456789abcdef";
                 resource.connection_uri = "qemu:///session";
                 var commands = new MediaCommands();
@@ -164,19 +164,19 @@ namespace Rigs.Tests {
                 string iso = make_iso(dir);
                 var commands = new MediaCommands();
                 var media = new FakeMedia(commands);
-                var resource = new Resource(); resource.kind = "container";
-                resource.resource_id = "0123456789abcdef"; resource.runtime = "/bin/bash";
+                var resource = new Resource(); resource.kind = ResourceKind.CONTAINER;
+                resource.resource_id = "--all"; // invalid identity: rejected before any runtime call
                 bool rejected = false;
                 try { media.attach(resource, iso, "cd0"); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
                 assert(rejected && commands.calls.length == 0 && media.arguments == null);
                 rejected = false;
                 try { media.attach(resource, iso, "--all"); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
                 assert(rejected);
-                resource.kind = "libvirt"; resource.connection_uri = "qemu+ssh://host/system";
+                resource.kind = ResourceKind.LIBVIRT; resource.connection_uri = "qemu+ssh://host/system";
                 rejected = false;
                 try { new GuestMedia(commands).list_drives(resource); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
                 assert(rejected && commands.calls.length == 0);
-                resource.kind = "qemu";
+                resource.kind = ResourceKind.QEMU;
                 rejected = false;
                 try { new GuestMedia(commands).list_drives(resource); } catch (IOError.NOT_CONNECTED e) { rejected = true; }
                 assert(rejected);
@@ -190,7 +190,7 @@ namespace Rigs.Tests {
             try {
                 dir = DirUtils.make_tmp("rigs-media-test-XXXXXX");
                 string iso = make_iso(dir);
-                var resource = new Resource(); resource.kind = "container"; resource.runtime = "podman";
+                var resource = new Resource(); resource.kind = ResourceKind.CONTAINER; resource.runtime = ContainerRuntime.PODMAN;
                 resource.resource_id = "0123456789abcdef";
                 var commands = new MediaCommands();
                 var media = new FakeMedia(commands);

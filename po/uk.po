@@ -929,3 +929,39 @@ msgstr "Не вдалося відкрити образ диска: %s"
 
 msgid "Only local files can be inserted."
 msgstr "Вставляти можна лише локальні файли."
+
+msgid "Change libvirt media with virt-manager or virsh change-media."
+msgstr "Змініть носій libvirt у virt-manager або командою virsh change-media."
+
+msgid "Compose resources have no optical drive control."
+msgstr "Compose-ресурси не мають керування оптичним приводом."
+
+msgid "Containers have no optical drive control."
+msgstr "Контейнери не мають керування оптичним приводом."
+
+msgid "No QEMU monitor socket is configured for this VM."
+msgstr "Для цієї VM не налаштовано сокет монітора QEMU."
+
+msgid "No connect command is configured for this VM."
+msgstr "Для цієї VM не налаштовано команду підключення."
+
+msgid "No connect command is configured for this resource."
+msgstr "Для цього ресурсу не налаштовано команду підключення."
+
+msgid "Not supported"
+msgstr "Не підтримується"
+
+msgid "Only local libvirt domains (qemu:///session or qemu:///system) with a UUID are supported."
+msgstr "Підтримуються лише локальні домени libvirt (qemu:///session або qemu:///system) з UUID."
+
+msgid "Rigs does not recognize the cause of this failure."
+msgstr "Rigs не розпізнає причину цього збою."
+
+msgid "The container ID in this resource is not valid."
+msgstr "ID контейнера в цьому ресурсі недійсний."
+
+msgid "The container exited without any output"
+msgstr "Контейнер завершився без жодного виводу"
+
+msgid "Unrecognized error"
+msgstr "Нерозпізнана помилка"

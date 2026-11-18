@@ -58,31 +58,33 @@ Before submitting a PR, make sure all tests pass without errors.
 
 ---
 
-## Adding a New VM Driver
+## Adding a New Driver
 
-To add support for an additional hypervisor (e.g. `libvirt`, `VirtualBox`, `Incus`, `Firecracker`):
+To support another kind of resource (e.g. Incus, Firecracker):
 
-1. Create a new source file in `src/drivers/my_driver.vala`.
-2. Implement the `Rigs.Driver` interface:
+1. Add a value to `ResourceKind` in `src/core/resource.vala` (with its `to_id()` string).
+2. Create `src/core/drivers/my_driver.vala` implementing `Rigs.Driver`. Every method blocks and
+   returns `ResourceIssue?` (null = success); use `FailureRules.check_command`/`diagnose` and
+   `ResourceIssue.from_error` instead of logging:
    ```vala
    namespace Rigs {
        public class MyDriver : Object, Driver {
-           public string vm_type { get { return "my_driver"; } }
-           public void start(VmModel vm) { /* ... */ }
-           public void stop(VmModel vm) { /* ... */ }
-           public void connect_vm(VmModel vm) { /* ... */ }
-           public VmStatus check_status(VmModel vm) { /* ... */ }
-           public void insert_iso(VmModel vm, string iso_path) { /* ... */ }
-           public void eject_iso(VmModel vm) { /* ... */ }
+           public ResourceKind kind { get { return ResourceKind.MY_KIND; } }
+           public ResourceIssue? start(Resource resource) { /* ... */ return null; }
+           public ResourceIssue? stop(Resource resource) { /* ... */ return null; }
+           public ResourceIssue? open_console(Resource resource) { /* ... */ return null; }
+           public ResourceIssue? insert_iso(Resource resource, string iso_path) {
+               return ResourceIssue.unsupported(_("This resource has no optical drive."));
+           }
+           public ResourceIssue? eject_iso(Resource resource) { return insert_iso(resource, ""); }
+           public ResourceStatus check_status(Resource resource) { /* ... */ return ResourceStatus(); }
        }
    }
    ```
-3. Register the driver in `DriverRegistry` constructor (`src/drivers/driver_registry.vala`):
-   ```vala
-   register_driver(new MyDriver());
-   ```
-4. Add the new file to `src/meson.build` in `rigs_sources`.
-5. Add unit tests verifying the driver in `tests/test_drivers.vala`.
+3. Register it in `DriverRegistry.with_defaults()` (`src/core/drivers/driver_registry.vala`).
+4. Add the file to `core_sources` in `src/meson.build` (and to `po/POTFILES.in` if it uses `_()`).
+5. Test it with a `HostCommand` subclass that returns scripted `CommandResult`s (see
+   `tests/test_runtime_drivers.vala`). `./build.sh` must pass, including lint.
 
 ---
 
@@ -90,8 +92,8 @@ To add support for an additional hypervisor (e.g. `libvirt`, `VirtualBox`, `Incu
 
 - **Indentation:** 4 spaces (no tabs).
 - **Naming Conventions:**
-  - Classes & Interfaces: `PascalCase` (`VmModel`, `DriverRegistry`).
+  - Classes & Interfaces: `PascalCase` (`Resource`, `DriverRegistry`). Vocabulary: [CONTEXT.md](CONTEXT.md).
   - Methods & Functions: `snake_case` or `lowerCamelCase` consistent with Vala GLib conventions.
-  - Properties & Signals: `snake_case` (`vm_type`, `start_requested`).
+  - Properties & Signals: `snake_case` (`kind`, `start_requested`).
 - **UI Design:** Adhere strictly to [GNOME Human Interface Guidelines](https://developer.gnome.org/hig/). Use Libadwaita standard widgets (`Adw.HeaderBar`, `Adw.PreferencesGroup`, `Adw.ActionRow`, `Adw.ToastOverlay`) instead of custom styling wherever possible.
-- **Safety:** Always offload blocking I/O, heavy process execution, or network calls into background threads (`new Thread<void*>(...)`) or asynchronous GLib tasks so the GTK main loop stays responsive at 60+ FPS.
+- **Safety:** Never block the GTK main loop. Resource operations go through `ResourceActions` (worker thread); other blocking I/O runs on a worker thread or asynchronous GLib task.

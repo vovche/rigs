@@ -14,7 +14,9 @@
 ```
 
 ## 4. Platform & Invariant Reminders
-- Spawning external commands MUST use `/bin/bash -c <cmd>` with `working_directory = vm.dir`.
+- Host programs run only through `HostCommand` with data as separate argv elements; `/bin/bash -c` only for the user's own `start_cmd`/`stop_cmd`/`connect_cmd`.
+- New logic goes in `src/core` (no GTK); widgets in `src/ui`.
+- Driver methods return `ResourceIssue?` instead of logging failures.
 - Tests must be headless and complete in under 1 second.
 
 ## 5. Acceptance Criteria

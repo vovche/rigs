@@ -6,80 +6,85 @@ This document details the architectural principles, component interactions, and 
 
 ## 1. Architectural Overview
 
-Rigs is architected as a modular, responsive desktop control center following GNOME Human Interface Guidelines (HIG). It is written in **Vala**, compiling down to native C and GObject primitives without runtime language VM overhead.
+Rigs is a native GNOME app in **Vala**. Words used below (resource, driver, issue,
+HostCommand, HMP/QMP) are defined in [CONTEXT.md](CONTEXT.md).
+
+The code has two layers, enforced by the build:
+
+| Layer | Directory | May use | Built as |
+|-------|-----------|---------|----------|
+| core | `src/core/` | GLib, GIO, JSON, libsoup, POSIX | static library `rigs-core` **without GTK** |
+| ui | `src/ui/` | core + GTK 4 + Libadwaita | the `rigs` executable |
+
+Tests link only `rigs-core`, so they cannot open windows (headless by construction).
+Lint rules CORE-01/02 stop GTK from leaking into core.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                       Adw.Application                       │
-│                              │                              │
-│                      Rigs.Window (GTK4)                     │
-│               ┌──────────────┴──────────────┐               │
-│               │                             │               │
-│         Host Overview               Virtual Machines        │
-│      (CPU/RAM Sparklines)           (VmCard Expander)       │
-└───────────────┬─────────────────────────────┬───────────────┘
-                │                             │
-    ┌───────────▼───────────┐     ┌───────────▼──────────────┐
-    │     SystemMonitor     │     │      DriverRegistry      │
-    │  (Worker Thread 1.5s) │     │  (Factory & Abstraction) │
-    └───────────┬───────────┘     └───────────┬──────────────┘
-                │                             │
-        /proc/stat & /proc/meminfo    ┌───────┴───────┐
-                                      │               │
-                                 QemuDriver     ComposeDriver
-                                      │               │
-                              HMP socket/qemu     podman CLI
+ ui:   Window ── HostOverview            ResourceList ── ResourceCard ── IssueDialog
+         │            ▲                        ▲               │
+         │            │ HostStatus             │ ResourceStatus │ start/stop/connect/ISO
+ core:   │      SystemMonitor (thread) ── Driver.check_status   ▼
+         │                                         ResourceActions (thread per action)
+         └── ResourceStore (vms.json)                    │ Driver.start() → ResourceIssue?
+             WindowState (state.json)                    ▼
+                                    DriverRegistry: ScriptedQemuDriver, ComposeDriver,
+                                                    ContainerDriver, LibvirtDriver
+                                                          │
+                                   HostCommand (argv, LC_ALL=C, deadlines) / HmpMonitor
 ```
+
+### Failure flow (never silent)
+
+1. A card button calls `ResourceActions.start(resource)` (or stop/open_console/insert_iso/eject_iso).
+2. `ResourceActions` runs the driver on a worker thread. Driver methods **block and return**
+   `ResourceIssue?`: null on success, otherwise what went wrong.
+3. `FailureRules` turns command output into an issue (regex rules for mounts, ports, KVM,
+   name conflicts, rootless networking, OOM; otherwise the last output line).
+4. `ResourceActions.publish` sets `resource.last_issue` and emits `resource.issue_raised`
+   on the main loop. The card shows a warning icon, the window a toast with "Details",
+   `IssueDialog` the explanation, a copyable command and the raw output.
 
 ---
 
 ## 2. Core Subsystems
 
-### 2.1 Driver Abstraction Layer (`src/drivers/`)
-To support diverse hypervisor and container runtimes seamlessly without coupling GUI widgets to low-level shell commands, Rigs implements the **Driver Pattern**:
+### 2.1 Resources and drivers (`src/core/resource.vala`, `src/core/drivers/`)
 
-- **`Driver` Interface (`src/drivers/driver.vala`):**
-  Defines the uniform lifecycle contract:
-  - `start(VmModel vm)`: Launches the VM asynchronously in a background thread.
-  - `stop(VmModel vm)`: Initiates graceful shutdown (ACPI powerdown or container stop).
-  - `connect_vm(VmModel vm)`: Spawns the configured viewer client (SPICE, RDP, VNC).
-  - `check_status(VmModel vm)`: Queries running state, CPU% and resident memory.
-  - `insert_iso(VmModel vm, string iso_path)`: Mounts or hot-swaps an ISO disk image.
-  - `eject_iso(VmModel vm)`: Unmounts or ejects media.
+- **`Resource`**: one managed thing. `kind` (`ResourceKind`) selects its driver; `runtime`
+  (`ContainerRuntime`) is the container CLI. Both are enums: unknown values in `vms.json`
+  are rejected at load time, never turned into commands.
+- **`Driver`** (`driver.vala`): `start`, `stop`, `open_console`, `insert_iso`, `eject_iso`
+  return `ResourceIssue?`; `check_status` returns `ResourceStatus`. All block.
+- **`ScriptedQemuDriver`**: runs the user's script (`start_cmd`, default `./run-vm.sh`) via
+  `HostCommand.run_capture_tail`, finds the QEMU process in `/proc` (`process_match`,
+  `find_vm_pid`), controls it over the human monitor socket (`HmpMonitor`).
+- **`ComposeDriver`**: `podman|docker compose up -d / down` or the user's commands; status from
+  the container named `container_name`.
+- **`ContainerDriver`**: one existing container by full ID (`podman|docker start/stop/inspect/stats`).
+- **`LibvirtDriver`**: a local libvirt domain by URI + UUID (`virsh start/shutdown/dominfo/domstate`).
+- **`DriverRegistry`**: `ResourceKind` → driver. `new DriverRegistry()` is empty for tests.
 
-- **`DriverRegistry` (`src/drivers/driver_registry.vala`):**
-  A singleton registry that registers available drivers and maps `vm_type` ("qemu", "compose") to their respective concrete implementations, with graceful fallback.
+### 2.2 Telemetry (`src/core/monitor.vala`, `src/ui/sparkline.vala`)
 
-- **`QemuDriver` (`src/drivers/qemu_driver.vala`):**
-  - Manages explicitly configured QEMU/KVM scripts. Host procfs monitoring requires native/classic deployment; sandboxed users should use libvirt.
-  - Talks to the QEMU human monitor in-process (`HmpMonitor`, `src/qemu_monitor.vala`) over its Unix socket to issue `system_powerdown`, `change cdrom "<path>"` (quoted, control characters rejected) and `eject -f cdrom`.
-  - Finds the VM process by scanning `/proc/*/cmdline` (`QemuDriver.find_vm_pid`); CPU% is a share of the whole host.
-  - Parses `/proc/[pid]/statm` for resident set size (RSS) memory consumption.
+- `SystemMonitor` polls on its own thread (1 s focused, 3 s in background, paused when
+  minimized) and works on JSON copies of the resources, never the UI's objects.
+- CPU is always a share of the whole host (`Metrics`).
+- Optional guest RAM (`guest_memory.vala`): QMP balloon statistics or libvirt `dommemstat`,
+  validated for range and freshness; polling settings are written only when stats are stale.
+- `SmoothSparkline` draws the 25-sample history with Cairo Bezier curves.
 
-- **`ComposeDriver` (`src/drivers/compose_driver.vala`):**
-  - Controls Podman and Docker Compose stacks (`podman compose up -d` / `down`).
-  - Queries authoritative status and metrics through the configured Podman/Docker runtime using HostCommand. Unreachable and stopped are separate states.
+### 2.3 Optical drive (ISO)
 
-### 2.2 Telemetry & Sparkline Engine (`src/sparkline.vala`, `src/monitor.vala`)
-Inspired by the clean aesthetic of **GNOME Resources**:
+`ResourceCard` → `Window.choose_and_insert_iso` (Gtk.FileDialog) → `ResourceActions.insert_iso`
+→ `ScriptedQemuDriver` sends `change cdrom "<quoted path>"` over HMP; QEMU's reply text, if any,
+becomes a MEDIA issue. Other kinds return an "unsupported" issue.
 
-- **Decoupled Monitoring Thread:** `SystemMonitor` executes in a dedicated OS thread every 1.5 seconds, avoiding any I/O or procfs stalls on the GTK main UI thread. Collected metrics are dispatched to the UI using `GLib.Idle.add()`.
-- **Sliding History Ring Buffer:** Metrics are maintained in a 25-sample circular array.
-- **Optional Guest RAM (`src/guest_memory.vala`):** The monitor queries a configured local QMP socket on its background thread. Balloon statistics from `balloon0` are validated for range and freshness (15 seconds). Windows uses total minus available physical RAM (`stat-free-memory` in VirtIO-Win); Linux requires `stat-available-memory`. Guest RAM and host process/container consumption have separate UI rows. Missing statistics remain unavailable. Polling never resizes guest RAM.
-- **Smooth Bezier Spline Rendering:** The `SmoothSparkline` custom widget uses Cairo to draw continuous cubic Bezier curves through historical data points:
-  - Fill: Linear vertical gradient from theme accent color (40% opacity) fading to transparent.
-  - Stroke: Crisp anti-aliased contour line (2.0px width) with round line joins and caps.
+### 2.4 Persistence
 
-### 2.3 Optical Drive (ISO) Hot-Swapping
-Rigs allows developers and system administrators to hot-swap boot media and install images on live virtual machines without terminating the running instance:
-1. `VmCard` exposes an Optical Drive ActionRow.
-2. Selecting "Insert…" opens a native `Gtk.FileDialog` filtered to `*.iso` images.
-3. The selected path is saved to configuration and immediately sent to the driver via socket command (`change cdrom /path/to/image.iso`).
-4. "Eject" safely unmounts the disk image (`eject -f cdrom`).
-
-### 2.4 State & Configuration Persistence (`src/vm_model.vala`)
-- **VM Definitions (`~/.config/rigs/vms.json`):** Human-editable JSON format. Missing/empty configuration starts empty; malformed configuration is preserved and blocks registration. No personal VM entries are shipped. Optional `qmp_socket` (host Unix socket path) and `guest_os` (`windows` or `linux`) enable guest RAM telemetry.
-- **Session State (`~/.config/rigs/state.json`):** Tracks window size, maximized state, and which VM cards were expanded by the user, preserving the layout between desktop restarts.
+- **`~/.config/rigs/vms.json`** (`ResourceStore`): human-editable; keys keep their historical
+  names (`"type"` = kind, `"process_name"` = process_match). A damaged file is preserved, shown
+  in a dialog and never overwritten; a failed save is shown as a toast (`Window.persist`).
+- **`~/.config/rigs/state.json`** (`WindowState`): window size and expanded cards; damaged = defaults.
 
 ---
 
@@ -87,37 +92,31 @@ Rigs allows developers and system administrators to hot-swap boot media and inst
 
 ```
 rigs/
-├── data/
-│   ├── io.github.vovche.Rigs.desktop      # Desktop application launcher
-│   ├── io.github.vovche.Rigs.metainfo.xml.in # AppStream metadata
-│   ├── rigs.gresource.xml                # GResource bundle definition
-│   └── style.css                         # Adwaita styling and color classes
+├── CONTEXT.md                 # Glossary: read first
+├── ARCHITECTURE.md            # This file
+├── AGENTS.md                  # Rules for coding agents
+├── build.sh                   # Build + test + install (the oracle)
+├── run.sh                     # Run the built app with a throwaway config
+├── scripts/lint.sh            # Mechanical guardrails (docs/guardrails.md)
 ├── src/
-│   ├── drivers/                          # Pluggable VM & container drivers
-│   │   ├── driver.vala                   # Driver interface contract
-│   │   ├── driver_registry.vala          # Registry and factory
-│   │   ├── qemu_driver.vala              # QEMU / KVM driver
-│   │   └── compose_driver.vala           # Podman / Docker Compose driver
-│   ├── add_dialog.vala                   # VM registration dialog
-│   ├── application.vala                  # Adw.Application entrypoint & actions
-│   ├── main.vala                         # Program main
-│   ├── monitor.vala                      # Background procfs telemetry collector
-│   ├── sparkline.vala                    # Cairo Bezier wave graph widget
-│   ├── vm_card.vala                      # Expander row for VM management
-│   ├── vm_model.vala                     # JSON model & config persistence
-│   └── window.vala                       # Main window and UI composition
-├── tests/
-│   ├── main.vala                         # GLib.Test runner
-│   ├── test_drivers.vala                 # Driver registry & driver unit tests
-│   └── test_models.vala                  # Serialization & model unit tests
-├── .github/
-│   └── workflows/
-│       └── ci.yml                        # GitHub Actions CI build & test
-├── io.github.vovche.Rigs.yaml             # Flatpak packaging manifest
-├── ARCHITECTURE.md                       # Architecture documentation
-├── CONTRIBUTING.md                       # Contributor guide
-├── meson.build                           # Root build configuration
-└── README.md                             # Project overview and quick start
+│   ├── core/                  # GLib-only library rigs-core
+│   │   ├── resource.vala          # Resource, ResourceKind, ContainerRuntime, ResourceStatus
+│   │   ├── resource_store.vala    # vms.json
+│   │   ├── resource_issue.vala    # ResourceIssue, ResourceOperation, FailureCategory
+│   │   ├── failure_rules.vala     # output → ResourceIssue
+│   │   ├── resource_actions.vala  # runs drivers off the main thread, publishes issues
+│   │   ├── host_command.vala      # every host process (ExecutionMode)
+│   │   ├── qemu_monitor.vala      # HMP client
+│   │   ├── monitor.vala, metrics.vala, window_state.vala, search_provider.vala
+│   │   ├── guest_*.vala, windows_guest_installer.vala, resource_discovery.vala
+│   │   └── drivers/               # driver.vala, driver_registry.vala and one file per kind
+│   └── ui/                    # GTK widgets
+│       ├── main.vala, application.vala, window.vala
+│       ├── host_overview.vala, resource_list.vala, resource_card.vala, sparkline.vala
+│       └── *_dialog.vala          # add, discovery, guest tools, driver setup, issue
+├── tests/                     # GLib.Test, headless, < 1 s; test_regressions.vala for bug repros
+├── data/, po/, snap/
+└── docs/                      # guardrails.md, packaging.md, llm-workflow.md, work-items/
 ```
 
 ## 4. Discovery and host access
@@ -134,10 +133,10 @@ system. Stable IDs and legacy container names suppress duplicates. It performs
 no persistence/lifecycle changes. `DiscoveryDialog` runs it off the main thread;
 registration is explicit. Existing configuration is not migrated or replaced.
 
-`ManagedDriver` controls discovered containers by engine + full ID and libvirt
-domains by local URI + UUID. It never invents shell commands from labels or
-names, destroys domains, removes containers, or stops an entire Compose project.
-Unknown driver kinds return null. Legacy scripts remain an explicit manual path.
+`ContainerDriver` controls discovered containers by engine + full ID and
+`LibvirtDriver` libvirt domains by local URI + UUID. They never invent shell
+commands from labels or names, destroy domains, remove containers, or stop an
+entire Compose project. Legacy scripts remain an explicit manual path.
 
 Guest integration has diagnostic states independent from host RAM. QMP checks
 that balloon0 exists; libvirt uses live dommemstat polling. Windows/Linux

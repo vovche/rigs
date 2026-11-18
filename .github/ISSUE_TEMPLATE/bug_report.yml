@@ -8,7 +8,7 @@ body:
     attributes:
       value: |
         Thank you for reporting an issue with Rigs!
-        To help us resolve the issue quickly across different distribution channels (Snap, Flatpak, Native source build), please fill in this report.
+        To help us resolve the issue quickly across different distribution channels (Snap, Native source build), please fill in this report.
         
         💡 **Tip:** You can obtain full system & package diagnostics in one click:
         - **In GUI:** Click Menu ☰ -> **About Rigs** -> **Troubleshooting / Copy Debug Information**
@@ -21,7 +21,6 @@ body:
       description: "How did you install Rigs?"
       options:
         - "Snap package (Snap Store)"
-        - "Flatpak (Flathub / local build)"
         - "Native binary (meson install / ./build.sh)"
         - "Compiled manually from git source"
         - "Other / Distribution package"

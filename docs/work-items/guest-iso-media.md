@@ -1,5 +1,7 @@
 # Work Packet: VirtIO ISO attachment
 
+> **Historical packet.** Flatpak delivery was dropped on 2026-11-19; ignore its Flatpak parts (see README "Flatpak: not supported").
+
 ## Owned targets
 - src/guest_media.vala
 - tests/test_guest_media.vala

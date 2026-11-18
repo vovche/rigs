@@ -1,5 +1,7 @@
 # Work Packet: Portable onboarding and guest integration
 
+> **Historical packet.** Flatpak delivery was dropped on 2026-11-19; ignore its Flatpak parts (see README "Flatpak: not supported").
+
 ## Goal
 Remove personal VM defaults. On an empty installation, enumerate accessible
 Podman/Docker containers and libvirt session/system domains, then let the user

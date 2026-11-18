@@ -52,13 +52,16 @@ does not reveal a reliable persistent start command or safe stop target.
 
 ## Installation & Packaging
 
-### Native and Flatpak
+### Native
 `./build.sh` builds, tests and installs the native application. Runtime tools
 (`podman`, `docker`, `virsh`, optional `virt-viewer`) belong on the host.
-The Flatpak manifest is `io.github.vovche.Rigs.yaml`. Discovery and supported
-runtime controls run on the host via `flatpak-spawn --host`; its
-`org.freedesktop.Flatpak` permission is intentional. A denied connection is
-shown in the discovery dialog rather than interpreted as an empty inventory.
+
+### Flatpak: not supported
+Rigs manages host processes, `/proc` and QEMU monitor sockets. A Flatpak sandbox
+hides all three (its own PID namespace, private `/tmp`), so most VM features
+would not work, and the full host access needed to work around that defeats the
+sandbox. Use the native package or Snap. Started inside Flatpak, Rigs reports
+every host command as unsupported instead of failing silently.
 
 ### Snap
 `snap/snapcraft.yaml` provides strict Snap packaging with the GNOME extension.
@@ -75,8 +78,7 @@ custom host scripts require native/classic deployment or a future host broker.
 A classic package, if provided, requires separate Store approval. No published
 Snap/Flathub listing or completed package build is implied by these manifests.
 
-See [Flatpak host execution](https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-spawn)
-and [Snap Docker interfaces](https://snapcraft.io/docs/reference/interfaces/docker-interface/).
+See [Snap Docker interfaces](https://snapcraft.io/docs/reference/interfaces/docker-interface/).
 
 ---
 

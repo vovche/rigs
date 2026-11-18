@@ -28,7 +28,7 @@ Do **NOT** load the entire codebase into context. Follow this order:
   Never assume code is valid without a green `./build.sh` exit code.
 
 - **Process execution goes through `HostCommand` (`src/host_command.vala`):**
-  It handles Flatpak/Snap host access, `LC_ALL=C`, deadlines and non-UTF-8 output.
+  It handles Snap host access, `LC_ALL=C`, deadlines and non-UTF-8 output.
   - Pass data (paths, names, IDs) as separate `argv` elements: `{ "podman", "logs", "--tail=30", name }`.
   - `/bin/bash -c` receives only a command the user configured verbatim (`vm.start_cmd`, `vm.stop_cmd`, `vm.connect_cmd`), with `directory = vm.dir`.
   - User start scripts run through `run_capture_tail` (never blocks on backgrounded children); short queries through `run` with a timeout.

@@ -1,5 +1,7 @@
 # Work Packet: Host command execution
 
+> **Historical packet.** Flatpak delivery was dropped on 2026-11-19; ignore its Flatpak parts (see README "Flatpak: not supported").
+
 ## Targets (owned exclusively by worker)
 - src/host_command.vala
 - tests/test_host_command.vala

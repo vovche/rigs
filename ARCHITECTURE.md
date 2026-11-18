@@ -123,8 +123,8 @@ rigs/
 ## 4. Discovery and host access
 
 `HostCommand` owns executable argv, working directories, locale and deadlines.
-Native/classic deployment executes directly. Flatpak wraps host commands with
-`flatpak-spawn --host --watch-bus`. Strict Snap permits only the connected Docker
+Native/classic deployment executes directly. Flatpak is not supported (the mode
+`unsupported-sandbox` refuses every command with an explicit error). Strict Snap permits only the connected Docker
 Snap executable; absent connections are explicit failures, never an empty host.
 No command transport uses process-name/global kill for timeout cleanup.
 

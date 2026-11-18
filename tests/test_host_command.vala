@@ -10,13 +10,6 @@ namespace Rigs.Tests {
                 string[] argv = { "/path with spaces/tool", "literal ; $HOME && |" };
                 assert_argv(new HostCommand("native").prepare(argv, "/directory with spaces"), argv);
                 assert_argv(new HostCommand("snap-classic").prepare(argv), argv);
-                assert_argv(new HostCommand("flatpak").prepare(argv, "/directory with spaces"), {
-                    "flatpak-spawn", "--host", "--watch-bus", "--env=LC_ALL=C",
-                    "--directory=/directory with spaces", "--", "/path with spaces/tool", "literal ; $HOME && |"
-                });
-                assert_argv(new HostCommand("flatpak").prepare({ "tool" }), {
-                    "flatpak-spawn", "--host", "--watch-bus", "--env=LC_ALL=C", "--", "tool"
-                });
                 assert_argv(new HostCommand("snap-docker", "/snap root/rigs/42").prepare({
                     "docker", "inspect", "container with spaces", "literal ; $HOME && |"
                 }), {
@@ -28,6 +21,10 @@ namespace Rigs.Tests {
                     Path.build_filename(connected.snap_root, "docker-snap", "bin", "docker"), "ps"
                 });
             } catch (Error e) { assert_not_reached(); }
+            try {
+                new HostCommand("unsupported-sandbox").prepare({ "tool" });
+                assert_not_reached();
+            } catch (Error e) { assert(e is IOError.NOT_SUPPORTED); }
             try {
                 new HostCommand("snap-restricted").prepare({ "tool" });
                 assert_not_reached();

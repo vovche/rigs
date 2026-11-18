@@ -14,7 +14,6 @@ namespace Rigs {
             // 2. Packaging & Sandbox detection
             sb.append("\n### Packaging & Distribution\n");
             string? snap = Environment.get_variable("SNAP");
-            string? flatpak = Environment.get_variable("FLATPAK_ID");
 
             if (snap != null) {
                 sb.append("- Channel: Snap Package (Snap Store)\n");
@@ -25,11 +24,8 @@ namespace Rigs {
                 sb.append_printf("- Host execution: %s\n", new HostCommand().mode);
                 sb.append("- Strict Snap: Docker requires connected docker and docker-executables plugs; arbitrary host tools are unavailable.\n");
                 sb.append_printf("- Snap Root: %s\n", snap);
-            } else if (flatpak != null || FileUtils.test("/.flatpak-info", FileTest.EXISTS)) {
-                sb.append("- Channel: Flatpak Sandbox\n");
-                sb.append_printf("- App ID: %s\n", flatpak ?? "unknown");
-                sb.append("- Runtime: GNOME Platform\n");
-                sb.append("- Host execution: flatpak-spawn --host (org.freedesktop.Flatpak permission required)\n");
+            } else if (FileUtils.test("/.flatpak-info", FileTest.EXISTS)) {
+                sb.append("- Channel: Flatpak (unsupported: host resources are not reachable from the sandbox)\n");
             } else {
                 sb.append("- Channel: Native Package / Compiled from Source\n");
                 try {

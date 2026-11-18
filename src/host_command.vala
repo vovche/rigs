@@ -28,9 +28,10 @@ namespace Rigs {
         }
 
         private static string detect_mode() {
+            // Flatpak is not a supported delivery channel: say so instead of failing obscurely.
             if (FileUtils.test("/.flatpak-info", FileTest.EXISTS) ||
                 Environment.get_variable("FLATPAK_ID") != null)
-                return "flatpak";
+                return "unsupported-sandbox";
             string? snap = Environment.get_variable("SNAP");
             if (snap == null) return "native";
             try {
@@ -59,13 +60,8 @@ namespace Rigs {
                 for (int i = 1; i < argv.length; i++) prepared += argv[i];
                 return prepared;
             }
-            if (mode == "flatpak") {
-                string[] prepared = { "flatpak-spawn", "--host", "--watch-bus", "--env=LC_ALL=C" };
-                if (directory != null) prepared += "--directory=" + directory;
-                prepared += "--";
-                foreach (string arg in argv) prepared += arg;
-                return prepared;
-            }
+            if (mode == "unsupported-sandbox")
+                throw new IOError.NOT_SUPPORTED("Rigs does not support Flatpak. Install the native package or the Snap.");
             if (mode != "native" && mode != "snap-classic")
                 throw new IOError.NOT_SUPPORTED("Unknown host command execution mode.");
             return argv;
@@ -74,7 +70,7 @@ namespace Rigs {
         private SubprocessLauncher launcher(SubprocessFlags flags, string? directory) {
             var result = new SubprocessLauncher(flags);
             result.setenv("LC_ALL", "C", true);
-            if (mode != "flatpak" && directory != null) result.set_cwd(directory);
+            if (directory != null) result.set_cwd(directory);
             return result;
         }
 

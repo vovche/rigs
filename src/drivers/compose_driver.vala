@@ -1,6 +1,8 @@
 /* compose_driver.vala — Explicitly configured compose projects. */
 namespace Rigs {
     public class ComposeDriver : Object, Driver {
+        private const uint SETTLE_MS = 2000;
+
         public string vm_type { get { return "compose"; } }
 
         private void lifecycle(VmModel vm, bool starting) {
@@ -10,15 +12,24 @@ namespace Rigs {
                     string cmd = starting ? vm.start_cmd : vm.stop_cmd;
                     var host = new HostCommand();
                     string? directory = vm.dir.length > 0 ? vm.dir : null;
-                    if (cmd.length > 0) {
-                        string[] argv = { "/bin/bash", "-c", cmd };
-                        if (starting) host.launch(argv, directory);
-                        else host.run(argv, directory, 120000);
-                    } else {
-                        string[] argv = { vm.runtime, "compose", starting ? "up" : "down" };
-                        if (starting) { argv += "-d"; host.launch(argv, directory); }
-                        else host.run(argv, directory, 120000);
+                    string[] argv;
+                    if (cmd.length > 0) argv = { "/bin/bash", "-c", cmd };
+                    else argv = starting ? new string[] { vm.runtime, "compose", "up", "-d" }
+                                         : new string[] { vm.runtime, "compose", "down" };
+                    if (!starting) {
+                        host.run(argv, directory, 120000);
+                        return null;
                     }
+                    var result = host.run_to_completion(argv, directory);
+                    StartupIssue? issue = null;
+                    if (result.exit_status != 0) {
+                        issue = StartupDiagnostics.diagnose(host, vm.runtime, vm.container_name, result, vm.guest_os);
+                    } else {
+                        Thread.usleep(SETTLE_MS * 1000);
+                        if (StartupDiagnostics.exited_after_start(host, vm.runtime, vm.container_name))
+                            issue = StartupDiagnostics.diagnose(host, vm.runtime, vm.container_name, null, vm.guest_os);
+                    }
+                    if (issue != null) StartupDiagnostics.publish(vm, issue);
                 } catch (Error e) { warning("Compose command failed: %s", e.message); }
                 return null;
             });

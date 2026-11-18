@@ -15,6 +15,8 @@ rigs_sources = [
   'guest_tools_packages.vala',
   'windows_guest_installer.vala',
   'host_command.vala',
+  'startup_diagnostics.vala',
+  'startup_issue_dialog.vala',
   'resource_discovery.vala',
   'discovery_dialog.vala',
   'drivers/managed_driver.vala',

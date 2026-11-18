@@ -12,8 +12,10 @@ namespace Rigs {
         public signal void insert_iso_requested(VmModel vm);
         public signal void eject_iso_requested(VmModel vm);
         public signal void guest_tools_requested(VmModel vm, GuestMemoryState state);
+        public signal void startup_issue_requested(VmModel vm, StartupIssue issue);
 
         private Gtk.Label status_lbl;
+        private Gtk.Button issue_btn;
         private Gtk.Button start_btn;
         private Gtk.Button connect_btn;
         private Gtk.Button stop_btn;
@@ -43,6 +45,17 @@ namespace Rigs {
             status_lbl.valign = Gtk.Align.CENTER;
             status_lbl.add_css_class("status-stopped");
             this.add_suffix(status_lbl);
+
+            issue_btn = new Gtk.Button.from_icon_name("dialog-warning-symbolic");
+            issue_btn.add_css_class("flat");
+            issue_btn.valign = Gtk.Align.CENTER;
+            issue_btn.visible = false;
+            issue_btn.clicked.connect(() => {
+                if (vm.last_startup_issue != null) startup_issue_requested(vm, vm.last_startup_issue);
+            });
+            this.add_suffix(issue_btn);
+            vm.notify["last-startup-issue"].connect(refresh_issue);
+            refresh_issue();
 
             // Button box
             var btn_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 6);
@@ -166,6 +179,12 @@ namespace Rigs {
                 iso_row.subtitle = _("[ No Media / Ejected ]");
                 if (eject_btn != null) eject_btn.visible = false;
             }
+        }
+
+        private void refresh_issue() {
+            var issue = vm.last_startup_issue;
+            issue_btn.visible = issue != null;
+            if (issue != null) issue_btn.tooltip_text = _("Failed to start: %s").printf(issue.title);
         }
 
         public void update_status(VmStatus status) {

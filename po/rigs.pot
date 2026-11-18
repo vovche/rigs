@@ -332,3 +332,110 @@ msgstr ""
 #: /workspace/src/add_dialog.vala:163
 msgid "Process Name"
 msgstr ""
+
+msgid "A container with this name already exists"
+msgstr ""
+
+#, c-format
+msgid "The name “%s” is already taken by container %s, so a new one cannot be created."
+msgstr ""
+
+#, c-format
+msgid "Remove the old container with `%s` or rename this one."
+msgstr ""
+
+msgid "Mount directory not found"
+msgstr ""
+
+#, c-format
+msgid "The path “%s” is mounted into the resource but does not exist on the host."
+msgstr ""
+
+#, c-format
+msgid "Create the directory with `%s` or check the paths in compose.yaml."
+msgstr ""
+
+msgid "Rootless Podman networking is stuck"
+msgstr ""
+
+msgid "A leftover network process from an earlier run blocks the rootless network namespace."
+msgstr ""
+
+msgid "End the stale netns processes, or as a last resort run `podman system reset` (this removes all Podman containers and images)."
+msgstr ""
+
+msgid "No access to KVM acceleration"
+msgstr ""
+
+msgid "The current user may not use /dev/kvm, so hardware virtualization cannot start."
+msgstr ""
+
+#, c-format
+msgid "Add yourself to the kvm group with `%s`, then log out and back in."
+msgstr ""
+
+msgid "Network port is already in use"
+msgstr ""
+
+msgid "Another process already listens on a port this resource needs."
+msgstr ""
+
+#, c-format
+msgid "Another process already listens on port %s, which this resource needs."
+msgstr ""
+
+#, c-format
+msgid "Find the process with `%s` or change the port in the configuration."
+msgstr ""
+
+msgid "Reduce the VM memory in its configuration; Windows guests usually need at least 4 GB."
+msgstr ""
+
+msgid "Reduce the memory allocated in the VM configuration."
+msgstr ""
+
+msgid "Not enough memory"
+msgstr ""
+
+msgid "The host ran out of memory while starting the resource."
+msgstr ""
+
+msgid "Startup failed"
+msgstr ""
+
+msgid "The resource did not start and the cause is not a known one."
+msgstr ""
+
+msgid "Check the output below for details."
+msgstr ""
+
+#, c-format
+msgid "Command exited with status %d without any output"
+msgstr ""
+
+#, c-format
+msgid "Failed to start %s"
+msgstr ""
+
+#, c-format
+msgid "Failed to start %s: %s"
+msgstr ""
+
+#, c-format
+msgid "Failed to start: %s"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Copied"
+msgstr ""
+
+msgid "Raw output"
+msgstr ""
+
+msgid "Close"
+msgstr ""

@@ -122,6 +122,17 @@ namespace Rigs {
             return new CommandResult(output ?? "", error_output ?? "", status);
         }
 
+        // Waits for the process without a deadline: startup commands may legitimately pull images for minutes.
+        public virtual CommandResult run_to_completion(string[] argv, string? directory = null) throws Error {
+            string[] prepared = prepare(argv, directory);
+            var process = launcher(SubprocessFlags.STDOUT_PIPE | SubprocessFlags.STDERR_PIPE, directory).spawnv(prepared);
+            string? output = null;
+            string? error_output = null;
+            process.communicate_utf8(null, null, out output, out error_output);
+            int status = process.get_if_exited() ? process.get_exit_status() : 128 + process.get_term_sig();
+            return new CommandResult(output ?? "", error_output ?? "", status);
+        }
+
         public virtual void launch(string[] argv, string? directory = null) throws Error {
             string[] prepared = prepare(argv, directory);
             launcher(SubprocessFlags.NONE, directory).spawnv(prepared);

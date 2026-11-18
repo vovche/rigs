@@ -747,3 +747,107 @@ msgstr "Інсталятор не підписано очікуваним вид
 #: src/windows_guest_installer.vala
 msgid "Windows could not complete the driver installer. Check the guest setup-error.txt and install.log files."
 msgstr "Windows не змогла завершити встановлення драйверів. Перегляньте файли setup-error.txt та install.log у гостьовій системі."
+
+msgid "A container with this name already exists"
+msgstr "Контейнер із таким ім’ям уже існує"
+
+#, c-format
+msgid "The name “%s” is already taken by container %s, so a new one cannot be created."
+msgstr "Ім’я «%s» уже зайняте контейнером %s, тому створити новий неможливо."
+
+#, c-format
+msgid "Remove the old container with `%s` or rename this one."
+msgstr "Видаліть старий контейнер командою `%s` або перейменуйте цей."
+
+msgid "Mount directory not found"
+msgstr "Каталог монтування не знайдено"
+
+#, c-format
+msgid "The path “%s” is mounted into the resource but does not exist on the host."
+msgstr "Шлях «%s» монтується в ресурс, але на хості його не існує."
+
+#, c-format
+msgid "Create the directory with `%s` or check the paths in compose.yaml."
+msgstr "Створіть каталог командою `%s` або перевірте шляхи в compose.yaml."
+
+msgid "Rootless Podman networking is stuck"
+msgstr "Зависла мережева підсистема Rootless Podman"
+
+msgid "A leftover network process from an earlier run blocks the rootless network namespace."
+msgstr "Залишковий мережевий процес із попереднього запуску блокує rootless-простір імен мережі."
+
+msgid "End the stale netns processes, or as a last resort run `podman system reset` (this removes all Podman containers and images)."
+msgstr "Завершіть старі процеси netns або, як крайній захід, виконайте `podman system reset` (це видалить усі контейнери й образи Podman)."
+
+msgid "No access to KVM acceleration"
+msgstr "Немає доступу до KVM-прискорення"
+
+msgid "The current user may not use /dev/kvm, so hardware virtualization cannot start."
+msgstr "Поточний користувач не має доступу до /dev/kvm, тому апаратна віртуалізація не запускається."
+
+#, c-format
+msgid "Add yourself to the kvm group with `%s`, then log out and back in."
+msgstr "Додайте себе до групи kvm командою `%s`, потім вийдіть із сеансу й увійдіть знову."
+
+msgid "Network port is already in use"
+msgstr "Мережевий порт уже використовується"
+
+msgid "Another process already listens on a port this resource needs."
+msgstr "Інший процес уже прослуховує порт, потрібний цьому ресурсу."
+
+#, c-format
+msgid "Another process already listens on port %s, which this resource needs."
+msgstr "Інший процес уже прослуховує порт %s, потрібний цьому ресурсу."
+
+#, c-format
+msgid "Find the process with `%s` or change the port in the configuration."
+msgstr "Знайдіть процес командою `%s` або змініть порт у конфігурації."
+
+msgid "Reduce the VM memory in its configuration; Windows guests usually need at least 4 GB."
+msgstr "Зменште пам’ять ВМ у конфігурації; гостям Windows зазвичай потрібно щонайменше 4 ГБ."
+
+msgid "Reduce the memory allocated in the VM configuration."
+msgstr "Зменште виділену пам’ять у конфігурації ВМ."
+
+msgid "Not enough memory"
+msgstr "Недостатньо оперативної пам’яті"
+
+msgid "The host ran out of memory while starting the resource."
+msgstr "Під час запуску ресурсу на хості закінчилася пам’ять."
+
+msgid "Startup failed"
+msgstr "Запуск не вдався"
+
+msgid "The resource did not start and the cause is not a known one."
+msgstr "Ресурс не запустився, і причина не належить до відомих."
+
+msgid "Check the output below for details."
+msgstr "Подробиці дивіться у виводі нижче."
+
+#, c-format
+msgid "Command exited with status %d without any output"
+msgstr "Команда завершилась зі статусом %d без жодного виводу"
+
+#, c-format
+msgid "Failed to start %s"
+msgstr "Не вдалося запустити %s"
+
+#, c-format
+msgid "Failed to start %s: %s"
+msgstr "Не вдалося запустити %s: %s"
+
+#, c-format
+msgid "Failed to start: %s"
+msgstr "Не вдалося запустити: %s"
+
+msgid "Details"
+msgstr "Подробиці"
+
+msgid "Copy"
+msgstr "Скопіювати"
+
+msgid "Copied"
+msgstr "Скопійовано"
+
+msgid "Raw output"
+msgstr "Сирий вивід"

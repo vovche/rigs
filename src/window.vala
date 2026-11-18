@@ -218,6 +218,9 @@ namespace Rigs {
                 dialog.present(this);
             });
 
+            card.startup_issue_requested.connect((v, issue) => { new StartupIssueDialog(v, issue).present(this); });
+            vm.startup_failed.connect((issue) => { show_startup_failure(vm, issue); });
+
             card.notify["expanded"].connect(() => { save_window_state(); });
 
             vm_group.add(card);
@@ -379,10 +382,19 @@ namespace Rigs {
             toast_overlay.add_toast(toast);
             notify_user(_("Starting %s…").printf(vm.name), _("Virtual machine initialization requested"));
 
+            vm.last_startup_issue = null;
             Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
             if (driver != null) {
                 driver.start(vm);
             }
+        }
+
+        private void show_startup_failure(VmModel vm, StartupIssue issue) {
+            var toast = new Adw.Toast(_("Failed to start %s: %s").printf(vm.name, issue.title));
+            toast.button_label = _("Details");
+            toast.timeout = 0;
+            toast.button_clicked.connect(() => { new StartupIssueDialog(vm, issue).present(this); });
+            toast_overlay.add_toast(toast);
         }
 
         private void stop_vm(VmModel vm) {

@@ -26,6 +26,10 @@ namespace Rigs {
         public string resource_id { get; set; default = ""; }
         public string connection_uri { get; set; default = "qemu:///session"; }
 
+        // Runtime-only (never persisted): outcome of the most recent failed start.
+        public StartupIssue? last_startup_issue { get; set; default = null; }
+        public signal void startup_failed(StartupIssue issue);
+
         public static VmModel from_json_node(Json.Node node) {
             var model = new VmModel();
             if (node.get_node_type() != Json.NodeType.OBJECT) {

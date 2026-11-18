@@ -29,6 +29,18 @@ int main(string[] args) {
 
     Test.add_func("/diagnostics/report", TestDiagnostics.test_diagnostics_report);
 
+    Test.add_func("/startup-diagnostics/empty", TestStartupDiagnostics.test_empty);
+    Test.add_func("/startup-diagnostics/mount", TestStartupDiagnostics.test_mount);
+    Test.add_func("/startup-diagnostics/port", TestStartupDiagnostics.test_port);
+    Test.add_func("/startup-diagnostics/conflict", TestStartupDiagnostics.test_conflict);
+    Test.add_func("/startup-diagnostics/kvm", TestStartupDiagnostics.test_kvm);
+    Test.add_func("/startup-diagnostics/netns", TestStartupDiagnostics.test_netns);
+    Test.add_func("/startup-diagnostics/oom", TestStartupDiagnostics.test_oom);
+    Test.add_func("/startup-diagnostics/generic-and-limits", TestStartupDiagnostics.test_generic_and_limits);
+    Test.add_func("/startup-diagnostics/diagnose-logs-fallback", TestStartupDiagnostics.test_diagnose_logs_fallback);
+    Test.add_func("/startup-diagnostics/managed-start", TestStartupDiagnostics.test_managed_start);
+    Test.add_func("/startup-diagnostics/model-issue", TestStartupDiagnostics.test_model_issue);
+
     Test.add_func("/search/initial_by_name", TestSearchProvider.test_initial_search_by_name);
     Test.add_func("/search/initial_by_port_and_type", TestSearchProvider.test_initial_search_by_port_and_type);
     Test.add_func("/search/subsearch", TestSearchProvider.test_subsearch);

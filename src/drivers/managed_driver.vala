@@ -32,12 +32,41 @@ namespace Rigs {
                 starting ? "start" : "shutdown", vm.resource_id };
         }
 
+        // Milliseconds to wait before checking whether a started container exited at once.
+        public uint settle_ms = 2000;
+
+        // Synchronous start; returns the diagnosed failure, if any. Public for headless tests.
+        public StartupIssue? start_blocking(VmModel vm) {
+            string[] argv = lifecycle_argv(vm, true);
+            if (argv.length == 0) return null;
+            string container = kind == "container" ? vm.resource_id : "";
+            try {
+                var result = commands.run(argv, null, 30000);
+                if (result.exit_status != 0) {
+                    return StartupDiagnostics.diagnose(commands, vm.runtime, container, result, vm.guest_os);
+                }
+                if (kind == "container") {
+                    if (settle_ms > 0) Thread.usleep(settle_ms * 1000);
+                    if (StartupDiagnostics.exited_after_start(commands, vm.runtime, container))
+                        return StartupDiagnostics.diagnose(commands, vm.runtime, container, null, vm.guest_os);
+                }
+            } catch (Error e) {
+                warning("Managed resource operation failed: %s", e.message);
+            }
+            return null;
+        }
+
         private void change_state(VmModel vm, bool starting) {
             string[] argv = lifecycle_argv(vm, starting);
             if (argv.length == 0) return;
             new Thread<void*>("managed-lifecycle", () => {
+                if (starting) {
+                    var issue = start_blocking(vm);
+                    if (issue != null) StartupDiagnostics.publish(vm, issue);
+                    return null;
+                }
                 try {
-                    var result = commands.run(argv, null, starting ? 30000 : 35000);
+                    var result = commands.run(argv, null, 35000);
                     if (result.exit_status != 0)
                         warning("Managed resource operation failed: %s", result.error_output);
                 } catch (Error e) {

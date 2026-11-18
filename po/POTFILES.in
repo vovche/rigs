@@ -14,3 +14,5 @@ src/guest_tools_packages.vala
 src/windows_guest_installer.vala
 src/guest_agent.vala
 src/guest_media.vala
+src/startup_diagnostics.vala
+src/startup_issue_dialog.vala

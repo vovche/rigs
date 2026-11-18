@@ -3,7 +3,7 @@ using GLib.Intl;
 namespace Rigs {
     public class GuestDriverSetupDialog : Adw.Dialog {
         private delegate void Work() throws Error;
-        private VmModel vm;
+        private Resource resource;
         private WindowsGuestInstaller installer = new WindowsGuestInstaller();
         private GuestToolsPackages packages = new GuestToolsPackages();
         private GuestMedia media = new GuestMedia();
@@ -49,11 +49,11 @@ namespace Rigs {
             return result;
         }
 
-        public GuestDriverSetupDialog(VmModel source) {
+        public GuestDriverSetupDialog(Resource source) {
             // Keep a private model snapshot throughout asynchronous jobs.
             var node = new Json.Node(Json.NodeType.OBJECT);
             node.set_object(source.to_json_object());
-            vm = VmModel.from_json_node(node);
+            resource = Resource.from_json_node(node);
             title = _("Windows Guest Drivers");
             content_width = 620;
             content_height = 720;
@@ -68,7 +68,7 @@ namespace Rigs {
             var connection = new Adw.PreferencesGroup();
             connection.title = _("Guest Connection");
             page.add(connection);
-            connection.add(text(vm.name));
+            connection.add(text(resource.name));
             status = text(_("Checking the guest agent, Windows and CD drives…"));
             connection.add(status);
             connection.add(text(_("Automatic setup requires a running Windows guest agent and administrator access. Missing statistics alone do not prove that drivers are missing.")));
@@ -109,7 +109,7 @@ namespace Rigs {
             prepare.clicked.connect(() => fetch_installer());
             local_installer.clicked.connect(() => choose_file(false));
             install.clicked.connect(confirm_install);
-            resume.clicked.connect(() => run(() => { var result = installer.resume(vm); Idle.add(() => { if (!dismissed) show_result(result); return Source.REMOVE; }); }, true));
+            resume.clicked.connect(() => run(() => { var result = installer.resume(resource); Idle.add(() => { if (!dismissed) show_result(result); return Source.REMOVE; }); }, true));
             restart.clicked.connect(confirm_restart);
             download_iso.clicked.connect(() => attach_iso(null));
             local_iso.clicked.connect(() => choose_file(true));
@@ -156,7 +156,7 @@ namespace Rigs {
             new Thread<void*>("guest-driver-setup", () => {
                 string? failure = null;
                 try { work(); } catch (Error e) { failure = e.message; }
-                bool has_pending = installer.has_pending(vm);
+                bool has_pending = installer.has_pending(resource);
                 Idle.add(() => {
                     if (!dismissed) {
                         pending = has_pending;
@@ -178,10 +178,10 @@ namespace Rigs {
             run(() => {
                 GuestToolsProbe? checked = null;
                 string connection_error = "";
-                try { checked = installer.probe(vm); } catch (Error e) { connection_error = e.message; }
+                try { checked = installer.probe(resource); } catch (Error e) { connection_error = e.message; }
                 GenericArray<GuestOpticalDrive>? found = null;
                 string media_error = "";
-                try { found = media.list_drives(vm); } catch (Error e) { media_error = e.message; }
+                try { found = media.list_drives(resource); } catch (Error e) { media_error = e.message; }
                 Idle.add(() => {
                     if (dismissed) return Source.REMOVE;
                     probe = checked;
@@ -233,7 +233,7 @@ namespace Rigs {
             busy = true;
             refresh();
             var confirmation = new Adw.AlertDialog(_("Install Windows Drivers?"),
-                _("Install %s (%s) on %s? Windows will verify the Red Hat signature, then install drivers with administrator privileges. Windows will not be forcibly restarted.").printf(Path.get_basename(selected.path), selected.version, vm.name));
+                _("Install %s (%s) on %s? Windows will verify the Red Hat signature, then install drivers with administrator privileges. Windows will not be forcibly restarted.").printf(Path.get_basename(selected.path), selected.version, resource.name));
             confirmation.add_response("cancel", _("Cancel"));
             confirmation.add_response("install", _("Install Drivers"));
             confirmation.set_response_appearance("install", Adw.ResponseAppearance.SUGGESTED);
@@ -241,7 +241,7 @@ namespace Rigs {
             confirmation.set_close_response("cancel");
             confirmation.response.connect((dialog, response) => {
                 busy = false;
-                if (!dismissed && response == "install") run(() => { var result = installer.install(vm, selected); Idle.add(() => { if (!dismissed) show_result(result); return Source.REMOVE; }); }, true);
+                if (!dismissed && response == "install") run(() => { var result = installer.install(resource, selected); Idle.add(() => { if (!dismissed) show_result(result); return Source.REMOVE; }); }, true);
                 else if (!dismissed) refresh();
             });
             confirmation.present(this);
@@ -251,7 +251,7 @@ namespace Rigs {
             if (busy || pending || !reboot_required) return;
             busy = true;
             refresh();
-            var confirmation = new Adw.AlertDialog(_("Restart Windows?"), _("Restart %s to finish driver setup? Save all work in Windows first; unsaved changes may be lost.").printf(vm.name));
+            var confirmation = new Adw.AlertDialog(_("Restart Windows?"), _("Restart %s to finish driver setup? Save all work in Windows first; unsaved changes may be lost.").printf(resource.name));
             confirmation.add_response("cancel", _("Cancel"));
             confirmation.add_response("restart", _("Restart Windows"));
             confirmation.set_response_appearance("restart", Adw.ResponseAppearance.DESTRUCTIVE);
@@ -260,7 +260,7 @@ namespace Rigs {
             confirmation.response.connect((dialog, response) => {
                 busy = false;
                 if (!dismissed && response == "restart") run(() => {
-                    installer.reboot(vm);
+                    installer.reboot(resource);
                     Idle.add(() => { if (!dismissed) { reboot_required = false; result_label.label = _("Restart requested. Reopen guest integration after Windows starts to verify statistics."); } return Source.REMOVE; });
                 }, true);
                 else if (!dismissed) refresh();
@@ -304,7 +304,7 @@ namespace Rigs {
             run(() => {
                 var image = local_path == null ? packages.fetch(true, cancellation) : GuestToolsPackages.local_file(local_path, true);
                 if (cancellation != null) cancellation.set_error_if_cancelled();
-                media.attach(vm, image.path, target);
+                media.attach(resource, image.path, target);
                 Idle.add(() => {
                     if (!dismissed) {
                         empty_drives = new GenericArray<GuestOpticalDrive>();

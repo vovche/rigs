@@ -35,18 +35,18 @@ namespace Rigs {
         public void begin_query() { this.hold(); }
         public void end_query() { this.release(); }
 
-        public GenericArray<VmModel> get_vms() {
+        public GenericArray<Resource> get_resources() {
             var win = main_window();
             if (win != null) {
-                return win.get_vms();
+                return win.get_resources();
             }
-            return ConfigManager.load_vms();
+            return ResourceStore.load();
         }
 
-        public void focus_vm(string id) {
+        public void focus_resource(string id) {
             var win = ensure_main_window();
             win.present();
-            win.focus_vm(id);
+            win.focus_resource(id);
         }
 
         public void set_search_query(string query) {

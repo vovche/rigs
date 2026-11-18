@@ -21,7 +21,7 @@ namespace Rigs.Tests {
         public Json.Object? insertion;
         public string fail_on = "";
         public FakeMedia(HostCommand? commands = null) { base(commands); }
-        public override Json.Node qmp(VmModel vm, string name, Json.Object? args = null) throws Error {
+        public override Json.Node qmp(Resource resource, string name, Json.Object? args = null) throws Error {
             calls.add(name);
             if (args != null) arguments = args;
             if (name == "blockdev-add") image = args;
@@ -75,10 +75,10 @@ namespace Rigs.Tests {
                 } catch (Error e) { error("Private QMP fixture failed: %s", e.message); }
                 return null;
             });
-            var vm = new VmModel();
-            vm.vm_type = "qemu";
-            vm.qmp_socket = socket_path;
-            var result = new GuestMedia().qmp(vm, "query-block");
+            var resource = new Resource();
+            resource.kind = "qemu";
+            resource.qmp_socket = socket_path;
+            var result = new GuestMedia().qmp(resource, "query-block");
             assert(result.get_node_type() == Json.NodeType.ARRAY);
             peer.join();
             listener.close();
@@ -90,15 +90,15 @@ namespace Rigs.Tests {
             try {
                 dir = DirUtils.make_tmp("rigs-media-test-XXXXXX");
                 string iso = make_iso(dir);
-                var vm = new VmModel(); vm.vm_type = "qemu";
+                var resource = new Resource(); resource.kind = "qemu";
                 var media = new FakeMedia();
-                var drives = media.list_drives(vm);
+                var drives = media.list_drives(resource);
                 assert(drives.length == 2 && drives[0].id == "cd0");
                 assert(drives[1].current_iso == "/occupied.iso");
                 bool rejected = false;
-                try { media.attach(vm, iso, "cd1"); } catch (IOError.EXISTS e) { rejected = true; }
+                try { media.attach(resource, iso, "cd1"); } catch (IOError.EXISTS e) { rejected = true; }
                 assert(rejected && media.arguments == null);
-                media.attach(vm, iso, "cd0");
+                media.attach(resource, iso, "cd0");
                 assert(media.calls[media.calls.length - 1] == "blockdev-close-tray");
                 assert(media.image.get_object_member("file").get_string_member("filename") == iso);
                 assert(media.image.get_string_member("driver") == "raw");
@@ -109,22 +109,22 @@ namespace Rigs.Tests {
                 assert(media.image.get_string_member("node-name").length < 32);
                 media.fail_on = "blockdev-insert-medium";
                 rejected = false;
-                try { media.attach(vm, iso, "cd0"); } catch (IOError.FAILED e) { rejected = true; }
+                try { media.attach(resource, iso, "cd0"); } catch (IOError.FAILED e) { rejected = true; }
                 assert(rejected && media.calls[media.calls.length - 1] == "blockdev-del");
                 media.fail_on = "blockdev-close-tray";
                 rejected = false;
-                try { media.attach(vm, iso, "cd0"); } catch (IOError.FAILED e) { rejected = true; }
+                try { media.attach(resource, iso, "cd0"); } catch (IOError.FAILED e) { rejected = true; }
                 assert(rejected && media.calls[media.calls.length - 1] == "blockdev-close-tray");
                 media.fail_on = "";
                 media.blocks = "[{\"device\":\"\",\"qdev\":\"/machine/peripheral/cd0\",\"removable\":true,\"tray_open\":true}]";
-                assert(media.list_drives(vm)[0].id == "/machine/peripheral/cd0");
-                media.attach(vm, iso, "/machine/peripheral/cd0");
+                assert(media.list_drives(resource)[0].id == "/machine/peripheral/cd0");
+                media.attach(resource, iso, "/machine/peripheral/cd0");
                 assert(media.insertion.get_string_member("id") == "/machine/peripheral/cd0");
                 media.blocks = "[{\"device\":\"cd0\",\"removable\":true,\"tray_open\":true,\"inserted\":{}}]";
-                assert(media.list_drives(vm)[0].current_iso.length > 0);
+                assert(media.list_drives(resource)[0].current_iso.length > 0);
                 media.blocks = "[{\"device\":\"disk0\",\"removable\":false},{\"device\":\"floppy0\",\"removable\":true}]";
                 rejected = false;
-                try { media.list_drives(vm); } catch (IOError.NOT_FOUND e) { rejected = true; }
+                try { media.list_drives(resource); } catch (IOError.NOT_FOUND e) { rejected = true; }
                 assert(rejected);
                 check_qmp_client(dir);
                 FileUtils.unlink(iso);
@@ -137,20 +137,20 @@ namespace Rigs.Tests {
             try {
                 dir = DirUtils.make_tmp("rigs-media-test-XXXXXX");
                 string iso = make_iso(dir);
-                var vm = new VmModel(); vm.vm_type = "libvirt";
-                vm.resource_id = "01234567-89ab-cdef-0123-456789abcdef";
-                vm.connection_uri = "qemu:///session";
+                var resource = new Resource(); resource.kind = "libvirt";
+                resource.resource_id = "01234567-89ab-cdef-0123-456789abcdef";
+                resource.connection_uri = "qemu:///session";
                 var commands = new MediaCommands();
                 var media = new GuestMedia(commands);
-                var drives = media.list_drives(vm);
+                var drives = media.list_drives(resource);
                 assert(drives.length == 2 && drives[0].current_iso == "");
                 assert(drives[1].current_iso == "/data/installer with spaces.iso");
-                media.attach(vm, iso, "sda");
+                media.attach(resource, iso, "sda");
                 string call = commands.calls[commands.calls.length - 1];
-                assert(call == "virsh|--connect|qemu:///session|change-media|" + vm.resource_id + "|sda|" + iso + "|--insert|--live");
+                assert(call == "virsh|--connect|qemu:///session|change-media|" + resource.resource_id + "|sda|" + iso + "|--insert|--live");
                 assert(!call.contains("--force") && !call.contains("--config"));
                 bool rejected = false;
-                try { media.attach(vm, iso, "sdb"); } catch (IOError.EXISTS e) { rejected = true; }
+                try { media.attach(resource, iso, "sdb"); } catch (IOError.EXISTS e) { rejected = true; }
                 assert(rejected);
                 FileUtils.unlink(iso);
             } catch (Error e) { error("Libvirt media test failed: %s", e.message); }
@@ -164,21 +164,21 @@ namespace Rigs.Tests {
                 string iso = make_iso(dir);
                 var commands = new MediaCommands();
                 var media = new FakeMedia(commands);
-                var vm = new VmModel(); vm.vm_type = "container";
-                vm.resource_id = "0123456789abcdef"; vm.runtime = "/bin/bash";
+                var resource = new Resource(); resource.kind = "container";
+                resource.resource_id = "0123456789abcdef"; resource.runtime = "/bin/bash";
                 bool rejected = false;
-                try { media.attach(vm, iso, "cd0"); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
+                try { media.attach(resource, iso, "cd0"); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
                 assert(rejected && commands.calls.length == 0 && media.arguments == null);
                 rejected = false;
-                try { media.attach(vm, iso, "--all"); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
+                try { media.attach(resource, iso, "--all"); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
                 assert(rejected);
-                vm.vm_type = "libvirt"; vm.connection_uri = "qemu+ssh://host/system";
+                resource.kind = "libvirt"; resource.connection_uri = "qemu+ssh://host/system";
                 rejected = false;
-                try { new GuestMedia(commands).list_drives(vm); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
+                try { new GuestMedia(commands).list_drives(resource); } catch (IOError.INVALID_ARGUMENT e) { rejected = true; }
                 assert(rejected && commands.calls.length == 0);
-                vm.vm_type = "qemu";
+                resource.kind = "qemu";
                 rejected = false;
-                try { new GuestMedia(commands).list_drives(vm); } catch (IOError.NOT_CONNECTED e) { rejected = true; }
+                try { new GuestMedia(commands).list_drives(resource); } catch (IOError.NOT_CONNECTED e) { rejected = true; }
                 assert(rejected);
                 FileUtils.unlink(iso);
             } catch (Error e) { error("Invalid media target test failed: %s", e.message); }
@@ -190,8 +190,8 @@ namespace Rigs.Tests {
             try {
                 dir = DirUtils.make_tmp("rigs-media-test-XXXXXX");
                 string iso = make_iso(dir);
-                var vm = new VmModel(); vm.vm_type = "container"; vm.runtime = "podman";
-                vm.resource_id = "0123456789abcdef";
+                var resource = new Resource(); resource.kind = "container"; resource.runtime = "podman";
+                resource.resource_id = "0123456789abcdef";
                 var commands = new MediaCommands();
                 var media = new FakeMedia(commands);
                 var mounts = new Json.Array();
@@ -200,11 +200,11 @@ namespace Rigs.Tests {
                 mount.set_boolean_member("RW", false); mounts.add_object_element(mount);
                 var root = new Json.Node(Json.NodeType.ARRAY); root.set_array(mounts);
                 var generator = new Json.Generator(); generator.set_root(root); commands.mounts = generator.to_data(null);
-                media.attach(vm, iso, "cd0");
+                media.attach(resource, iso, "cd0");
                 assert(media.image.get_object_member("file").get_string_member("filename") == "/images/driver image.iso");
                 commands.mounts = "[]";
                 bool rejected = false;
-                try { media.attach(vm, iso, "cd0"); } catch (IOError.NOT_SUPPORTED e) { rejected = true; }
+                try { media.attach(resource, iso, "cd0"); } catch (IOError.NOT_SUPPORTED e) { rejected = true; }
                 assert(rejected);
                 string storage = Path.build_filename(dir, "storage");
                 assert(DirUtils.create(storage, 0700) == 0);
@@ -212,16 +212,16 @@ namespace Rigs.Tests {
                 mount.set_string_member("Destination", "/storage");
                 mount.set_boolean_member("RW", true);
                 commands.mounts = generator.to_data(null);
-                media.attach(vm, iso, "cd0");
+                media.attach(resource, iso, "cd0");
                 string staged_guest = media.image.get_object_member("file").get_string_member("filename");
                 assert(staged_guest.has_prefix("/storage/.rigs-media/") && staged_guest.has_suffix(".iso"));
                 string staged_host = storage + staged_guest.substring("/storage".length);
                 GuestMedia.validate_iso(staged_host);
-                media.attach(vm, iso, "cd0");
+                media.attach(resource, iso, "cd0");
                 assert(media.image.get_object_member("file").get_string_member("filename") == staged_guest);
                 FileUtils.set_contents(staged_host, "do not overwrite");
                 rejected = false;
-                try { media.attach(vm, iso, "cd0"); } catch (IOError.EXISTS e) { rejected = true; }
+                try { media.attach(resource, iso, "cd0"); } catch (IOError.EXISTS e) { rejected = true; }
                 assert(rejected);
                 string untouched;
                 FileUtils.get_contents(staged_host, out untouched);

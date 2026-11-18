@@ -5,15 +5,15 @@ using Rigs.Tests;
 int main(string[] args) {
     Test.init(ref args);
 
-    Test.add_func("/models/defaults", TestModels.test_vm_model_defaults);
+    Test.add_func("/models/defaults", TestModels.test_resource_defaults);
     Test.add_func("/guest-memory/windows-and-linux", TestGuestMemory.test_windows);
     Test.add_func("/guest-memory/invalid-and-stale", TestGuestMemory.test_invalid);
     Test.add_func("/guest-memory/qmp", TestGuestMemory.test_qmp);
     Test.add_func("/guest-memory/qmp-error", TestGuestMemory.test_qmp_error);
     Test.add_func("/guest-memory/states", TestGuestMemory.test_states);
     Test.add_func("/guest-memory/libvirt", TestGuestMemory.test_libvirt);
-    Test.add_func("/models/json_roundtrip", TestModels.test_vm_model_json_roundtrip);
-    Test.add_func("/models/empty_json", TestModels.test_vm_model_empty_json);
+    Test.add_func("/models/json_roundtrip", TestModels.test_resource_json_roundtrip);
+    Test.add_func("/models/empty_json", TestModels.test_resource_empty_json);
     Test.add_func("/models/empty_configuration", TestModels.test_empty_configuration);
 
     Test.add_func("/drivers/registry_singleton", TestDrivers.test_registry_singleton);
@@ -29,17 +29,17 @@ int main(string[] args) {
 
     Test.add_func("/diagnostics/report", TestDiagnostics.test_diagnostics_report);
 
-    Test.add_func("/startup-diagnostics/empty", TestStartupDiagnostics.test_empty);
-    Test.add_func("/startup-diagnostics/mount", TestStartupDiagnostics.test_mount);
-    Test.add_func("/startup-diagnostics/port", TestStartupDiagnostics.test_port);
-    Test.add_func("/startup-diagnostics/conflict", TestStartupDiagnostics.test_conflict);
-    Test.add_func("/startup-diagnostics/kvm", TestStartupDiagnostics.test_kvm);
-    Test.add_func("/startup-diagnostics/netns", TestStartupDiagnostics.test_netns);
-    Test.add_func("/startup-diagnostics/oom", TestStartupDiagnostics.test_oom);
-    Test.add_func("/startup-diagnostics/generic-and-limits", TestStartupDiagnostics.test_generic_and_limits);
-    Test.add_func("/startup-diagnostics/diagnose-logs-fallback", TestStartupDiagnostics.test_diagnose_logs_fallback);
-    Test.add_func("/startup-diagnostics/managed-start", TestStartupDiagnostics.test_managed_start);
-    Test.add_func("/startup-diagnostics/model-issue", TestStartupDiagnostics.test_model_issue);
+    Test.add_func("/startup-diagnostics/empty", TestFailureRules.test_empty);
+    Test.add_func("/startup-diagnostics/mount", TestFailureRules.test_mount);
+    Test.add_func("/startup-diagnostics/port", TestFailureRules.test_port);
+    Test.add_func("/startup-diagnostics/conflict", TestFailureRules.test_conflict);
+    Test.add_func("/startup-diagnostics/kvm", TestFailureRules.test_kvm);
+    Test.add_func("/startup-diagnostics/netns", TestFailureRules.test_netns);
+    Test.add_func("/startup-diagnostics/oom", TestFailureRules.test_oom);
+    Test.add_func("/startup-diagnostics/generic-and-limits", TestFailureRules.test_generic_and_limits);
+    Test.add_func("/startup-diagnostics/diagnose-logs-fallback", TestFailureRules.test_diagnose_logs_fallback);
+    Test.add_func("/startup-diagnostics/managed-start", TestFailureRules.test_managed_start);
+    Test.add_func("/startup-diagnostics/model-issue", TestFailureRules.test_model_issue);
 
     Test.add_func("/search/initial_by_name", TestSearchProvider.test_initial_search_by_name);
     Test.add_func("/search/initial_by_port_and_type", TestSearchProvider.test_initial_search_by_port_and_type);

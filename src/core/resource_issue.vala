@@ -1,6 +1,6 @@
 using GLib.Intl;
 
-/* startup_diagnostics.vala — deterministic, rule-based analysis of resource startup failures. */
+/* resource_issue.vala — deterministic, rule-based analysis of resource startup failures. */
 namespace Rigs {
     public enum FailureCategory {
         STORAGE_MOUNT,
@@ -24,7 +24,7 @@ namespace Rigs {
         RUN
     }
 
-    public class StartupIssue : Object {
+    public class ResourceIssue : Object {
         public FailureCategory category { get; set; default = FailureCategory.GENERIC_ERROR; }
         public ResourceOperation operation { get; set; default = ResourceOperation.START; }
         public string title { get; set; default = ""; }
@@ -36,7 +36,7 @@ namespace Rigs {
         public string? matched_snippet { get; set; default = null; }
     }
 
-    public class StartupDiagnostics : Object {
+    public class FailureRules : Object {
         private const int MAX_INPUT = 65536;
         // Nonzero exits of long-running user commands (foreground QEMU, viewers) count
         // as start/connect failures only this soon after launch; later ones are RUN issues.
@@ -66,9 +66,9 @@ namespace Rigs {
             }
         }
 
-        private static StartupIssue make(FailureCategory category, string title, string description,
+        private static ResourceIssue make(FailureCategory category, string title, string description,
                 string? action, string? command, string? snippet) {
-            var issue = new StartupIssue();
+            var issue = new ResourceIssue();
             issue.category = category;
             issue.title = title;
             issue.description = description;
@@ -78,7 +78,7 @@ namespace Rigs {
             return issue;
         }
 
-        public static StartupIssue? analyze(string raw_output, string? guest_os = null) {
+        public static ResourceIssue? analyze(string raw_output, string? guest_os = null) {
             string text = raw_output.strip();
             if (text.length == 0) return null;
             if (text.length > MAX_INPUT) text = text.substring(text.length - MAX_INPUT);
@@ -162,7 +162,7 @@ namespace Rigs {
         }
 
         // Combines stderr/stdout, falls back to `logs --tail=30` for an exited container, then classifies.
-        public static StartupIssue? diagnose(HostCommand host, string runtime, string container,
+        public static ResourceIssue? diagnose(HostCommand host, string runtime, string container,
                 CommandResult? result, string? guest_os = null) {
             string text = result != null ? (result.error_output + "\n" + result.output).strip() : "";
             if (text.length == 0 && usable_name(container) && (runtime == "podman" || runtime == "docker")) {
@@ -204,8 +204,8 @@ namespace Rigs {
         }
 
         // An exception from HostCommand/GIO (program missing, timeout, unsupported package) as an issue.
-        public static StartupIssue from_error(Error e, ResourceOperation operation = ResourceOperation.START) {
-            StartupIssue issue;
+        public static ResourceIssue from_error(Error e, ResourceOperation operation = ResourceOperation.START) {
+            ResourceIssue issue;
             if (e.matches(IOError.quark(), IOError.TIMED_OUT)) {
                 issue = make(FailureCategory.TIMEOUT, _("The command timed out"),
                     _("The command did not finish within its time limit."),
@@ -228,7 +228,7 @@ namespace Rigs {
         }
 
         // The command finished without an error, yet the resource is not running.
-        public static StartupIssue not_running(string detail, string? suggested_command = null) {
+        public static ResourceIssue not_running(string detail, string? suggested_command = null) {
             return make(FailureCategory.GENERIC_ERROR, _("The resource stopped right after start"),
                 _("The start command finished, but the resource is not running."),
                 suggested_command != null ? _("Inspect it with `%s`.").printf(suggested_command)
@@ -238,7 +238,7 @@ namespace Rigs {
 
         // Runs a user-configured command and turns a nonzero exit or an exception into an issue.
         // timeout_ms == 0: long-running command (viewer, foreground VM) via run_capture_tail.
-        public static StartupIssue? check_command(HostCommand host, string[] argv, string? directory,
+        public static ResourceIssue? check_command(HostCommand host, string[] argv, string? directory,
                 ResourceOperation operation, uint timeout_ms = 0) {
             try {
                 var result = timeout_ms == 0 ? host.run_capture_tail(argv, directory)
@@ -254,21 +254,21 @@ namespace Rigs {
 
         // The only way drivers run work off the main thread: whatever the job
         // returns is published, so a failure cannot be dropped on the floor.
-        public delegate StartupIssue? Job();
+        public delegate ResourceIssue? Job();
 
-        public static void run_in_background(VmModel vm, string thread_name, owned Job job) {
+        public static void run_in_background(Resource resource, string thread_name, owned Job job) {
             new Thread<void*>(thread_name, () => {
-                StartupIssue? issue = job();
-                if (issue != null) publish(vm, issue);
+                ResourceIssue? issue = job();
+                if (issue != null) publish(resource, issue);
                 return null;
             });
         }
 
         // Safe from worker threads: model changes happen on the main context.
-        public static void publish(VmModel vm, StartupIssue issue) {
+        public static void publish(Resource resource, ResourceIssue issue) {
             Idle.add(() => {
-                vm.last_startup_issue = issue;
-                vm.startup_failed(issue);
+                resource.last_issue = issue;
+                resource.issue_raised(issue);
                 return false;
             });
         }

@@ -15,13 +15,13 @@ namespace Rigs {
         private MonitorInterval interval = MonitorInterval.BACKGROUND;
         private Mutex mutex = Mutex();
         private Cond cond = Cond();
-        private GenericArray<VmModel> monitored_vms = new GenericArray<VmModel>();
+        private GenericArray<Resource> monitored = new GenericArray<Resource>();
 
         // Previous CPU counters for delta calculation
         private uint64 prev_idle = 0;
         private uint64 prev_total = 0;
 
-        public signal void updated(HostStatus host, HashTable<string, VmStatus?> vm_statuses);
+        public signal void updated(HostStatus host, HashTable<string, ResourceStatus?> statuses);
 
         public void set_interval(MonitorInterval new_interval) {
             mutex.lock();
@@ -30,8 +30,8 @@ namespace Rigs {
             mutex.unlock();
         }
 
-        public void start(GenericArray<VmModel> vms) {
-            set_vms(vms);
+        public void start(GenericArray<Resource> resources) {
+            set_resources(resources);
             AtomicInt.set(ref active, 1);
             worker_thread = new Thread<void*>("rigs-monitor", () => {
                 while (AtomicInt.get(ref active) == 1) {
@@ -44,16 +44,16 @@ namespace Rigs {
                         break;
                     }
                     uint32 sleep_ms = (uint32)interval;
-                    var snapshot = monitored_vms;
+                    var snapshot = monitored;
                     mutex.unlock();
 
                     HostStatus host = read_host_status();
-                    var results = new HashTable<string, VmStatus?>(str_hash, str_equal);
+                    var results = new HashTable<string, ResourceStatus?>(str_hash, str_equal);
 
                     for (int i = 0; i < snapshot.length; i++) {
-                        VmModel vm = snapshot[i];
-                        VmStatus st = check_vm(vm);
-                        results.insert(vm.id, st);
+                        Resource resource = snapshot[i];
+                        ResourceStatus st = check_resource(resource);
+                        results.insert(resource.id, st);
                     }
 
                     Idle.add(() => {
@@ -76,15 +76,15 @@ namespace Rigs {
 
         // Called by the GTK thread after registration/removal/settings changes.
         // The worker never traverses the mutable UI array or mutable VM models.
-        public void set_vms(GenericArray<VmModel> vms) {
-            var snapshot = new GenericArray<VmModel>();
-            for (int i = 0; i < vms.length; i++) {
+        public void set_resources(GenericArray<Resource> resources) {
+            var snapshot = new GenericArray<Resource>();
+            for (int i = 0; i < resources.length; i++) {
                 var node = new Json.Node(Json.NodeType.OBJECT);
-                node.set_object(vms[i].to_json_object());
-                snapshot.add(VmModel.from_json_node(node));
+                node.set_object(resources[i].to_json_object());
+                snapshot.add(Resource.from_json_node(node));
             }
             mutex.lock();
-            monitored_vms = snapshot;
+            monitored = snapshot;
             cond.signal();
             mutex.unlock();
         }
@@ -176,14 +176,14 @@ namespace Rigs {
             return 0;
         }
 
-        private VmStatus check_vm(VmModel vm) {
-            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+        private ResourceStatus check_resource(Resource resource) {
+            Driver? driver = DriverRegistry.get_default().get_driver(resource.kind);
             if (driver != null) {
-                var status = driver.check_status(vm);
-                if (status.running && (vm.guest_os == "windows" || vm.guest_os == "linux")) {
-                    var checked = vm.vm_type == "libvirt"
-                        ? GuestMemory.check_libvirt(vm.connection_uri, vm.resource_id, vm.guest_os == "windows")
-                        : GuestMemory.check(vm.qmp_socket, vm.guest_os == "windows");
+                var status = driver.check_status(resource);
+                if (status.running && (resource.guest_os == "windows" || resource.guest_os == "linux")) {
+                    var checked = resource.kind == "libvirt"
+                        ? GuestMemory.check_libvirt(resource.connection_uri, resource.resource_id, resource.guest_os == "windows")
+                        : GuestMemory.check(resource.qmp_socket, resource.guest_os == "windows");
                     status.guest_memory_state = checked.state;
                     var guest = checked.memory;
                     if (guest != null) {
@@ -196,7 +196,7 @@ namespace Rigs {
                 return status;
             }
 
-            VmStatus st = VmStatus();
+            ResourceStatus st = ResourceStatus();
             st.running = false;
             st.cpu_pct = 0.0;
             st.ram_str = "0 MB";

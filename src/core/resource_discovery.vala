@@ -14,7 +14,7 @@ namespace Rigs {
     }
 
     public class DiscoveryResult : Object {
-        public GenericArray<VmModel> candidates = new GenericArray<VmModel>();
+        public GenericArray<Resource> candidates = new GenericArray<Resource>();
         public GenericArray<DiscoverySource> sources = new GenericArray<DiscoverySource>();
     }
 
@@ -54,19 +54,19 @@ namespace Rigs {
             return _("Runtime discovery failed. Check host access and runtime availability.");
         }
 
-        public DiscoveryResult scan(GenericArray<VmModel> existing) {
+        public DiscoveryResult scan(GenericArray<Resource> existing) {
             var result = new DiscoveryResult();
             var container_ids = new HashTable<string, bool>(str_hash, str_equal);
             var legacy_names = new HashTable<string, bool>(str_hash, str_equal);
             var domains = new HashTable<string, bool>(str_hash, str_equal);
             for (uint i = 0; i < existing.length; i++) {
-                var vm = existing[i];
-                if (vm.vm_type == "container" || vm.vm_type == "compose") {
-                    if (vm.resource_id.length > 0) container_ids.insert(vm.resource_id.down(), true);
-                    if (vm.vm_type == "compose" && vm.container_name.length > 0)
-                        legacy_names.insert(vm.runtime + ":" + vm.container_name, true);
-                } else if (vm.vm_type == "libvirt") {
-                    domains.insert(vm.connection_uri + ":" + vm.resource_id.down(), true);
+                var resource = existing[i];
+                if (resource.kind == "container" || resource.kind == "compose") {
+                    if (resource.resource_id.length > 0) container_ids.insert(resource.resource_id.down(), true);
+                    if (resource.kind == "compose" && resource.container_name.length > 0)
+                        legacy_names.insert(resource.runtime + ":" + resource.container_name, true);
+                } else if (resource.kind == "libvirt") {
+                    domains.insert(resource.connection_uri + ":" + resource.resource_id.down(), true);
                 }
             }
             foreach (string engine in new string[] { "podman", "docker" }) {
@@ -92,18 +92,18 @@ namespace Rigs {
                         if (container_ids.contains(identity)) continue;
                         container_ids.insert(identity, true);
                         if (legacy_names.contains(engine + ":" + fields[1])) continue;
-                        var vm = new VmModel();
-                        vm.id = engine + ":" + identity;
-                        vm.name = fields[1];
-                        vm.vm_type = "container";
-                        vm.runtime = engine;
-                        vm.resource_id = identity;
-                        vm.container_name = fields[1];
-                        vm.subtitle = engine + " • " + fields[2];
-                        vm.details = fields[3];
-                        vm.icon = "network-server-symbolic";
-                        if (is_windows_vm_image(fields[2])) vm.guest_os = "windows";
-                        result.candidates.add(vm);
+                        var resource = new Resource();
+                        resource.id = engine + ":" + identity;
+                        resource.name = fields[1];
+                        resource.kind = "container";
+                        resource.runtime = engine;
+                        resource.resource_id = identity;
+                        resource.container_name = fields[1];
+                        resource.subtitle = engine + " • " + fields[2];
+                        resource.details = fields[3];
+                        resource.icon = "network-server-symbolic";
+                        if (is_windows_vm_image(fields[2])) resource.guest_os = "windows";
+                        result.candidates.add(resource);
                     }
                     source.available = !malformed;
                     source.message = malformed ? _("Runtime returned malformed inventory data; some resources were skipped.") :
@@ -133,15 +133,15 @@ namespace Rigs {
                         string identity = uri + ":" + uuid;
                         if (domains.contains(identity)) continue;
                         domains.insert(identity, true);
-                        var vm = new VmModel();
-                        vm.id = identity;
-                        vm.name = line.substring(36).strip();
-                        vm.vm_type = "libvirt";
-                        vm.resource_id = uuid;
-                        vm.connection_uri = uri;
-                        vm.subtitle = "libvirt • " + uri;
-                        vm.icon = "computer-symbolic";
-                        result.candidates.add(vm);
+                        var resource = new Resource();
+                        resource.id = identity;
+                        resource.name = line.substring(36).strip();
+                        resource.kind = "libvirt";
+                        resource.resource_id = uuid;
+                        resource.connection_uri = uri;
+                        resource.subtitle = "libvirt • " + uri;
+                        resource.icon = "computer-symbolic";
+                        result.candidates.add(resource);
                     }
                     source.available = !malformed;
                     source.message = malformed ? _("Runtime returned malformed inventory data; some resources were skipped.") :

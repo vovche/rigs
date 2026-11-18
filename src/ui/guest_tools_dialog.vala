@@ -16,7 +16,7 @@ namespace Rigs {
             }
         }
 
-        public GuestToolsDialog(VmModel vm, GuestMemoryState state) {
+        public GuestToolsDialog(Resource resource, GuestMemoryState state) {
             title = _("Guest Integration");
             content_width = 580;
             content_height = 600;
@@ -33,10 +33,10 @@ namespace Rigs {
             var page = new Adw.PreferencesPage();
             scrolled.set_child(page);
             var status = new Adw.PreferencesGroup();
-            status.title = vm.name;
+            status.title = resource.name;
             status.description = describe(state);
             page.add(status);
-            var guidance = new Gtk.Label(vm.vm_type == "libvirt"
+            var guidance = new Gtk.Label(resource.kind == "libvirt"
                 ? _("Choose the guest OS. Rigs reads memory statistics through libvirt. Ensure the domain has a VirtIO memory balloon device; use your VM manager to add it if needed, then restart the VM. No separate QMP socket is needed.")
                 : _("Choose the guest OS and the host path of its QMP socket. Host memory and guest memory are measured separately."));
             guidance.wrap = true;
@@ -48,26 +48,26 @@ namespace Rigs {
             var os = new Adw.ComboRow();
             os.title = _("Guest Operating System");
             os.model = new Gtk.StringList({_("Choose an operating system"), "Windows", "Linux"});
-            os.selected = vm.guest_os == "windows" ? 1 : vm.guest_os == "linux" ? 2 : 0;
+            os.selected = resource.guest_os == "windows" ? 1 : resource.guest_os == "linux" ? 2 : 0;
             settings.add(os);
             var socket = new Adw.EntryRow();
             socket.title = _("QMP Socket on the Host");
-            socket.text = vm.qmp_socket;
-            socket.visible = vm.vm_type != "libvirt";
+            socket.text = resource.qmp_socket;
+            socket.visible = resource.kind != "libvirt";
             settings.add(socket);
             var agent_socket = new Adw.EntryRow();
             agent_socket.title = _("Guest Agent Socket on the Host");
-            agent_socket.text = vm.guest_agent_socket;
-            agent_socket.visible = vm.vm_type != "libvirt";
+            agent_socket.text = resource.guest_agent_socket;
+            agent_socket.visible = resource.kind != "libvirt";
             settings.add(agent_socket);
             os.notify["selected"].connect(() => {
-                save.sensitive = valid_settings(vm, os, socket, agent_socket);
+                save.sensitive = valid_settings(resource, os, socket, agent_socket);
             });
             socket.notify["text"].connect(() => {
-                save.sensitive = valid_settings(vm, os, socket, agent_socket);
+                save.sensitive = valid_settings(resource, os, socket, agent_socket);
             });
-            agent_socket.notify["text"].connect(() => { save.sensitive = valid_settings(vm, os, socket, agent_socket); });
-            save.sensitive = valid_settings(vm, os, socket, agent_socket);
+            agent_socket.notify["text"].connect(() => { save.sensitive = valid_settings(resource, os, socket, agent_socket); });
+            save.sensitive = valid_settings(resource, os, socket, agent_socket);
             var help = new Adw.PreferencesGroup();
             help.title = _("Guest Drivers and Services");
             help.description = _("Missing statistics alone do not prove that a driver is missing. Check the connection, device and guest service before installing anything.");
@@ -79,9 +79,9 @@ namespace Rigs {
             var downloads = new Gtk.Button.with_label(_("Set Up Windows Drivers…"));
             downloads.valign = Gtk.Align.CENTER;
             downloads.clicked.connect(() => {
-                if (!valid_settings(vm, os, socket, agent_socket)) return;
-                save_connection(vm, os, socket, agent_socket);
-                new GuestDriverSetupDialog(vm).present(this);
+                if (!valid_settings(resource, os, socket, agent_socket)) return;
+                save_connection(resource, os, socket, agent_socket);
+                new GuestDriverSetupDialog(resource).present(this);
             });
             downloads.sensitive = os.selected == 1 && save.sensitive;
             save.notify["sensitive"].connect(() => { downloads.sensitive = os.selected == 1 && save.sensitive; });
@@ -96,7 +96,7 @@ namespace Rigs {
             var qemu = new Adw.PreferencesGroup();
             qemu.title = _("QEMU Launch Configuration");
             qemu.description = _("The VM needs a virtio-balloon device named balloon0 and a local QMP socket. Add these options in your VM manager or launch configuration, then restart the VM. Keep any existing balloon device; do not add a duplicate.");
-            qemu.visible = vm.vm_type != "libvirt";
+            qemu.visible = resource.kind != "libvirt";
             page.add(qemu);
             var options = new Gtk.Label("-device virtio-balloon-pci,id=balloon0,guest-stats-polling-interval=5\n-qmp unix:/path/to/qmp.sock,server=on,wait=off");
             options.add_css_class("monospace");
@@ -106,11 +106,11 @@ namespace Rigs {
             qemu.add(options);
             var agent_help = new Adw.PreferencesGroup();
             agent_help.title = _("Guest Agent Channel");
-            agent_help.description = vm.vm_type == "libvirt"
+            agent_help.description = resource.kind == "libvirt"
                 ? _("In your VM manager, add a VirtIO channel named org.qemu.guest_agent.0. Install QEMU Guest Agent in Windows from the VirtIO ISO. Rigs then uses the libvirt agent connection without Windows passwords.")
                 : _("Guest Agent uses a separate socket from QMP. Configure a VirtIO serial channel named org.qemu.guest_agent.0 before the first agent installation. Keep existing controllers and channels; do not add duplicates.");
             page.add(agent_help);
-            if (vm.vm_type != "libvirt") {
+            if (resource.kind != "libvirt") {
                 var agent_options = new Gtk.Label("-chardev socket,id=qga0,path=/path/to/qga.sock,server=on,wait=off\n-device virtio-serial-pci\n-device virtserialport,chardev=qga0,name=org.qemu.guest_agent.0");
                 agent_options.add_css_class("monospace");
                 agent_options.selectable = true;
@@ -119,23 +119,23 @@ namespace Rigs {
                 agent_help.add(agent_options);
             }
             save.clicked.connect(() => {
-                save_connection(vm, os, socket, agent_socket);
+                save_connection(resource, os, socket, agent_socket);
                 close();
             });
         }
 
-        private bool valid_settings(VmModel vm, Adw.ComboRow os, Adw.EntryRow qmp, Adw.EntryRow agent) {
+        private bool valid_settings(Resource resource, Adw.ComboRow os, Adw.EntryRow qmp, Adw.EntryRow agent) {
             if (os.selected == 0) return false;
-            if (vm.vm_type == "libvirt") return true;
+            if (resource.kind == "libvirt") return true;
             return (qmp.text.strip().length == 0 || qmp.text.strip().has_prefix("/")) &&
                 (agent.text.strip().length == 0 || agent.text.strip().has_prefix("/"));
         }
 
-        private void save_connection(VmModel vm, Adw.ComboRow os, Adw.EntryRow qmp, Adw.EntryRow agent) {
-            vm.guest_os = os.selected == 1 ? "windows" : "linux";
-            if (vm.vm_type != "libvirt") {
-                vm.qmp_socket = qmp.text.strip();
-                vm.guest_agent_socket = agent.text.strip();
+        private void save_connection(Resource resource, Adw.ComboRow os, Adw.EntryRow qmp, Adw.EntryRow agent) {
+            resource.guest_os = os.selected == 1 ? "windows" : "linux";
+            if (resource.kind != "libvirt") {
+                resource.qmp_socket = qmp.text.strip();
+                resource.guest_agent_socket = agent.text.strip();
             }
             settings_saved();
         }

@@ -1,35 +1,35 @@
 /* Managed resources use stable runtime identities, never generated shell commands. */
 namespace Rigs {
     public class ManagedDriver : Object, Driver {
-        private string kind;
+        private string managed_kind;
         private HostCommand commands;
 
-        public string vm_type { get { return kind; } }
+        public string kind { get { return managed_kind; } }
 
-        public ManagedDriver(string kind, HostCommand? commands = null) {
-            this.kind = kind;
+        public ManagedDriver(string managed_kind, HostCommand? commands = null) {
+            this.managed_kind = managed_kind;
             this.commands = commands ?? new HostCommand();
         }
 
-        private bool valid_target(VmModel vm) {
-            if (kind == "container") {
-                return (vm.runtime == "podman" || vm.runtime == "docker") &&
-                    Regex.match_simple("^[a-fA-F0-9]{12,64}$", vm.resource_id);
+        private bool valid_target(Resource resource) {
+            if (managed_kind == "container") {
+                return (resource.runtime == "podman" || resource.runtime == "docker") &&
+                    Regex.match_simple("^[a-fA-F0-9]{12,64}$", resource.resource_id);
             }
-            return kind == "libvirt" &&
-                (vm.connection_uri == "qemu:///session" || vm.connection_uri == "qemu:///system") &&
-                Regex.match_simple("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$", vm.resource_id);
+            return managed_kind == "libvirt" &&
+                (resource.connection_uri == "qemu:///session" || resource.connection_uri == "qemu:///system") &&
+                Regex.match_simple("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$", resource.resource_id);
         }
 
         // Public for deterministic lifecycle contract tests without starting real resources.
-        public string[] lifecycle_argv(VmModel vm, bool starting) {
-            if (!valid_target(vm)) return {};
-            if (kind == "container") {
-                if (starting) return { vm.runtime, "start", vm.resource_id };
-                return { vm.runtime, "stop", "--time", "30", vm.resource_id };
+        public string[] lifecycle_argv(Resource resource, bool starting) {
+            if (!valid_target(resource)) return {};
+            if (managed_kind == "container") {
+                if (starting) return { resource.runtime, "start", resource.resource_id };
+                return { resource.runtime, "stop", "--time", "30", resource.resource_id };
             }
-            return { "virsh", "--connect", vm.connection_uri,
-                starting ? "start" : "shutdown", vm.resource_id };
+            return { "virsh", "--connect", resource.connection_uri,
+                starting ? "start" : "shutdown", resource.resource_id };
         }
 
         // Milliseconds to wait before checking whether a started container exited at once.
@@ -38,81 +38,81 @@ namespace Rigs {
         public uint cpu_count = 0;
 
         // Synchronous start; returns the diagnosed failure, if any. Public for headless tests.
-        public StartupIssue? start_blocking(VmModel vm) {
-            string[] argv = lifecycle_argv(vm, true);
+        public ResourceIssue? start_blocking(Resource resource) {
+            string[] argv = lifecycle_argv(resource, true);
             if (argv.length == 0) return null;
-            string container = kind == "container" ? vm.resource_id : "";
+            string container = managed_kind == "container" ? resource.resource_id : "";
             try {
                 var result = commands.run(argv, null, 30000);
                 if (result.exit_status != 0) {
-                    return StartupDiagnostics.diagnose(commands, vm.runtime, container, result, vm.guest_os);
+                    return FailureRules.diagnose(commands, resource.runtime, container, result, resource.guest_os);
                 }
                 if (settle_ms > 0) Thread.usleep(settle_ms * 1000);
-                if (kind == "container") {
-                    if (StartupDiagnostics.exited_after_start(commands, vm.runtime, container))
-                        return StartupDiagnostics.diagnose(commands, vm.runtime, container, null, vm.guest_os);
+                if (managed_kind == "container") {
+                    if (FailureRules.exited_after_start(commands, resource.runtime, container))
+                        return FailureRules.diagnose(commands, resource.runtime, container, null, resource.guest_os);
                 } else {
-                    return libvirt_exited_after_start(vm);
+                    return libvirt_exited_after_start(resource);
                 }
             } catch (Error e) {
-                return StartupDiagnostics.from_error(e);
+                return FailureRules.from_error(e);
             }
             return null;
         }
 
         // `virsh start` succeeds before QEMU has fully come up; a domain that died at once is "shut off"/"crashed".
-        private StartupIssue? libvirt_exited_after_start(VmModel vm) throws Error {
-            var state = commands.run({ "virsh", "--connect", vm.connection_uri, "domstate", "--reason", vm.resource_id });
+        private ResourceIssue? libvirt_exited_after_start(Resource resource) throws Error {
+            var state = commands.run({ "virsh", "--connect", resource.connection_uri, "domstate", "--reason", resource.resource_id });
             string text = state.output.strip();
             if (state.exit_status != 0 || !(text.has_prefix("shut off") || text.has_prefix("crashed"))) return null;
-            return StartupDiagnostics.not_running(text,
-                "virsh --connect %s dominfo %s".printf(vm.connection_uri, vm.resource_id));
+            return FailureRules.not_running(text,
+                "virsh --connect %s dominfo %s".printf(resource.connection_uri, resource.resource_id));
         }
 
-        public void start(VmModel vm) {
-            if (lifecycle_argv(vm, true).length == 0) return;
-            StartupDiagnostics.run_in_background(vm, "managed-start", () => start_blocking(vm));
+        public void start(Resource resource) {
+            if (lifecycle_argv(resource, true).length == 0) return;
+            FailureRules.run_in_background(resource, "managed-start", () => start_blocking(resource));
         }
 
-        public void stop(VmModel vm) {
-            string[] argv = lifecycle_argv(vm, false);
+        public void stop(Resource resource) {
+            string[] argv = lifecycle_argv(resource, false);
             if (argv.length == 0) return;
-            StartupDiagnostics.run_in_background(vm, "managed-stop", () =>
-                StartupDiagnostics.check_command(commands, argv, null, ResourceOperation.STOP, 35000));
+            FailureRules.run_in_background(resource, "managed-stop", () =>
+                FailureRules.check_command(commands, argv, null, ResourceOperation.STOP, 35000));
         }
 
         // Public for headless tests; empty when there is nothing safe to run.
-        public string[] connect_argv(VmModel vm, out string? directory) {
+        public string[] connect_argv(Resource resource, out string? directory) {
             directory = null;
-            if (!valid_target(vm)) return {};
-            if (kind == "libvirt") return { "virt-viewer", "--connect", vm.connection_uri, vm.resource_id };
-            if (vm.connect_cmd.length == 0) return {};
-            directory = vm.dir.length > 0 ? vm.dir : null;
-            return { "/bin/bash", "-c", vm.connect_cmd };
+            if (!valid_target(resource)) return {};
+            if (managed_kind == "libvirt") return { "virt-viewer", "--connect", resource.connection_uri, resource.resource_id };
+            if (resource.connect_cmd.length == 0) return {};
+            directory = resource.dir.length > 0 ? resource.dir : null;
+            return { "/bin/bash", "-c", resource.connect_cmd };
         }
 
-        public void connect_vm(VmModel vm) {
+        public void open_console(Resource resource) {
             string? directory;
-            string[] argv = connect_argv(vm, out directory);
+            string[] argv = connect_argv(resource, out directory);
             if (argv.length == 0) return;
-            StartupDiagnostics.run_in_background(vm, "managed-connect", () =>
-                StartupDiagnostics.check_command(commands, argv, directory, ResourceOperation.CONNECT));
+            FailureRules.run_in_background(resource, "managed-connect", () =>
+                FailureRules.check_command(commands, argv, directory, ResourceOperation.CONNECT));
         }
 
-        public VmStatus check_status(VmModel vm) {
-            VmStatus status = VmStatus();
+        public ResourceStatus check_status(Resource resource) {
+            ResourceStatus status = ResourceStatus();
             status.ram_str = "—";
-            if (!valid_target(vm)) return status;
+            if (!valid_target(resource)) return status;
             try {
-                if (kind == "container") {
-                    var inspected = commands.run({ vm.runtime, "inspect", "--format", "{{.State.Running}}", vm.resource_id });
+                if (managed_kind == "container") {
+                    var inspected = commands.run({ resource.runtime, "inspect", "--format", "{{.State.Running}}", resource.resource_id });
                     string state = inspected.output.strip();
                     if (inspected.exit_status != 0 || (state != "true" && state != "false")) return status;
                     status.status_available = true;
                     status.running = state == "true";
                     if (!status.running) return status;
-                    string format = vm.runtime == "podman" ? "{{.CPU}}\t{{.MemUsage}}" : "{{.CPUPerc}}\t{{.MemUsage}}";
-                    var stats = commands.run({ vm.runtime, "stats", "--no-stream", "--format", format, vm.resource_id });
+                    string format = resource.runtime == "podman" ? "{{.CPU}}\t{{.MemUsage}}" : "{{.CPUPerc}}\t{{.MemUsage}}";
+                    var stats = commands.run({ resource.runtime, "stats", "--no-stream", "--format", format, resource.resource_id });
                     if (stats.exit_status == 0) {
                         string[] fields = stats.output.strip().split("\t");
                         if (fields.length == 2) {
@@ -123,7 +123,7 @@ namespace Rigs {
                     }
                 } else {
                     // HostCommand supplies LC_ALL=C so virsh field names are stable.
-                    var info = commands.run({ "virsh", "--connect", vm.connection_uri, "dominfo", vm.resource_id });
+                    var info = commands.run({ "virsh", "--connect", resource.connection_uri, "dominfo", resource.resource_id });
                     if (info.exit_status != 0) return status;
                     string state = "";
                     string memory = "";
@@ -153,7 +153,7 @@ namespace Rigs {
             return status;
         }
 
-        public void insert_iso(VmModel vm, string iso_path) { }
-        public void eject_iso(VmModel vm) { }
+        public void insert_iso(Resource resource, string iso_path) { }
+        public void eject_iso(Resource resource) { }
     }
 }

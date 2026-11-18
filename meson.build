@@ -55,7 +55,7 @@ test_sources = [
   'tests/test_managed_driver.vala',
   'tests/test_drivers.vala',
   'tests/test_diagnostics.vala',
-  'tests/test_startup_diagnostics.vala',
+  'tests/test_failure_rules.vala',
   'tests/test_regressions.vala',
   'tests/test_search_provider.vala',
   'tests/mock_driver.vala',

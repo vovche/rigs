@@ -16,14 +16,14 @@ namespace Rigs.Tests {
             var registry = DriverRegistry.get_default();
             var driver = registry.get_driver("qemu");
             assert(driver != null);
-            assert(driver.vm_type == "qemu");
+            assert(driver.kind == "qemu");
         }
 
         public static void test_compose_driver_lookup() {
             var registry = DriverRegistry.get_default();
             var driver = registry.get_driver("compose");
             assert(driver != null);
-            assert(driver.vm_type == "compose");
+            assert(driver.kind == "compose");
         }
 
         public static void test_fallback_driver_lookup() {
@@ -34,12 +34,12 @@ namespace Rigs.Tests {
 
         public static void test_qemu_stopped_status() {
             var driver = DriverRegistry.get_default().get_driver("qemu");
-            var vm = new VmModel();
-            vm.id = "non-existent-vm";
-            vm.process_name = "definitely_not_running_process_xyz_12345";
-            vm.vm_type = "qemu";
+            var resource = new Resource();
+            resource.id = "non-existent-vm";
+            resource.process_match = "definitely_not_running_process_xyz_12345";
+            resource.kind = "qemu";
 
-            var st = driver.check_status(vm);
+            var st = driver.check_status(resource);
             assert(!st.running);
             assert(st.cpu_pct == 0.0);
             assert(st.ram_str == "0 MB");
@@ -47,12 +47,12 @@ namespace Rigs.Tests {
 
         public static void test_compose_stopped_status() {
             var driver = DriverRegistry.get_default().get_driver("compose");
-            var vm = new VmModel();
-            vm.id = "non-existent-compose";
-            vm.container_name = "definitely_not_running_container_xyz_12345";
-            vm.vm_type = "compose";
+            var resource = new Resource();
+            resource.id = "non-existent-compose";
+            resource.container_name = "definitely_not_running_container_xyz_12345";
+            resource.kind = "compose";
 
-            var st = driver.check_status(vm);
+            var st = driver.check_status(resource);
             assert(!st.running);
             assert(st.cpu_pct == 0.0);
             assert(st.ram_str == "0 MB");
@@ -69,12 +69,12 @@ namespace Rigs.Tests {
 
         public static void test_qemu_start_spawns_process() {
             var driver = DriverRegistry.get_default().get_driver("qemu");
-            var vm = new VmModel();
-            vm.id = "test-qemu";
-            vm.vm_type = "qemu";
+            var resource = new Resource();
+            resource.id = "test-qemu";
+            resource.kind = "qemu";
             string marker = "/tmp/rigs-test-qemu-marker-" + Random.next_int().to_string();
-            vm.start_cmd = "touch " + marker;
-            driver.start(vm);
+            resource.start_cmd = "touch " + marker;
+            driver.start(resource);
 
             // Give thread a brief moment to execute
             Thread.usleep(250 * 1000);
@@ -87,12 +87,12 @@ namespace Rigs.Tests {
 
         public static void test_compose_start_spawns_process() {
             var driver = DriverRegistry.get_default().get_driver("compose");
-            var vm = new VmModel();
-            vm.id = "test-compose";
-            vm.vm_type = "compose";
+            var resource = new Resource();
+            resource.id = "test-compose";
+            resource.kind = "compose";
             string marker = "/tmp/rigs-test-compose-marker-" + Random.next_int().to_string();
-            vm.start_cmd = "touch " + marker;
-            driver.start(vm);
+            resource.start_cmd = "touch " + marker;
+            driver.start(resource);
 
             // Give thread a brief moment to execute
             Thread.usleep(250 * 1000);
@@ -110,25 +110,25 @@ namespace Rigs.Tests {
 
             var retrieved = registry.get_driver("test_hypervisor");
             assert(retrieved != null);
-            assert(retrieved.vm_type == "test_hypervisor");
+            assert(retrieved.kind == "test_hypervisor");
 
-            var vm = new VmModel();
-            vm.id = "mock-vm-1";
-            retrieved.start(vm);
-            retrieved.connect_vm(vm);
-            retrieved.stop(vm);
-            retrieved.insert_iso(vm, "/tmp/test.iso");
-            retrieved.eject_iso(vm);
+            var resource = new Resource();
+            resource.id = "mock-vm-1";
+            retrieved.start(resource);
+            retrieved.open_console(resource);
+            retrieved.stop(resource);
+            retrieved.insert_iso(resource, "/tmp/test.iso");
+            retrieved.eject_iso(resource);
 
-            assert(mock.started_vms.length == 1);
-            assert(mock.started_vms[0] == "mock-vm-1");
-            assert(mock.connected_vms.length == 1);
-            assert(mock.stopped_vms.length == 1);
+            assert(mock.started.length == 1);
+            assert(mock.started[0] == "mock-vm-1");
+            assert(mock.connected.length == 1);
+            assert(mock.stopped.length == 1);
             assert(mock.inserted_isos.lookup("mock-vm-1") == "/tmp/test.iso");
             assert(mock.ejected_isos.length == 1);
 
             mock.reset();
-            assert(mock.started_vms.length == 0);
+            assert(mock.started.length == 0);
         }
     }
 }

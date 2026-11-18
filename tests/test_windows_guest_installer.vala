@@ -14,7 +14,7 @@ namespace Rigs.Tests {
             var p = new Json.Parser(); p.load_from_data(text); return p.get_root().copy();
         }
         private string outcome() { return "{\"code\":" + code.to_string() + ",\"reboot\":" + (code == 3010 ? "true" : "false") + ",\"service\":" + (service ? "true" : "false") + "}"; }
-        public override Json.Node command(VmModel vm, string name, Json.Object? args = null, uint timeout_ms = 5000) throws Error {
+        public override Json.Node command(Resource resource, string name, Json.Object? args = null, uint timeout_ms = 5000) throws Error {
             Test.message("Fake guest operation: %s", name);
             switch (name) {
                 case "guest-info":
@@ -56,7 +56,7 @@ namespace Rigs.Tests {
             }
             assert_not_reached();
         }
-        public override void reboot(VmModel vm) throws Error { reboots++; }
+        public override void reboot(Resource resource) throws Error { reboots++; }
     }
     public class TestWindowsGuestInstaller {
         private static GuestToolsArtifact fixture(string directory) throws Error {
@@ -68,11 +68,11 @@ namespace Rigs.Tests {
             try {
                 var agent = new InstallerAgent();
                 var installer = new WindowsGuestInstaller(agent, DirUtils.make_tmp("rigs-installer-probe-XXXXXX"));
-                var probe = installer.probe(new VmModel());
+                var probe = installer.probe(new Resource());
                 assert(probe.available && probe.compatible && probe.administrator && !probe.balloon_service_running);
                 assert(agent.mutations == 0);
                 agent.supported = false;
-                assert(!installer.probe(new VmModel()).available && agent.mutations == 0);
+                assert(!installer.probe(new Resource()).available && agent.mutations == 0);
             } catch (Error e) { error("Probe test: %s", e.message); }
         }
         public static void test_install() {
@@ -81,7 +81,7 @@ namespace Rigs.Tests {
                     string dir = DirUtils.make_tmp("rigs-installer-install-XXXXXX");
                     var agent = new InstallerAgent(); agent.code = code; agent.reconnect = code == 3010;
                     var installer = new WindowsGuestInstaller(agent, dir); installer.poll_interval_ms = 0;
-                    var result = installer.install(new VmModel(), fixture(dir), 50);
+                    var result = installer.install(new Resource(), fixture(dir), 50);
                     assert(result.state == (code == 0 ? GuestInstallState.SUCCEEDED : GuestInstallState.REBOOT_REQUIRED));
                     assert(result.exit_code == code && agent.reboots == 0);
                     assert(FileUtils.test(result.journal_path, FileTest.IS_REGULAR));
@@ -94,32 +94,32 @@ namespace Rigs.Tests {
             try {
                 string dir = DirUtils.make_tmp("rigs-installer-failure-XXXXXX");
                 var artifact = fixture(dir);
-                var vm = new VmModel();
+                var resource = new Resource();
                 var unsupported = new InstallerAgent(); unsupported.supported = false;
-                assert(new WindowsGuestInstaller(unsupported, dir).install(vm, artifact, 1).state == GuestInstallState.FAILED);
+                assert(new WindowsGuestInstaller(unsupported, dir).install(resource, artifact, 1).state == GuestInstallState.FAILED);
                 assert(unsupported.mutations == 0);
                 var invalid = new InstallerAgent();
                 artifact.sha256 = string.nfill(64, '0');
                 bool rejected = false;
-                try { new WindowsGuestInstaller(invalid, dir).install(vm, artifact, 1); } catch (Error e) { rejected = true; }
+                try { new WindowsGuestInstaller(invalid, dir).install(resource, artifact, 1); } catch (Error e) { rejected = true; }
                 assert(rejected && invalid.mutations == 0);
                 artifact = fixture(dir);
                 artifact.sha256 += "\n"; rejected = false;
                 var newline_hash = new InstallerAgent();
-                try { new WindowsGuestInstaller(newline_hash, dir).install(vm, artifact, 1); } catch (Error e) { rejected = true; }
+                try { new WindowsGuestInstaller(newline_hash, dir).install(resource, artifact, 1); } catch (Error e) { rejected = true; }
                 assert(rejected && newline_hash.mutations == 0);
                 artifact = fixture(dir);
                 var partial = new InstallerAgent(); partial.partial = true; rejected = false;
-                try { new WindowsGuestInstaller(partial, dir).install(vm, artifact, 50); } catch (Error e) { rejected = true; }
+                try { new WindowsGuestInstaller(partial, dir).install(resource, artifact, 50); } catch (Error e) { rejected = true; }
                 assert(rejected && partial.reboots == 0);
                 var bad = new InstallerAgent(); bad.malformed = true; rejected = false;
-                try { new WindowsGuestInstaller(bad, dir).probe(vm); } catch (Error e) { rejected = true; }
+                try { new WindowsGuestInstaller(bad, dir).probe(resource); } catch (Error e) { rejected = true; }
                 assert(rejected && bad.mutations == 0);
                 var unsigned = new InstallerAgent(); unsigned.code = -1; unsigned.service = false;
-                assert(new WindowsGuestInstaller(unsigned, dir).install(vm, artifact, 50).state == GuestInstallState.FAILED);
+                assert(new WindowsGuestInstaller(unsigned, dir).install(resource, artifact, 50).state == GuestInstallState.FAILED);
                 var timeout = new InstallerAgent(); timeout.never_finishes = true;
                 var installer = new WindowsGuestInstaller(timeout, dir); installer.poll_interval_ms = 0;
-                assert(installer.install(vm, artifact, 1).state == GuestInstallState.TIMED_OUT && timeout.reboots == 0);
+                assert(installer.install(resource, artifact, 1).state == GuestInstallState.TIMED_OUT && timeout.reboots == 0);
             } catch (Error e) { error("Failure test: %s", e.message); }
         }
         public static void test_scripts() {
@@ -134,26 +134,26 @@ namespace Rigs.Tests {
         public static void test_resume() {
             try {
                 string dir = DirUtils.make_tmp("rigs-installer-resume-XXXXXX");
-                var vm = new VmModel(); vm.id = "resume-test"; vm.guest_agent_socket = Path.build_filename(dir, "agent.sock");
+                var resource = new Resource(); resource.id = "resume-test"; resource.guest_agent_socket = Path.build_filename(dir, "agent.sock");
                 var timeout = new InstallerAgent(); timeout.never_finishes = true;
                 var installer = new WindowsGuestInstaller(timeout, dir); installer.poll_interval_ms = 0;
-                assert(installer.install(vm, fixture(dir), 1).state == GuestInstallState.TIMED_OUT);
-                assert(installer.has_pending(vm));
-                var alias = new VmModel(); alias.id = "other-card-for-same-guest";
+                assert(installer.install(resource, fixture(dir), 1).state == GuestInstallState.TIMED_OUT);
+                assert(installer.has_pending(resource));
+                var alias = new Resource(); alias.id = "other-card-for-same-guest";
                 alias.guest_agent_socket = Path.build_filename(dir, ".", "agent.sock");
                 assert(installer.has_pending(alias));
                 var waiting = new InstallerAgent(); waiting.never_finishes = true; waiting.reconnect = true;
                 var resumed = new WindowsGuestInstaller(waiting, dir); resumed.poll_interval_ms = 0;
-                assert(resumed.resume(vm, 1).state == GuestInstallState.TIMED_OUT);
-                assert(resumed.has_pending(vm) && waiting.mutations == 0 && waiting.reboots == 0);
+                assert(resumed.resume(resource, 1).state == GuestInstallState.TIMED_OUT);
+                assert(resumed.has_pending(resource) && waiting.mutations == 0 && waiting.reboots == 0);
                 var overflow = new InstallerAgent(); overflow.code = int64.MAX;
                 bool rejected = false;
-                try { new WindowsGuestInstaller(overflow, dir).resume(vm, 1); } catch (Error e) { rejected = true; }
-                assert(rejected && resumed.has_pending(vm));
+                try { new WindowsGuestInstaller(overflow, dir).resume(resource, 1); } catch (Error e) { rejected = true; }
+                assert(rejected && resumed.has_pending(resource));
                 var ready = new InstallerAgent(); ready.code = 3010;
                 var checker = new WindowsGuestInstaller(ready, dir);
-                var result = checker.resume(vm, 1);
-                assert(result.state == GuestInstallState.REBOOT_REQUIRED && !checker.has_pending(vm));
+                var result = checker.resume(resource, 1);
+                assert(result.state == GuestInstallState.REBOOT_REQUIRED && !checker.has_pending(resource));
                 assert(ready.mutations == 0 && ready.reboots == 0);
                 string journal; FileUtils.get_contents(result.journal_path, out journal);
                 assert(journal.contains("finished"));

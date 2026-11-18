@@ -28,12 +28,12 @@ namespace Rigs.Tests {
             }
         }
 
-        private static VmModel domain() {
-            var vm = new VmModel();
-            vm.vm_type = "libvirt";
-            vm.connection_uri = "qemu:///session";
-            vm.resource_id = "12345678-1234-1234-1234-123456789abc";
-            return vm;
+        private static Resource domain() {
+            var resource = new Resource();
+            resource.kind = "libvirt";
+            resource.connection_uri = "qemu:///session";
+            resource.resource_id = "12345678-1234-1234-1234-123456789abc";
+            return resource;
         }
 
         public static void test_libvirt() {
@@ -88,15 +88,15 @@ namespace Rigs.Tests {
                     } catch (Error e) { assert_not_reached(); }
                     return null;
                 });
-                var vm = new VmModel();
-                vm.guest_agent_socket = path;
+                var resource = new Resource();
+                resource.guest_agent_socket = path;
                 // QGA must never accidentally use this unrelated QMP path.
-                vm.qmp_socket = Path.build_filename(dir, "wrong-qmp.sock");
+                resource.qmp_socket = Path.build_filename(dir, "wrong-qmp.sock");
                 bool rejected = false;
                 try {
                     var agent = new GuestAgent();
-                    if (rebooting) agent.reboot(vm);
-                    else assert(agent.command(vm, "guest-get-osinfo").get_object().get_string_member("id") == "mswindows");
+                    if (rebooting) agent.reboot(resource);
+                    else assert(agent.command(resource, "guest-get-osinfo").get_object().get_string_member("id") == "mswindows");
                 } catch (Error e) { rejected = true; }
                 peer.join();
                 listener.close();
@@ -131,7 +131,7 @@ namespace Rigs.Tests {
             invalid.resource_id = "--bad";
             try { agent.command(invalid, "guest-get-osinfo"); assert_not_reached(); } catch (Error e) { assert(e is IOError.INVALID_ARGUMENT); }
             try { agent.command(domain(), "guest-arbitrary"); assert_not_reached(); } catch (Error e) { assert(e is IOError.NOT_SUPPORTED); }
-            try { agent.command(new VmModel(), "guest-ping"); assert_not_reached(); } catch (Error e) { assert(e is IOError.NOT_SUPPORTED); }
+            try { agent.command(new Resource(), "guest-ping"); assert_not_reached(); } catch (Error e) { assert(e is IOError.NOT_SUPPORTED); }
             assert(host.calls == calls);
             try {
                 string dir = DirUtils.make_tmp("rigs-qga-timeout-XXXXXX");
@@ -146,9 +146,9 @@ namespace Rigs.Tests {
                     } catch (Error e) { assert_not_reached(); }
                     return null;
                 });
-                var vm = new VmModel();
-                vm.guest_agent_socket = path;
-                try { agent.command(vm, "guest-ping", null, 10); assert_not_reached(); }
+                var resource = new Resource();
+                resource.guest_agent_socket = path;
+                try { agent.command(resource, "guest-ping", null, 10); assert_not_reached(); }
                 catch (Error e) { assert(e is IOError.TIMED_OUT); }
                 peer.join();
                 listener.close();

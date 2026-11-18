@@ -14,7 +14,7 @@ host.run({ "socat", "-", path });
 var x = { "/bin/bash", "-c", "echo " + path };
 var w = this.active_window as Window;
 toast.timeout = 0;
-vm.startup_failed.connect(() => {});
+resource.issue_raised.connect(() => {});
 foreach (var t in a.split(" ")[1:]) {}
 string[] parts = cmdline.split("\0");
 uint64 d = a - b;
@@ -28,7 +28,7 @@ new Thread<void*>("x", () => { return null; });
 X
 printf 'var b = new Gtk.Box();\n' >> "$T/src/core/metrics.vala"
 sed -i 's/^core_deps = \[/core_deps = [gtk_dep, /' "$T/src/meson.build"
-printf 'ConfigManager.save_vms(vms);\n' >> "$T/src/ui/window.vala"
+printf 'ResourceStore.save(resources);\n' >> "$T/src/ui/window.vala"
 printf 'public static void test_orphan() {}\n' >> "$T/tests/test_models.vala"
 touch "$T/src/orphan.vala" "$T/tests/test_orphan.vala"
 printf 'string s = _("x");\n' > "$T/src/orphan.vala"

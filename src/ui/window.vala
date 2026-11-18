@@ -3,12 +3,12 @@ using GLib.Intl;
 namespace Rigs {
 
     public class Window : Adw.ApplicationWindow {
-        private GenericArray<VmModel> vms;
-        private HashTable<string, VmCard> cards;
+        private GenericArray<Resource> resources;
+        private HashTable<string, ResourceCard> cards;
         private SystemMonitor monitor;
 
         private Adw.ToastOverlay toast_overlay;
-        private Adw.PreferencesGroup vm_group;
+        private Adw.PreferencesGroup resource_group;
         private Adw.ActionRow host_cpu_row;
         private SmoothSparkline host_cpu_sparkline;
         private Adw.ActionRow host_ram_row;
@@ -29,13 +29,13 @@ namespace Rigs {
         construct {
             this.title = "Rigs";
             this.icon_name = "io.github.vovche.Rigs";
-            this.vms = ConfigManager.load_vms();
-            this.cards = new HashTable<string, VmCard>(str_hash, str_equal);
+            this.resources = ResourceStore.load();
+            this.cards = new HashTable<string, ResourceCard>(str_hash, str_equal);
             this.monitor = new SystemMonitor();
 
             load_window_state();
             build_ui();
-            if (vms.length == 0 && ConfigManager.load_error == null) {
+            if (resources.length == 0 && ResourceStore.load_error == null) {
                 Idle.add(() => { open_discovery_dialog(); return Source.REMOVE; });
             }
 
@@ -50,7 +50,7 @@ namespace Rigs {
             on_window_state_changed();
 
             monitor.updated.connect(on_monitor_updated);
-            monitor.start(vms);
+            monitor.start(resources);
         }
 
         private void on_window_state_changed() {
@@ -187,70 +187,70 @@ namespace Rigs {
             page.add(empty_group);
 
             // VM Group
-            vm_group = new Adw.PreferencesGroup();
-            vm_group.title = _("Virtual Machines");
-            vm_group.description = _("Status, resource consumption and controls");
-            page.add(vm_group);
+            resource_group = new Adw.PreferencesGroup();
+            resource_group.title = _("Virtual Machines");
+            resource_group.description = _("Status, resource consumption and controls");
+            page.add(resource_group);
 
             no_search_results_row = new Adw.ActionRow();
             no_search_results_row.title = _("No matching virtual machines found");
             no_search_results_row.add_prefix(new Gtk.Image.from_icon_name("system-search-symbolic"));
             no_search_results_row.visible = false;
-            vm_group.add(no_search_results_row);
+            resource_group.add(no_search_results_row);
 
-            for (int i = 0; i < vms.length; i++) {
-                render_vm_card(vms[i]);
+            for (int i = 0; i < resources.length; i++) {
+                render_card(resources[i]);
             }
 
             update_empty_state();
         }
 
-        private void render_vm_card(VmModel vm) {
-            var card = new VmCard(vm);
+        private void render_card(Resource resource) {
+            var card = new ResourceCard(resource);
 
-            card.start_requested.connect((v) => { start_vm(v); });
-            card.stop_requested.connect((v) => { stop_vm(v); });
-            card.connect_requested.connect((v) => { connect_vm(v); });
-            card.remove_requested.connect((v) => { prompt_remove_vm(v); });
+            card.start_requested.connect((v) => { start_resource(v); });
+            card.stop_requested.connect((v) => { stop_resource(v); });
+            card.connect_requested.connect((v) => { open_console(v); });
+            card.remove_requested.connect((v) => { prompt_remove(v); });
             card.insert_iso_requested.connect((v) => { choose_and_insert_iso(v, card); });
             card.eject_iso_requested.connect((v) => { eject_iso(v, card); });
             card.guest_tools_requested.connect((v, state) => {
                 var dialog = new GuestToolsDialog(v, state);
-                dialog.settings_saved.connect(() => { persist(); monitor.set_vms(vms); });
+                dialog.settings_saved.connect(() => { persist(); monitor.set_resources(resources); });
                 dialog.present(this);
             });
 
-            card.startup_issue_requested.connect((v, issue) => { new StartupIssueDialog(v, issue).present(this); });
-            card.startup_failed.connect((v, issue) => { show_startup_failure(v, issue); });
+            card.issue_details_requested.connect((v, issue) => { new IssueDialog(v, issue).present(this); });
+            card.issue_raised.connect((v, issue) => { show_issue(v, issue); });
             bool expanded;
-            if (saved_expanded.lookup_extended(vm.id, null, out expanded)) card.expanded = expanded;
+            if (saved_expanded.lookup_extended(resource.id, null, out expanded)) card.expanded = expanded;
 
             card.notify["expanded"].connect(() => { save_window_state(); });
 
-            vm_group.add(card);
-            cards.insert(vm.id, card);
+            resource_group.add(card);
+            cards.insert(resource.id, card);
         }
 
         // PreferencesGroup can only append: re-append cards so the UI follows `vms` order.
         private void reorder_cards() {
-            for (int i = 0; i < vms.length; i++) {
-                VmCard? card = cards.lookup(vms[i].id);
+            for (int i = 0; i < resources.length; i++) {
+                ResourceCard? card = cards.lookup(resources[i].id);
                 if (card == null) continue;
-                vm_group.remove(card);
-                vm_group.add(card);
+                resource_group.remove(card);
+                resource_group.add(card);
             }
         }
 
         public void open_add_dialog() {
             if (!configuration_ready()) return;
             var dialog = new AddDialog(this);
-            dialog.vm_added.connect(register_resource);
+            dialog.resource_added.connect(register_resource);
             dialog.present(this);
         }
 
         private bool configuration_ready() {
-            if (ConfigManager.load_error == null) return true;
-            var dialog = new Adw.AlertDialog(_("Configuration Needs Attention"), ConfigManager.load_error);
+            if (ResourceStore.load_error == null) return true;
+            var dialog = new Adw.AlertDialog(_("Configuration Needs Attention"), ResourceStore.load_error);
             dialog.add_response("close", _("Close"));
             dialog.present(this);
             return false;
@@ -258,35 +258,35 @@ namespace Rigs {
 
         public void open_discovery_dialog() {
             if (!configuration_ready()) return;
-            var dialog = new DiscoveryDialog(vms);
+            var dialog = new DiscoveryDialog(resources);
             dialog.resource_added.connect(register_resource);
             dialog.present(this);
         }
 
-        private void register_resource(VmModel vm) {
-            for (int i = 0; i < vms.length; i++) {
-                if (vms[i].id == vm.id) return;
+        private void register_resource(Resource resource) {
+            for (int i = 0; i < resources.length; i++) {
+                if (resources[i].id == resource.id) return;
             }
-            vms.add(vm);
-            monitor.set_vms(vms);
+            resources.add(resource);
+            monitor.set_resources(resources);
             persist();
-            render_vm_card(vm);
+            render_card(resource);
             update_empty_state();
             save_window_state();
-            toast_overlay.add_toast(new Adw.Toast(_("Registered '%s'").printf(vm.name)));
+            toast_overlay.add_toast(new Adw.Toast(_("Registered '%s'").printf(resource.name)));
         }
 
-        public GenericArray<VmModel> get_vms() {
-            return this.vms;
+        public GenericArray<Resource> get_resources() {
+            return this.resources;
         }
 
-        public void focus_vm(string id) {
+        public void focus_resource(string id) {
             if (search_bar.search_mode_enabled) {
                 search_entry.set_text("");
                 search_bar.search_mode_enabled = false;
             }
 
-            VmCard card = cards.lookup(id);
+            ResourceCard card = cards.lookup(id);
             if (card != null) {
                 card.visible = true;
                 card.expanded = true;
@@ -301,9 +301,9 @@ namespace Rigs {
         }
 
         private void update_empty_state() {
-            bool empty = (vms.length == 0);
+            bool empty = (resources.length == 0);
             empty_group.visible = empty;
-            vm_group.visible = !empty;
+            resource_group.visible = !empty;
             search_toggle_btn.sensitive = !empty;
             if (empty && search_bar.search_mode_enabled) {
                 search_bar.search_mode_enabled = false;
@@ -314,13 +314,13 @@ namespace Rigs {
             string q = search_entry.get_text().strip().down();
             int match_count = 0;
             cards.foreach((id, card) => {
-                var c = card as VmCard;
+                var c = card as ResourceCard;
                 if (c != null) {
                     bool match = (q.length == 0) ||
-                        (c.vm.name.down().contains(q)) ||
-                        (c.vm.subtitle.down().contains(q)) ||
-                        (c.vm.details.down().contains(q)) ||
-                        (c.vm.vm_type.down().contains(q));
+                        (c.resource.name.down().contains(q)) ||
+                        (c.resource.subtitle.down().contains(q)) ||
+                        (c.resource.details.down().contains(q)) ||
+                        (c.resource.kind.down().contains(q));
                     c.visible = match;
                     if (match) match_count++;
                 }
@@ -338,7 +338,7 @@ namespace Rigs {
             }
         }
 
-        private void choose_and_insert_iso(VmModel vm, VmCard card) {
+        private void choose_and_insert_iso(Resource resource, ResourceCard card) {
             var dialog = new Gtk.FileDialog();
             dialog.title = _("Select ISO Disk Image");
 
@@ -358,19 +358,19 @@ namespace Rigs {
                     if (file != null) {
                         string? iso_path = file.get_path();
                         if (iso_path == null) throw new IOError.NOT_SUPPORTED(_("Only local files can be inserted."));
-                        vm.attached_iso = iso_path;
+                        resource.attached_iso = iso_path;
                         persist();
                         card.update_iso_subtitle();
 
                         // Hot-swap via driver
-                        Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+                        Driver? driver = DriverRegistry.get_default().get_driver(resource.kind);
                         if (driver != null) {
-                            driver.insert_iso(vm, iso_path);
+                            driver.insert_iso(resource, iso_path);
                         }
 
-                        var toast = new Adw.Toast(_("Inserted '%s' into %s").printf(Path.get_basename(iso_path), vm.name));
+                        var toast = new Adw.Toast(_("Inserted '%s' into %s").printf(Path.get_basename(iso_path), resource.name));
                         toast_overlay.add_toast(toast);
-                        notify_user(_("Optical Drive (ISO)"), _("Inserted '%s' into %s").printf(Path.get_basename(iso_path), vm.name));
+                        notify_user(_("Optical Drive (ISO)"), _("Inserted '%s' into %s").printf(Path.get_basename(iso_path), resource.name));
                     }
                 } catch (Error e) {
                     if (e.matches(Gtk.DialogError.quark(), Gtk.DialogError.DISMISSED)) return;
@@ -379,73 +379,73 @@ namespace Rigs {
             });
         }
 
-        private void eject_iso(VmModel vm, VmCard card) {
-            vm.attached_iso = "";
+        private void eject_iso(Resource resource, ResourceCard card) {
+            resource.attached_iso = "";
             persist();
             card.update_iso_subtitle();
 
             // Hot-eject via driver
-            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+            Driver? driver = DriverRegistry.get_default().get_driver(resource.kind);
             if (driver != null) {
-                driver.eject_iso(vm);
+                driver.eject_iso(resource);
             }
 
-            var toast = new Adw.Toast(_("Ejected optical media from %s").printf(vm.name));
+            var toast = new Adw.Toast(_("Ejected optical media from %s").printf(resource.name));
             toast_overlay.add_toast(toast);
-            notify_user(_("Optical Drive (ISO)"), _("Ejected optical media from %s").printf(vm.name));
+            notify_user(_("Optical Drive (ISO)"), _("Ejected optical media from %s").printf(resource.name));
         }
 
-        private void start_vm(VmModel vm) {
-            var toast = new Adw.Toast(_("Starting %s…").printf(vm.name));
+        private void start_resource(Resource resource) {
+            var toast = new Adw.Toast(_("Starting %s…").printf(resource.name));
             toast_overlay.add_toast(toast);
-            notify_user(_("Starting %s…").printf(vm.name), _("Virtual machine initialization requested"));
+            notify_user(_("Starting %s…").printf(resource.name), _("Virtual machine initialization requested"));
 
-            vm.last_startup_issue = null;
-            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+            resource.last_issue = null;
+            Driver? driver = DriverRegistry.get_default().get_driver(resource.kind);
             if (driver != null) {
-                driver.start(vm);
+                driver.start(resource);
             }
         }
 
         // Every configuration write goes through here so a failed save is never silent.
         private void persist() {
-            if (ConfigManager.save_vms(vms)) return;
-            var toast = new Adw.Toast(_("Could not save changes: %s").printf(ConfigManager.save_error ?? ""));
+            if (ResourceStore.save(resources)) return;
+            var toast = new Adw.Toast(_("Could not save changes: %s").printf(ResourceStore.save_error ?? ""));
             toast.priority = Adw.ToastPriority.HIGH;
             toast_overlay.add_toast(toast);
         }
 
-        private void show_startup_failure(VmModel vm, StartupIssue issue) {
-            var toast = new Adw.Toast("%s: %s".printf(StartupDiagnostics.headline(issue.operation, vm.name), issue.title));
+        private void show_issue(Resource resource, ResourceIssue issue) {
+            var toast = new Adw.Toast("%s: %s".printf(FailureRules.headline(issue.operation, resource.name), issue.title));
             toast.button_label = _("Details");
             // Keep the default timeout: a persistent toast would block the overlay queue.
             // The card's warning icon keeps the details reachable.
-            toast.button_clicked.connect(() => { new StartupIssueDialog(vm, issue).present(this); });
+            toast.button_clicked.connect(() => { new IssueDialog(resource, issue).present(this); });
             toast_overlay.add_toast(toast);
         }
 
-        private void stop_vm(VmModel vm) {
-            var toast = new Adw.Toast(_("Stopping %s…").printf(vm.name));
+        private void stop_resource(Resource resource) {
+            var toast = new Adw.Toast(_("Stopping %s…").printf(resource.name));
             toast_overlay.add_toast(toast);
-            notify_user(_("Stopping %s…").printf(vm.name), _("Virtual machine shutdown requested"));
-            vm.last_startup_issue = null;
+            notify_user(_("Stopping %s…").printf(resource.name), _("Virtual machine shutdown requested"));
+            resource.last_issue = null;
 
-            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+            Driver? driver = DriverRegistry.get_default().get_driver(resource.kind);
             if (driver != null) {
-                driver.stop(vm);
+                driver.stop(resource);
             }
         }
 
-        private void connect_vm(VmModel vm) {
-            Driver? driver = DriverRegistry.get_default().get_driver(vm.vm_type);
+        private void open_console(Resource resource) {
+            Driver? driver = DriverRegistry.get_default().get_driver(resource.kind);
             if (driver != null) {
-                driver.connect_vm(vm);
+                driver.open_console(resource);
             }
         }
 
-        private void prompt_remove_vm(VmModel vm) {
+        private void prompt_remove(Resource resource) {
             var dialog = new Adw.AlertDialog(
-                _("Remove '%s'?").printf(vm.name),
+                _("Remove '%s'?").printf(resource.name),
                 _("The virtual machine will be removed from Rigs. Your files and VM disk on the host will remain untouched.")
             );
             dialog.add_response("cancel", _("Cancel"));
@@ -456,31 +456,31 @@ namespace Rigs {
 
             dialog.response.connect((d, resp) => {
                 if (resp == "remove") {
-                    execute_remove(vm);
+                    execute_remove(resource);
                 }
             });
             dialog.present(this);
         }
 
-        private void execute_remove(VmModel vm) {
+        private void execute_remove(Resource resource) {
             int idx = -1;
-            for (int i = 0; i < vms.length; i++) {
-                if (vms[i].id == vm.id) {
+            for (int i = 0; i < resources.length; i++) {
+                if (resources[i].id == resource.id) {
                     idx = i;
                     break;
                 }
             }
             if (idx < 0) return;
 
-            VmModel removed = vms[idx];
-            vms.remove_index(idx);
-            monitor.set_vms(vms);
+            Resource removed = resources[idx];
+            resources.remove_index(idx);
+            monitor.set_resources(resources);
             persist();
 
-            VmCard card = cards.lookup(removed.id);
+            ResourceCard card = cards.lookup(removed.id);
             if (card != null) {
                 card.detach();
-                vm_group.remove(card);
+                resource_group.remove(card);
                 cards.remove(removed.id);
             }
 
@@ -490,14 +490,14 @@ namespace Rigs {
             var toast = new Adw.Toast(_("Removed '%s'").printf(removed.name));
             toast.button_label = _("Undo");
             toast.button_clicked.connect(() => {
-                for (int i = 0; i < vms.length; i++) {
-                    if (vms[i].id == removed.id) return;
+                for (int i = 0; i < resources.length; i++) {
+                    if (resources[i].id == removed.id) return;
                 }
-                int restore_index = idx < (int)vms.length ? idx : (int)vms.length;
-                vms.insert(restore_index, removed);
-                monitor.set_vms(vms);
+                int restore_index = idx < (int)resources.length ? idx : (int)resources.length;
+                resources.insert(restore_index, removed);
+                monitor.set_resources(resources);
                 persist();
-                render_vm_card(removed);
+                render_card(removed);
                 reorder_cards();
                 update_empty_state();
                 save_window_state();
@@ -505,15 +505,15 @@ namespace Rigs {
             toast_overlay.add_toast(toast);
         }
 
-        private void on_monitor_updated(HostStatus host, HashTable<string, VmStatus?> vm_statuses) {
+        private void on_monitor_updated(HostStatus host, HashTable<string, ResourceStatus?> statuses) {
             host_cpu_row.subtitle = _("Host CPU load: %.1f%%").printf(host.cpu_pct);
             host_cpu_sparkline.add_value(host.cpu_pct);
 
             host_ram_row.subtitle = _("Host RAM: %.2f / %.1f GB (%.0f%%)").printf(host.ram_used_gb, host.ram_total_gb, host.ram_pct);
             host_ram_sparkline.add_value(host.ram_pct);
 
-            vm_statuses.foreach((id, status) => {
-                VmCard card = cards.lookup(id);
+            statuses.foreach((id, status) => {
+                ResourceCard card = cards.lookup(id);
                 if (card != null && status != null) {
                     card.update_status(status);
                 }
@@ -521,7 +521,7 @@ namespace Rigs {
         }
 
         private void load_window_state() {
-            string state_path = ConfigManager.get_state_file();
+            string state_path = ResourceStore.get_state_file();
             int w = 580;
             int h = 740;
             bool max = false;
@@ -571,7 +571,7 @@ namespace Rigs {
         }
 
         private void write_window_state() {
-            string dir = ConfigManager.get_config_dir();
+            string dir = ResourceStore.get_config_dir();
             DirUtils.create_with_parents(dir, 0755);
 
             var win_obj = new Json.Object();
@@ -597,7 +597,7 @@ namespace Rigs {
             generator.set_pretty(true);
 
             try {
-                generator.to_file(ConfigManager.get_state_file());
+                generator.to_file(ResourceStore.get_state_file());
             } catch (Error e) {
                 // Ignore
             }

@@ -15,18 +15,18 @@ namespace Rigs {
 
         private DriverRegistry() {
             drivers = new HashTable<string, Driver>(str_hash, str_equal);
-            register_driver(new QemuDriver());
+            register_driver(new ScriptedQemuDriver());
             register_driver(new ComposeDriver());
             register_driver(new ManagedDriver("container"));
             register_driver(new ManagedDriver("libvirt"));
         }
 
         public void register_driver(Driver driver) {
-            drivers.insert(driver.vm_type, driver);
+            drivers.insert(driver.kind, driver);
         }
 
-        public Driver? get_driver(string vm_type) {
-            Driver? drv = drivers.lookup(vm_type);
+        public Driver? get_driver(string kind) {
+            Driver? drv = drivers.lookup(kind);
             if (drv == null) {
                 return null;
             }

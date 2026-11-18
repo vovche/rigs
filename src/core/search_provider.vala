@@ -5,8 +5,8 @@ using GLib;
 namespace Rigs {
 
     public interface SearchTarget : Object {
-        public abstract GenericArray<VmModel> get_vms();
-        public abstract void focus_vm(string id);
+        public abstract GenericArray<Resource> get_resources();
+        public abstract void focus_resource(string id);
         public abstract void set_search_query(string query);
         // Abstract on purpose: a default no-op body would silently shadow GApplication.hold().
         public abstract void begin_query();
@@ -16,35 +16,35 @@ namespace Rigs {
     [DBus (name = "org.gnome.Shell.SearchProvider2")]
     public class SearchProvider : Object {
         private weak SearchTarget? target;
-        private GenericArray<VmModel>? override_vms;
+        private GenericArray<Resource>? override_resources;
 
-        public SearchProvider(SearchTarget? target = null, GenericArray<VmModel>? test_vms = null) {
+        public SearchProvider(SearchTarget? target = null, GenericArray<Resource>? test_resources = null) {
             this.target = target;
-            this.override_vms = test_vms;
+            this.override_resources = test_resources;
         }
 
-        private GenericArray<VmModel> get_vms() {
-            if (override_vms != null) {
-                return override_vms;
+        private GenericArray<Resource> get_resources() {
+            if (override_resources != null) {
+                return override_resources;
             }
             if (target != null) {
-                return target.get_vms();
+                return target.get_resources();
             }
-            return ConfigManager.load_vms();
+            return ResourceStore.load();
         }
 
-        private bool matches(VmModel vm, string[] terms) {
+        private bool matches(Resource resource, string[] terms) {
             foreach (string term in terms) {
                 string t = term.strip().down();
                 if (t.length == 0) continue;
 
                 bool term_matched = false;
-                if (vm.name.down().contains(t)) term_matched = true;
-                else if (vm.subtitle.down().contains(t)) term_matched = true;
-                else if (vm.details.down().contains(t)) term_matched = true;
-                else if (vm.vm_type.down().contains(t)) term_matched = true;
-                else if (vm.container_name.down().contains(t)) term_matched = true;
-                else if (vm.process_name.down().contains(t)) term_matched = true;
+                if (resource.name.down().contains(t)) term_matched = true;
+                else if (resource.subtitle.down().contains(t)) term_matched = true;
+                else if (resource.details.down().contains(t)) term_matched = true;
+                else if (resource.kind.down().contains(t)) term_matched = true;
+                else if (resource.container_name.down().contains(t)) term_matched = true;
+                else if (resource.process_match.down().contains(t)) term_matched = true;
 
                 if (!term_matched) {
                     return false;
@@ -56,12 +56,12 @@ namespace Rigs {
         public string[] get_initial_result_set(string[] terms) throws GLib.Error {
             if (target != null) target.begin_query();
             var matched_ids = new GenericArray<string>();
-            var vms = get_vms();
+            var resources = get_resources();
 
-            for (int i = 0; i < vms.length; i++) {
-                var vm = vms[i];
-                if (matches(vm, terms)) {
-                    matched_ids.add(vm.id);
+            for (int i = 0; i < resources.length; i++) {
+                var resource = resources[i];
+                if (matches(resource, terms)) {
+                    matched_ids.add(resource.id);
                 }
             }
 
@@ -76,17 +76,17 @@ namespace Rigs {
         public string[] get_subsearch_result_set(string[] previous_results, string[] terms) throws GLib.Error {
             if (target != null) target.begin_query();
             var matched_ids = new GenericArray<string>();
-            var vms = get_vms();
+            var resources = get_resources();
 
             var prev_set = new HashTable<string, bool>(str_hash, str_equal);
             foreach (string prev_id in previous_results) {
                 prev_set.insert(prev_id, true);
             }
 
-            for (int i = 0; i < vms.length; i++) {
-                var vm = vms[i];
-                if (prev_set.contains(vm.id) && matches(vm, terms)) {
-                    matched_ids.add(vm.id);
+            for (int i = 0; i < resources.length; i++) {
+                var resource = resources[i];
+                if (prev_set.contains(resource.id) && matches(resource, terms)) {
+                    matched_ids.add(resource.id);
                 }
             }
 
@@ -100,29 +100,29 @@ namespace Rigs {
 
         public HashTable<string, Variant>[] get_result_metas(string[] results) throws GLib.Error {
             if (target != null) target.begin_query();
-            var vms = get_vms();
-            var vm_map = new HashTable<string, VmModel>(str_hash, str_equal);
-            for (int i = 0; i < vms.length; i++) {
-                vm_map.insert(vms[i].id, vms[i]);
+            var resources = get_resources();
+            var resource_map = new HashTable<string, Resource>(str_hash, str_equal);
+            for (int i = 0; i < resources.length; i++) {
+                resource_map.insert(resources[i].id, resources[i]);
             }
 
             var metas = new GenericArray<HashTable<string, Variant>>();
 
             for (int i = 0; i < results.length; i++) {
                 string id = results[i];
-                VmModel? vm = vm_map.lookup(id);
-                if (vm != null) {
+                Resource? resource = resource_map.lookup(id);
+                if (resource != null) {
                     var meta = new HashTable<string, Variant>(str_hash, str_equal);
-                    meta.insert("id", new Variant.string(vm.id));
-                    meta.insert("name", new Variant.string(vm.name));
+                    meta.insert("id", new Variant.string(resource.id));
+                    meta.insert("name", new Variant.string(resource.name));
 
-                    string desc = vm.subtitle;
-                    if (vm.details.length > 0) {
-                        desc = desc + " • " + vm.details;
+                    string desc = resource.subtitle;
+                    if (resource.details.length > 0) {
+                        desc = desc + " • " + resource.details;
                     }
                     meta.insert("description", new Variant.string(desc));
 
-                    string icon_name = (vm.icon.length > 0) ? vm.icon : "io.github.vovche.Rigs";
+                    string icon_name = (resource.icon.length > 0) ? resource.icon : "io.github.vovche.Rigs";
                     var icon = new ThemedIcon(icon_name);
                     meta.insert("gicon", new Variant.string(icon.to_string()));
                     var serialized_icon = icon.serialize();
@@ -145,7 +145,7 @@ namespace Rigs {
         public void activate_result(string id, string[] terms, uint32 timestamp) throws GLib.Error {
             if (target != null) {
                 target.begin_query();
-                target.focus_vm(id);
+                target.focus_resource(id);
                 target.end_query();
             }
         }

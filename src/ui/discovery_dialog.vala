@@ -2,8 +2,8 @@ using GLib.Intl;
 
 namespace Rigs {
     public class DiscoveryDialog : Adw.Dialog {
-        public signal void resource_added(VmModel vm);
-        private GenericArray<VmModel> existing = new GenericArray<VmModel>();
+        public signal void resource_added(Resource resource);
+        private GenericArray<Resource> existing = new GenericArray<Resource>();
         private Adw.PreferencesGroup sources;
         private Adw.PreferencesGroup resources;
         private Gtk.Box results;
@@ -12,8 +12,8 @@ namespace Rigs {
         private bool busy = false;
         private bool dismissed = false;
 
-        public DiscoveryDialog(GenericArray<VmModel> registered) {
-            foreach (var vm in registered.data) existing.add(vm);
+        public DiscoveryDialog(GenericArray<Resource> registered) {
+            foreach (var resource in registered.data) existing.add(resource);
             title = _("Find Resources");
             content_width = 600;
             content_height = 620;
@@ -80,19 +80,19 @@ namespace Rigs {
                 ? _("No new resources found. Check the connections above or add a machine manually.")
                 : _("Choose which resources to add to Rigs. Existing machines and containers keep their current settings.");
             results.append(resources);
-            foreach (var vm in found.candidates.data) {
+            foreach (var resource in found.candidates.data) {
                 var row = new Adw.ActionRow();
                 row.use_markup = false;
-                row.title = vm.name;
-                row.subtitle = vm.subtitle;
-                row.add_prefix(new Gtk.Image.from_icon_name(vm.icon));
+                row.title = resource.name;
+                row.subtitle = resource.subtitle;
+                row.add_prefix(new Gtk.Image.from_icon_name(resource.icon));
                 var add = new Gtk.Button.with_label(_("Add"));
                 add.valign = Gtk.Align.CENTER;
                 add.clicked.connect(() => {
                     add.sensitive = false;
                     add.label = _("Added");
-                    existing.add(vm);
-                    resource_added(vm);
+                    existing.add(resource);
+                    resource_added(resource);
                 });
                 row.add_suffix(add);
                 resources.add(row);

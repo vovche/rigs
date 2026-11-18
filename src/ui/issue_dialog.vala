@@ -1,10 +1,10 @@
 using GLib.Intl;
 
-/* startup_issue_dialog.vala — explains why a resource failed to start. */
+/* issue_dialog.vala — explains why a resource failed to start. */
 namespace Rigs {
-    public class StartupIssueDialog : Adw.AlertDialog {
-        public StartupIssueDialog(VmModel vm, StartupIssue issue) {
-            Object(heading: StartupDiagnostics.headline(issue.operation, vm.name), body: issue.title);
+    public class IssueDialog : Adw.AlertDialog {
+        public IssueDialog(Resource resource, ResourceIssue issue) {
+            Object(heading: FailureRules.headline(issue.operation, resource.name), body: issue.title);
             this.body_use_markup = false;
             this.add_response("close", _("Close"));
             this.default_response = "close";

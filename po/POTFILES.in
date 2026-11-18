@@ -8,7 +8,6 @@ src/ui/add_dialog.vala
 src/ui/discovery_dialog.vala
 src/core/resource_discovery.vala
 src/ui/guest_tools_dialog.vala
-src/core/resource.vala
 src/ui/guest_driver_setup_dialog.vala
 src/core/guest_tools_packages.vala
 src/core/windows_guest_installer.vala
@@ -17,3 +16,4 @@ src/core/guest_media.vala
 src/core/resource_issue.vala
 src/ui/issue_dialog.vala
 src/core/drivers/scripted_qemu_driver.vala
+src/core/resource_store.vala

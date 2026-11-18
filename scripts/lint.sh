@@ -40,9 +40,9 @@ grep_rule SPAWN-03 '"(socat|python3?|perl|nc)"|\b(socat|python3) -' \
 # A shell may only run commands the USER configured verbatim, never strings we assemble.
 while IFS= read -r hit; do
     [[ -z "$hit" || "$hit" == *"lint-allow: SHELL-01"* ]] && continue
-    if ! grep -qE '"-c", *(cmd|vm\.(start|stop|connect)_cmd) *\}' <<<"$hit"; then
+    if ! grep -qE '"-c", *(cmd|resource\.(start|stop|connect)_cmd) *\}' <<<"$hit"; then
         report SHELL-01 "$(cut -d: -f1,2 <<<"$hit")" \
-            "bash -c may only receive a user-configured command variable (cmd, vm.start_cmd, vm.stop_cmd, vm.connect_cmd). Pass data as separate argv elements."
+            "bash -c may only receive a user-configured command variable (cmd, resource.start_cmd, resource.stop_cmd, resource.connect_cmd). Pass data as separate argv elements."
     fi
 done < <(grep -nHE '"-c"' $SRC 2>/dev/null)
 
@@ -52,8 +52,8 @@ grep_rule SILENT-01 '\bwarning *\(|\bmessage *\(|\bdebug *\(' \
     "Drivers must not log failures where the user cannot see them; return a StartupIssue (StartupDiagnostics.from_error / check_command)." $DRIVERS
 grep_rule SILENT-02 'new Thread *<' \
     "Drivers run background work only through StartupDiagnostics.run_in_background, which publishes the returned issue." $DRIVERS
-grep_rule SILENT-03 '^[[:space:]]*ConfigManager\.save_vms *\(' \
-    "save_vms() returns false when changes did not reach the disk; call it through a helper that tells the user (Window.persist)." $SRC
+grep_rule SILENT-03 '^[[:space:]]*ResourceStore\.save *\(' \
+    "ResourceStore.save() returns false when changes did not reach the disk; call it through a helper that tells the user (Window.persist)." $SRC
 
 # --- Layering -----------------------------------------------------------------
 CORE=$(find src/core -name '*.vala' | sort)
@@ -68,11 +68,11 @@ grep_rule APP-01 'active_window as Window' \
 grep_rule UI-01 '\.timeout *= *0\b' \
     "A persistent toast blocks the ToastOverlay queue; keep the default timeout." $SRC
 
-# Signals of long-lived models: every connection must be removable (VmCard.track / detach).
+# Signals of long-lived models: every connection must be removable (ResourceCard.track / detach).
 model_signals=$(grep -oE 'public signal void [a-z_]+' src/core/resource.vala | awk '{print $4}' | paste -sd'|')
 if [[ -n "$model_signals" ]]; then
-    grep_rule MODEL-01 "\\bvm\\.(${model_signals})\\.connect\\(|\\bvm\\.notify\\[[^]]*\\]\\.connect\\(" \
-        "Connections to a VmModel outlive the widget; wrap in track(...) and call detach() on removal." $SRC
+    grep_rule MODEL-01 "\\bresource\\.(${model_signals})\\.connect\\(|\\bresource\\.notify\\[[^]]*\\]\\.connect\\(" \
+        "Connections to a Resource outlive the widget; wrap in track(...) and call detach() on removal." $SRC
 fi
 
 # --- Vala pitfalls -----------------------------------------------------------

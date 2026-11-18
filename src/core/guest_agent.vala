@@ -131,17 +131,17 @@ namespace Rigs {
             return result;
         }
 
-        private Json.Node invoke(VmModel vm, string name, Json.Object? args, uint timeout_ms, bool no_reply) throws Error {
+        private Json.Node invoke(Resource resource, string name, Json.Object? args, uint timeout_ms, bool no_reply) throws Error {
             validate_name(name);
             string payload = serialize(name, args);
-            if (vm.vm_type != "libvirt")
-                return socket_exchange(vm.guest_agent_socket, payload, timeout_ms, no_reply);
-            if ((vm.connection_uri != "qemu:///session" && vm.connection_uri != "qemu:///system") ||
-                !Regex.match_simple("\\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\\z", vm.resource_id))
+            if (resource.kind != "libvirt")
+                return socket_exchange(resource.guest_agent_socket, payload, timeout_ms, no_reply);
+            if ((resource.connection_uri != "qemu:///session" && resource.connection_uri != "qemu:///system") ||
+                !Regex.match_simple("\\A[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}\\z", resource.resource_id))
                 throw new IOError.INVALID_ARGUMENT("Guest agent requires a local libvirt connection and valid domain UUID.");
             uint seconds = timeout_ms / 1000 + (timeout_ms % 1000 > 0 ? 1 : 0);
             if (seconds == 0) seconds = 1;
-            string[] argv = { "virsh", "--connect", vm.connection_uri, "qemu-agent-command", vm.resource_id };
+            string[] argv = { "virsh", "--connect", resource.connection_uri, "qemu-agent-command", resource.resource_id };
             if (no_reply) argv += "--async";
             else { argv += "--timeout"; argv += seconds.to_string(); }
             argv += payload;
@@ -152,14 +152,14 @@ namespace Rigs {
             return response(reply.output);
         }
 
-        public virtual Json.Node command(VmModel vm, string name, Json.Object? args = null, uint timeout_ms = 5000) throws Error {
-            return invoke(vm, name, args, timeout_ms, false);
+        public virtual Json.Node command(Resource resource, string name, Json.Object? args = null, uint timeout_ms = 5000) throws Error {
+            return invoke(resource, name, args, timeout_ms, false);
         }
 
-        public virtual void reboot(VmModel vm) throws Error {
+        public virtual void reboot(Resource resource) throws Error {
             var args = new Json.Object();
             args.set_string_member("mode", "reboot");
-            invoke(vm, "guest-shutdown", args, 5000, true);
+            invoke(resource, "guest-shutdown", args, 5000, true);
         }
     }
 }

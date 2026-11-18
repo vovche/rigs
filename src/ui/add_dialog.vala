@@ -3,7 +3,7 @@ using GLib.Intl;
 namespace Rigs {
 
     public class AddDialog : Adw.Dialog {
-        public signal void vm_added(VmModel new_vm);
+        public signal void resource_added(Resource new_resource);
 
         private Adw.EntryRow name_row;
         private Adw.EntryRow sub_row;
@@ -173,26 +173,26 @@ namespace Rigs {
 
             bool is_compose = (type_row.selected == 0);
 
-            var vm = new VmModel();
-            vm.id = Uuid.string_random();
-            vm.name = name;
-            vm.subtitle = sub_row.text.strip();
-            vm.vm_type = is_compose ? "compose" : "qemu";
-            vm.icon = is_compose ? "network-server-symbolic" : "computer-symbolic";
-            vm.dir = dir_row.text.strip();
-            vm.start_cmd = start_row.text.strip();
-            vm.stop_cmd = stop_row.text.strip();
-            vm.connect_cmd = connect_row.text.strip();
-            vm.details = details_row.text.strip();
+            var resource = new Resource();
+            resource.id = Uuid.string_random();
+            resource.name = name;
+            resource.subtitle = sub_row.text.strip();
+            resource.kind = is_compose ? "compose" : "qemu";
+            resource.icon = is_compose ? "network-server-symbolic" : "computer-symbolic";
+            resource.dir = dir_row.text.strip();
+            resource.start_cmd = start_row.text.strip();
+            resource.stop_cmd = stop_row.text.strip();
+            resource.connect_cmd = connect_row.text.strip();
+            resource.details = details_row.text.strip();
 
             if (is_compose) {
-                vm.container_name = id_row.text.strip();
+                resource.container_name = id_row.text.strip();
             } else {
-                vm.process_name = id_row.text.strip();
+                resource.process_match = id_row.text.strip();
             }
 
             this.close();
-            vm_added(vm);
+            resource_added(resource);
         }
     }
 }

@@ -128,25 +128,25 @@ namespace Rigs {
                 ? node.get_string() : null;
         }
 
-        private static void validate_libvirt(VmModel vm) throws Error {
-            if ((vm.connection_uri != "qemu:///session" && vm.connection_uri != "qemu:///system") ||
-                !Regex.match_simple("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$", vm.resource_id))
+        private static void validate_libvirt(Resource resource) throws Error {
+            if ((resource.connection_uri != "qemu:///session" && resource.connection_uri != "qemu:///system") ||
+                !Regex.match_simple("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$", resource.resource_id))
                 throw new IOError.INVALID_ARGUMENT("Choose a local libvirt connection and valid domain UUID.");
         }
 
-        public virtual Json.Node qmp(VmModel vm, string name, Json.Object? args = null) throws Error {
-            if (!vm.qmp_socket.has_prefix("/"))
+        public virtual Json.Node qmp(Resource resource, string name, Json.Object? args = null) throws Error {
+            if (!resource.qmp_socket.has_prefix("/"))
                 throw new IOError.NOT_CONNECTED("Configure the host QMP socket path before attaching an ISO.");
-            if (vm.vm_type != "qemu" && vm.vm_type != "compose" && vm.vm_type != "container")
+            if (resource.kind != "qemu" && resource.kind != "compose" && resource.kind != "container")
                 throw new IOError.NOT_SUPPORTED("This resource does not provide a supported QMP connection.");
-            return new Client(vm.qmp_socket).command(name, args);
+            return new Client(resource.qmp_socket).command(name, args);
         }
 
-        public virtual GenericArray<GuestOpticalDrive> list_drives(VmModel vm) throws Error {
+        public virtual GenericArray<GuestOpticalDrive> list_drives(Resource resource) throws Error {
             var drives = new GenericArray<GuestOpticalDrive>();
-            if (vm.vm_type == "libvirt") {
-                validate_libvirt(vm);
-                var result = commands.run({ "virsh", "--connect", vm.connection_uri, "domblklist", vm.resource_id, "--details" });
+            if (resource.kind == "libvirt") {
+                validate_libvirt(resource);
+                var result = commands.run({ "virsh", "--connect", resource.connection_uri, "domblklist", resource.resource_id, "--details" });
                 if (result.exit_status != 0) throw new IOError.FAILED("Cannot list CD drives: %s", result.error_output);
                 foreach (string line in result.output.split("\n")) {
                     // Keep the complete source column, including paths containing spaces.
@@ -159,7 +159,7 @@ namespace Rigs {
                     drives.add(new GuestOpticalDrive(id, source == "-" ? "" : source));
                 }
             } else {
-                var response = qmp(vm, "query-block");
+                var response = qmp(resource, "query-block");
                 if (response.get_node_type() != Json.NodeType.ARRAY) throw new IOError.INVALID_DATA("Invalid QMP block device list.");
                 var blocks = response.get_array();
                 for (uint i = 0; i < blocks.get_length(); i++) {
@@ -212,15 +212,15 @@ namespace Rigs {
                 throw new IOError.INVALID_DATA("The file does not contain an ISO9660 CD001 descriptor.");
         }
 
-        private string container_iso(VmModel vm, string iso_path) throws Error {
-            if (vm.runtime != "podman" && vm.runtime != "docker")
+        private string container_iso(Resource resource, string iso_path) throws Error {
+            if (resource.runtime != "podman" && resource.runtime != "docker")
                 throw new IOError.INVALID_ARGUMENT("Only Podman or Docker containers are supported.");
-            string identity = vm.vm_type == "container" ? vm.resource_id : vm.container_name;
-            bool valid = vm.vm_type == "container"
+            string identity = resource.kind == "container" ? resource.resource_id : resource.container_name;
+            bool valid = resource.kind == "container"
                 ? Regex.match_simple("^[a-fA-F0-9]{12,64}$", identity)
                 : Regex.match_simple("^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$", identity);
             if (!valid) throw new IOError.INVALID_ARGUMENT("The container identity is missing or invalid.");
-            var inspected = commands.run({ vm.runtime, "inspect", "--format", "{{json .Mounts}}", identity });
+            var inspected = commands.run({ resource.runtime, "inspect", "--format", "{{json .Mounts}}", identity });
             if (inspected.exit_status != 0) throw new IOError.FAILED("Cannot inspect container mounts: %s", inspected.error_output);
             var parser = new Json.Parser();
             parser.load_from_data(inspected.output);
@@ -296,29 +296,29 @@ namespace Rigs {
             return "/storage/.rigs-media/" + name;
         }
 
-        public virtual void attach(VmModel vm, string iso_path, string drive_id) throws Error {
+        public virtual void attach(Resource resource, string iso_path, string drive_id) throws Error {
             if (!valid_drive(drive_id)) throw new IOError.INVALID_ARGUMENT("Invalid optical drive identity.");
             validate_iso(iso_path);
             // Re-read immediately before mutation: never deliberately replace existing media.
-            var drives = list_drives(vm);
+            var drives = list_drives(resource);
             GuestOpticalDrive? selected = null;
             foreach (var drive in drives.data) if (drive.id == drive_id) selected = drive;
             if (selected == null) throw new IOError.NOT_FOUND("The selected CD-ROM drive is no longer available.");
             if (selected.current_iso.length > 0) throw new IOError.EXISTS("The selected CD-ROM drive already contains media. Eject it in your VM manager first.");
             string guest_path = iso_path;
-            if (vm.vm_type == "compose" || vm.vm_type == "container") guest_path = container_iso(vm, iso_path);
+            if (resource.kind == "compose" || resource.kind == "container") guest_path = container_iso(resource, iso_path);
             // Staging a large image may take time; check the tray again afterwards.
-            if (vm.vm_type == "compose" || vm.vm_type == "container") {
+            if (resource.kind == "compose" || resource.kind == "container") {
                 bool found_empty = false;
-                foreach (var drive in list_drives(vm).data) {
+                foreach (var drive in list_drives(resource).data) {
                     if (drive.id != drive_id) continue;
                     if (drive.current_iso.length > 0) throw new IOError.EXISTS("The CD-ROM drive became occupied while preparing the ISO. No media was replaced.");
                     found_empty = true;
                 }
                 if (!found_empty) throw new IOError.NOT_FOUND("The selected CD-ROM drive is no longer available.");
             }
-            if (vm.vm_type == "libvirt") {
-                var result = commands.run({ "virsh", "--connect", vm.connection_uri, "change-media", vm.resource_id,
+            if (resource.kind == "libvirt") {
+                var result = commands.run({ "virsh", "--connect", resource.connection_uri, "change-media", resource.resource_id,
                     drive_id, guest_path, "--insert", "--live" });
                 if (result.exit_status != 0) throw new IOError.FAILED("Cannot attach the ISO: %s", result.error_output);
             } else {
@@ -331,27 +331,27 @@ namespace Rigs {
                 image.set_string_member("node-name", node_name);
                 image.set_boolean_member("read-only", true);
                 image.set_object_member("file", file);
-                qmp(vm, "blockdev-add", image);
+                qmp(resource, "blockdev-add", image);
                 try {
                     var open = new Json.Object();
                     open.set_string_member("id", drive_id);
                     open.set_boolean_member("force", false);
-                    qmp(vm, "blockdev-open-tray", open);
+                    qmp(resource, "blockdev-open-tray", open);
                     var insert = new Json.Object();
                     insert.set_string_member("id", drive_id);
                     insert.set_string_member("node-name", node_name);
                     // Unlike change-medium, insert-medium fails if media is present.
-                    qmp(vm, "blockdev-insert-medium", insert);
+                    qmp(resource, "blockdev-insert-medium", insert);
                 } catch (Error e) {
                     var cleanup = new Json.Object();
                     cleanup.set_string_member("node-name", node_name);
-                    try { qmp(vm, "blockdev-del", cleanup); } catch (Error ignored) { }
+                    try { qmp(resource, "blockdev-del", cleanup); } catch (Error ignored) { }
                     throw e;
                 }
                 // Once inserted, retain the medium even if closing its tray fails.
                 var close = new Json.Object();
                 close.set_string_member("id", drive_id);
-                qmp(vm, "blockdev-close-tray", close);
+                qmp(resource, "blockdev-close-tray", close);
             }
         }
     }

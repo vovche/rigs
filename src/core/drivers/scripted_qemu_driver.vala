@@ -1,6 +1,6 @@
 using GLib.Intl;
 
-/* qemu_driver.vala — Standalone QEMU / KVM driver implementation */
+/* scripted_qemu_driver.vala — Standalone QEMU / KVM driver implementation */
 
 namespace Rigs {
 
@@ -11,8 +11,8 @@ namespace Rigs {
         public CpuState(uint64 p, uint64 t) { proc_jiffies = p; cpu_total = t; }
     }
 
-    public class QemuDriver : Object, Driver {
-        public string vm_type { get { return "qemu"; } }
+    public class ScriptedQemuDriver : Object, Driver {
+        public string kind { get { return "qemu"; } }
 
         // Per-VM CPU delta state: vm.id → CpuState
         private HashTable<string, CpuState> cpu_prev = new HashTable<string, CpuState>(str_hash, str_equal);
@@ -66,12 +66,12 @@ namespace Rigs {
         public HostCommand host;
         // How long to wait after a quick, successful start script before looking for the VM process.
         public uint settle_ms = 3000;
-        public int64 startup_window_us = StartupDiagnostics.STARTUP_WINDOW_US;
+        public int64 startup_window_us = FailureRules.STARTUP_WINDOW_US;
         // vm.id → a stop was requested while the start command still runs (its exit is expected).
         private HashTable<string, bool> stopping = new HashTable<string, bool>(str_hash, str_equal);
         private Mutex stopping_lock = Mutex();
 
-        public QemuDriver(HostCommand? host = null) {
+        public ScriptedQemuDriver(HostCommand? host = null) {
             this.host = host ?? new HostCommand();
         }
 
@@ -88,62 +88,62 @@ namespace Rigs {
             return result;
         }
 
-        public void start(VmModel vm) {
-            StartupDiagnostics.run_in_background(vm, "qemu-starter", () => start_blocking(vm));
+        public void start(Resource resource) {
+            FailureRules.run_in_background(resource, "qemu-starter", () => start_blocking(resource));
         }
 
         // The start script may daemonize QEMU (exits at once) or run it in the foreground
         // (exits when the VM ends). Public for headless tests.
-        public StartupIssue? start_blocking(VmModel vm) {
-            set_stopping(vm.id, false);
-            string? working_dir = vm.dir.length > 0 ? vm.dir : null;
-            string cmd = (vm.start_cmd.length > 0) ? vm.start_cmd : "./run-vm.sh";
+        public ResourceIssue? start_blocking(Resource resource) {
+            set_stopping(resource.id, false);
+            string? working_dir = resource.dir.length > 0 ? resource.dir : null;
+            string cmd = (resource.start_cmd.length > 0) ? resource.start_cmd : "./run-vm.sh";
             int64 began = get_monotonic_time();
             CommandResult result;
             try {
                 result = host.run_capture_tail({ "/bin/bash", "-c", cmd }, working_dir);
             } catch (Error e) {
-                return StartupDiagnostics.from_error(e);
+                return FailureRules.from_error(e);
             }
-            if (is_stopping(vm.id)) return null;
+            if (is_stopping(resource.id)) return null;
             bool quick = get_monotonic_time() - began < startup_window_us;
             if (result.exit_status != 0) {
-                var issue = StartupDiagnostics.diagnose(host, "", "", result, vm.guest_os);
+                var issue = FailureRules.diagnose(host, "", "", result, resource.guest_os);
                 if (issue != null && !quick) issue.operation = ResourceOperation.RUN;
                 return issue;
             }
-            if (!quick || vm.process_name.length == 0 || !process_status_available()) return null;
+            if (!quick || resource.process_match.length == 0 || !process_status_available()) return null;
             // A daemonized QEMU can still fail right after the script returned.
             if (settle_ms > 0) Thread.usleep(settle_ms * 1000);
-            if (is_stopping(vm.id)) return null;
-            if (find_vm_pid(proc_root, vm.process_name, (int) Posix.getpid()) > 0) return null;
-            var issue = StartupDiagnostics.analyze(result.error_output, vm.guest_os);
-            return issue ?? StartupDiagnostics.not_running(
-                _("No process matching “%s” is running.").printf(vm.process_name));
+            if (is_stopping(resource.id)) return null;
+            if (find_vm_pid(proc_root, resource.process_match, (int) Posix.getpid()) > 0) return null;
+            var issue = FailureRules.analyze(result.error_output, resource.guest_os);
+            return issue ?? FailureRules.not_running(
+                _("No process matching “%s” is running.").printf(resource.process_match));
         }
 
-        public void stop(VmModel vm) {
-            set_stopping(vm.id, true);
-            StartupDiagnostics.run_in_background(vm, "qemu-stopper", () => {
-                string? directory = vm.dir.length > 0 ? vm.dir : null;
-                if (vm.stop_cmd.length > 0)
-                    return StartupDiagnostics.check_command(host, { "/bin/bash", "-c", vm.stop_cmd }, directory,
+        public void stop(Resource resource) {
+            set_stopping(resource.id, true);
+            FailureRules.run_in_background(resource, "qemu-stopper", () => {
+                string? directory = resource.dir.length > 0 ? resource.dir : null;
+                if (resource.stop_cmd.length > 0)
+                    return FailureRules.check_command(host, { "/bin/bash", "-c", resource.stop_cmd }, directory,
                         ResourceOperation.STOP, 120000);
-                if (vm.monitor_socket.length == 0) return null;
+                if (resource.monitor_socket.length == 0) return null;
                 try {
-                    HmpMonitor.execute(vm.monitor_socket, "system_powerdown");
+                    HmpMonitor.execute(resource.monitor_socket, "system_powerdown");
                 } catch (Error e) {
-                    return StartupDiagnostics.from_error(e, ResourceOperation.STOP);
+                    return FailureRules.from_error(e, ResourceOperation.STOP);
                 }
                 return null;
             });
         }
 
-        public void connect_vm(VmModel vm) {
-            if (vm.connect_cmd.length == 0) return;
-            StartupDiagnostics.run_in_background(vm, "qemu-connect", () => {
-                string? working_dir = vm.dir.length > 0 ? vm.dir : null;
-                return StartupDiagnostics.check_command(host, { "/bin/bash", "-c", vm.connect_cmd }, working_dir,
+        public void open_console(Resource resource) {
+            if (resource.connect_cmd.length == 0) return;
+            FailureRules.run_in_background(resource, "qemu-connect", () => {
+                string? working_dir = resource.dir.length > 0 ? resource.dir : null;
+                return FailureRules.check_command(host, { "/bin/bash", "-c", resource.connect_cmd }, working_dir,
                     ResourceOperation.CONNECT);
             });
         }
@@ -153,8 +153,8 @@ namespace Rigs {
             return host.mode == "native" || host.mode == "snap-classic";
         }
 
-        public VmStatus check_status(VmModel vm) {
-            VmStatus st = VmStatus();
+        public ResourceStatus check_status(Resource resource) {
+            ResourceStatus st = ResourceStatus();
             st.running = false;
             st.cpu_pct = 0.0;
             st.ram_str = "0 MB";
@@ -163,17 +163,17 @@ namespace Rigs {
             // deployments should use libvirt's stable domain interface.
             if (!process_status_available()) return st;
             st.status_available = true;
-            if (vm.process_name.length == 0) return st;
+            if (resource.process_match.length == 0) return st;
 
-            int pid = find_vm_pid(proc_root, vm.process_name, (int) Posix.getpid());
+            int pid = find_vm_pid(proc_root, resource.process_match, (int) Posix.getpid());
             if (pid <= 0) {
-                cpu_prev.remove(vm.id);
+                cpu_prev.remove(resource.id);
                 return st;
             }
             st.running = true;
             string pid_dir = Path.build_filename(proc_root, pid.to_string());
-            st.cpu_pct = process_cpu_percent(vm.id, pid_dir);
-            double limit_mb = allocated_mb(pid_dir, vm.dir);
+            st.cpu_pct = process_cpu_percent(resource.id, pid_dir);
+            double limit_mb = allocated_mb(pid_dir, resource.dir);
             uint64 ram_mb = resident_mb(pid_dir);
             if (limit_mb > 0.0) {
                 st.ram_pct = double.min(100.0, ram_mb / limit_mb * 100.0);
@@ -185,7 +185,7 @@ namespace Rigs {
         }
 
         // Share of the whole host (all CPUs), matching the host overview and container drivers.
-        private double process_cpu_percent(string vm_id, string pid_dir) {
+        private double process_cpu_percent(string id, string pid_dir) {
             try {
                 string proc_stat;
                 FileUtils.get_contents(Path.build_filename(pid_dir, "stat"), out proc_stat);
@@ -205,8 +205,8 @@ namespace Rigs {
                     if (cpu_fields[i].strip().length > 0) cpu_total += uint64.parse(cpu_fields[i].strip());
                 }
 
-                CpuState? prev = cpu_prev.lookup(vm_id);
-                cpu_prev.insert(vm_id, new CpuState(proc_jiffies, cpu_total));
+                CpuState? prev = cpu_prev.lookup(id);
+                cpu_prev.insert(id, new CpuState(proc_jiffies, cpu_total));
                 if (prev == null) return 0.0;
                 return Metrics.delta_percent(prev.proc_jiffies, proc_jiffies, prev.cpu_total, cpu_total);
             } catch (Error e) {
@@ -215,7 +215,7 @@ namespace Rigs {
         }
 
         // VM RAM limit from the QEMU "-m" argument, else from run-vm.sh in the VM directory.
-        private static double allocated_mb(string pid_dir, string vm_dir) {
+        private static double allocated_mb(string pid_dir, string resource_dir) {
             try {
                 uint8[] raw;
                 FileUtils.get_data(Path.build_filename(pid_dir, "cmdline"), out raw);
@@ -227,17 +227,17 @@ namespace Rigs {
                     start = i + 1;
                 }
                 for (int i = 0; i + 1 < args.length; i++) {
-                    if (args[i] == "-m") return ConfigManager.parse_mem_to_mb(args[i + 1]);
+                    if (args[i] == "-m") return Metrics.parse_mem_to_mb(args[i + 1]);
                 }
             } catch (Error e) { }
-            if (vm_dir.length == 0) return 0.0;
+            if (resource_dir.length == 0) return 0.0;
             try {
                 string script;
-                FileUtils.get_contents(Path.build_filename(vm_dir, "run-vm.sh"), out script);
+                FileUtils.get_contents(Path.build_filename(resource_dir, "run-vm.sh"), out script);
                 foreach (string line in script.split("\n")) {
                     string trimmed = line.strip();
                     if (trimmed.has_prefix("-m ") || trimmed.has_prefix("-m\t"))
-                        return ConfigManager.parse_mem_to_mb(trimmed.substring(3).replace("\\", "").strip());
+                        return Metrics.parse_mem_to_mb(trimmed.substring(3).replace("\\", "").strip());
                 }
             } catch (Error e) { }
             return 0.0;
@@ -253,25 +253,25 @@ namespace Rigs {
             return 0;
         }
 
-        public void insert_iso(VmModel vm, string iso_path) {
-            if (vm.monitor_socket.length == 0) return;
-            StartupDiagnostics.run_in_background(vm, "qemu-hmp", () => {
+        public void insert_iso(Resource resource, string iso_path) {
+            if (resource.monitor_socket.length == 0) return;
+            FailureRules.run_in_background(resource, "qemu-hmp", () => {
                 try {
-                    HmpMonitor.execute(vm.monitor_socket, "change cdrom " + HmpMonitor.quote(iso_path));
+                    HmpMonitor.execute(resource.monitor_socket, "change cdrom " + HmpMonitor.quote(iso_path));
                 } catch (Error e) {
-                    return StartupDiagnostics.from_error(e, ResourceOperation.MEDIA);
+                    return FailureRules.from_error(e, ResourceOperation.MEDIA);
                 }
                 return null;
             });
         }
 
-        public void eject_iso(VmModel vm) {
-            if (vm.monitor_socket.length == 0) return;
-            StartupDiagnostics.run_in_background(vm, "qemu-hmp", () => {
+        public void eject_iso(Resource resource) {
+            if (resource.monitor_socket.length == 0) return;
+            FailureRules.run_in_background(resource, "qemu-hmp", () => {
                 try {
-                    HmpMonitor.execute(vm.monitor_socket, "eject -f cdrom");
+                    HmpMonitor.execute(resource.monitor_socket, "eject -f cdrom");
                 } catch (Error e) {
-                    return StartupDiagnostics.from_error(e, ResourceOperation.MEDIA);
+                    return FailureRules.from_error(e, ResourceOperation.MEDIA);
                 }
                 return null;
             });

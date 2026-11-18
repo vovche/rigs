@@ -33,5 +33,27 @@ namespace Rigs {
             uint cpus = cpu_count > 0 ? cpu_count : get_num_processors();
             return (value / cpus).clamp(0.0, 100.0);
         }
+
+        // QEMU-style sizes: "4096", "4G", "4GiB", "512M", "2T". Unknown input → 0.
+        public static double parse_mem_to_mb(string raw) {
+            string s = raw.strip().up();
+            string[,] units = {
+                { "TIB", "1048576" }, { "TB", "1048576" }, { "T", "1048576" },
+                { "GIB", "1024" }, { "GB", "1024" }, { "G", "1024" },
+                { "MIB", "1" }, { "MB", "1" }, { "M", "1" },
+                { "KIB", "0.0009765625" }, { "KB", "0.0009765625" }, { "K", "0.0009765625" }
+            };
+            double factor = 1.0;
+            for (int i = 0; i < units.length[0]; i++) {
+                if (s.has_suffix(units[i, 0])) {
+                    s = s.substring(0, s.length - units[i, 0].length).strip();
+                    factor = double.parse(units[i, 1]);
+                    break;
+                }
+            }
+            double value = 0.0;
+            if (s.length == 0 || !double.try_parse(s, out value) || value < 0) return 0.0;
+            return value * factor;
+        }
     }
 }

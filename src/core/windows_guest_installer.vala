@@ -44,8 +44,8 @@ namespace Rigs {
         private static string str(Json.Object obj, string name) throws Error { return member(obj, name, typeof(string)).get_string(); }
         private static bool flag(Json.Object obj, string name) throws Error { return member(obj, name, typeof(bool)).get_boolean(); }
         private static int64 number(Json.Object obj, string name) throws Error { return member(obj, name, typeof(int64)).get_int(); }
-        private Json.Object call(VmModel vm, string name, Json.Object? args = null) throws Error {
-            try { return object_node(agent.command(vm, name, args)); }
+        private Json.Object call(Resource resource, string name, Json.Object? args = null) throws Error {
+            try { return object_node(agent.command(resource, name, args)); }
             catch (IOError.INVALID_DATA e) { throw new IOError.INVALID_DATA("Malformed response to %s.", name); }
         }
         private static string decode(string encoded) throws Error {
@@ -64,20 +64,20 @@ namespace Rigs {
             string converted = GLib.convert(source, source.length, "UTF-16LE", "UTF-8", out read, out written);
             return Base64.encode(((uint8[])converted.data)[0:(int)written]);
         }
-        private int64 execute(VmModel vm, string script) throws Error {
+        private int64 execute(Resource resource, string script) throws Error {
             var args = new Json.Object();
             args.set_string_member("path", "powershell.exe");
             var argv = new Json.Array();
             foreach (string arg in new string[] { "-NoProfile", "-NonInteractive", "-EncodedCommand", encoded_script(script) }) argv.add_string_element(arg);
             args.set_array_member("arg", argv);
             args.set_boolean_member("capture-output", true);
-            int64 pid = number(call(vm, "guest-exec", args), "pid");
+            int64 pid = number(call(resource, "guest-exec", args), "pid");
             if (pid <= 0 || pid > int.MAX) throw new IOError.INVALID_DATA("Malformed guest process identifier.");
             return pid;
         }
-        private Json.Object? status(VmModel vm, int64 pid) throws Error {
+        private Json.Object? status(Resource resource, int64 pid) throws Error {
             var args = new Json.Object(); args.set_int_member("pid", pid);
-            var reply = call(vm, "guest-exec-status", args);
+            var reply = call(resource, "guest-exec-status", args);
             if (!flag(reply, "exited")) return null;
             if (number(reply, "exitcode") != 0) throw new IOError.FAILED("Guest helper failed.");
             string output = decode(str(reply, "out-data"));
@@ -88,9 +88,9 @@ namespace Rigs {
         public static string preflight_script() {
             return "$ErrorActionPreference='Stop'; $a=([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator); $s=Get-Service -Name BalloonService -ErrorAction SilentlyContinue; @{administrator=$a;balloon_service_running=($null -ne $s -and $s.Status -eq 'Running')} | ConvertTo-Json -Compress";
         }
-        public GuestToolsProbe probe(VmModel vm) throws Error {
+        public GuestToolsProbe probe(Resource resource) throws Error {
             var result = new GuestToolsProbe();
-            var info = call(vm, "guest-info");
+            var info = call(resource, "guest-info");
             if (!info.has_member("supported_commands") || info.get_member("supported_commands").get_node_type() != Json.NodeType.ARRAY)
                 throw new IOError.INVALID_DATA("Missing guest agent capabilities.");
             var enabled = new HashTable<string, bool>(str_hash, str_equal);
@@ -103,15 +103,15 @@ namespace Rigs {
                 if (!enabled.contains(name)) { result.summary = _("Guest agent installation commands are unavailable or disabled."); return result; }
             }
             result.available = true;
-            var os = call(vm, "guest-get-osinfo");
+            var os = call(resource, "guest-get-osinfo");
             result.architecture = str(os, "machine"); result.version = str(os, "version-id");
             result.compatible = str(os, "id") == "mswindows" && (result.architecture == "x86" || result.architecture == "x86_64") &&
                 (result.version == "10" || result.version == "11" || result.version == "2016" || result.version == "2019" || result.version == "2022" || result.version == "2025");
             if (!result.compatible) { result.summary = _("This Windows version or architecture requires manual driver setup."); return result; }
-            int64 pid = execute(vm, preflight_script());
+            int64 pid = execute(resource, preflight_script());
             int64 end = get_monotonic_time() + 5000000;
             while (get_monotonic_time() < end) {
-                var data = status(vm, pid);
+                var data = status(resource, pid);
                 if (data != null) {
                     result.administrator = flag(data, "administrator");
                     result.balloon_service_running = flag(data, "balloon_service_running");
@@ -156,47 +156,47 @@ namespace Rigs {
             if (!mz || checksum.get_string() != artifact.sha256.down()) throw new IOError.INVALID_DATA("Installer executable or SHA256 verification failed.");
             return checksum.get_string();
         }
-        private int64 open(VmModel vm, string path, string mode) throws Error {
+        private int64 open(Resource resource, string path, string mode) throws Error {
             var args = new Json.Object(); args.set_string_member("path", path); args.set_string_member("mode", mode);
-            var value = agent.command(vm, "guest-file-open", args);
+            var value = agent.command(resource, "guest-file-open", args);
             if (value.get_node_type() != Json.NodeType.VALUE || value.get_value_type() != typeof(int64) || value.get_int() < 0)
                 throw new IOError.INVALID_DATA("Malformed guest file handle.");
             return value.get_int();
         }
-        private void close(VmModel vm, int64 handle) throws Error {
-            var args = new Json.Object(); args.set_int_member("handle", handle); agent.command(vm, "guest-file-close", args);
+        private void close(Resource resource, int64 handle) throws Error {
+            var args = new Json.Object(); args.set_int_member("handle", handle); agent.command(resource, "guest-file-close", args);
         }
-        private void upload(VmModel vm, string path, string destination) throws Error {
+        private void upload(Resource resource, string path, string destination) throws Error {
             var input = File.new_for_path(path).read();
             int64 handle = -1;
             Error? cleanup_error = null;
             try {
-                handle = open(vm, destination, "wb");
+                handle = open(resource, destination, "wb");
                 uint8[] bytes = new uint8[65536]; ssize_t count; int64 total = 0;
                 while ((count = input.read(bytes)) > 0) {
                     total += count;
                     if (total > 256 * 1024 * 1024) throw new IOError.INVALID_DATA("Installer exceeds upload size limit.");
                     var args = new Json.Object(); args.set_int_member("handle", handle);
                     args.set_string_member("buf-b64", Base64.encode(bytes[0:(int)count]));
-                    if (number(call(vm, "guest-file-write", args), "count") != count) throw new IOError.FAILED("Guest installer upload was incomplete.");
+                    if (number(call(resource, "guest-file-write", args), "count") != count) throw new IOError.FAILED("Guest installer upload was incomplete.");
                 }
             } finally {
                 try { input.close(); } catch (Error e) { cleanup_error = e; }
-                if (handle >= 0) { try { close(vm, handle); } catch (Error e) { cleanup_error = e; } }
+                if (handle >= 0) { try { close(resource, handle); } catch (Error e) { cleanup_error = e; } }
             }
             if (cleanup_error != null) throw cleanup_error;
         }
-        private Json.Object read_outcome(VmModel vm, string directory) throws Error {
-            int64 handle = open(vm, directory + "\\outcome.json", "r");
+        private Json.Object read_outcome(Resource resource, string directory) throws Error {
+            int64 handle = open(resource, directory + "\\outcome.json", "r");
             try {
                 var args = new Json.Object(); args.set_int_member("handle", handle); args.set_int_member("count", 16384);
-                var reply = call(vm, "guest-file-read", args);
+                var reply = call(resource, "guest-file-read", args);
                 int64 count = number(reply, "count");
                 string text = decode(str(reply, "buf-b64"));
                 if (count != text.length || count >= 16384) throw new IOError.INVALID_DATA("Malformed guest outcome size.");
                 if (text.has_prefix("\xef\xbb\xbf")) text = text.substring(3);
                 var parser = new Json.Parser(); parser.load_from_data(text); return object_node(parser.get_root());
-            } finally { try { close(vm, handle); } catch (Error e) {} }
+            } finally { try { close(resource, handle); } catch (Error e) {} }
         }
         private void journal(string path, string key, string phase, string directory, int64 pid, GuestToolsArtifact artifact, GuestInstallResult result) throws Error {
             var obj = new Json.Object();
@@ -211,11 +211,11 @@ namespace Rigs {
             string? new_etag;
             File.new_for_path(path).replace_contents(contents.data, null, false, FileCreateFlags.PRIVATE, out new_etag);
         }
-        private static string resource_key(VmModel vm) {
+        private static string resource_key(Resource resource) {
             string identity;
-            if (vm.vm_type == "libvirt") identity = string.joinv("|", { "libvirt", vm.connection_uri, vm.resource_id.down() });
+            if (resource.kind == "libvirt") identity = string.joinv("|", { "libvirt", resource.connection_uri, resource.resource_id.down() });
             else {
-                string socket = Posix.realpath(vm.guest_agent_socket) ?? File.new_for_path(vm.guest_agent_socket).get_path();
+                string socket = Posix.realpath(resource.guest_agent_socket) ?? File.new_for_path(resource.guest_agent_socket).get_path();
                 identity = "qga-socket|" + socket;
             }
             return Checksum.compute_for_string(ChecksumType.SHA256, identity);
@@ -251,11 +251,11 @@ namespace Rigs {
                 return text;
             } finally { try { stream.close(); } catch (Error e) {} }
         }
-        public bool has_pending(VmModel vm) {
-            return FileUtils.test(Path.build_filename(state_dir, resource_key(vm) + ".active"), FileTest.IS_REGULAR);
+        public bool has_pending(Resource resource) {
+            return FileUtils.test(Path.build_filename(state_dir, resource_key(resource) + ".active"), FileTest.IS_REGULAR);
         }
-        public GuestInstallResult resume(VmModel vm, uint timeout_ms = 5000) throws Error {
-            string key = resource_key(vm);
+        public GuestInstallResult resume(Resource resource, uint timeout_ms = 5000) throws Error {
+            string key = resource_key(resource);
             string marker = Path.build_filename(state_dir, key + ".active");
             active_mutex.lock();
             if (active == null) active = new HashTable<string, bool>(str_hash, str_equal);
@@ -282,8 +282,8 @@ namespace Rigs {
                 Json.Object? outcome = null;
                 do {
                     // The durable outcome takes priority after an agent restart.
-                    try { outcome = read_outcome(vm, result.remote_directory); } catch (Error e) {}
-                    if (outcome == null && pid > 0) { try { outcome = status(vm, pid); } catch (Error e) {} }
+                    try { outcome = read_outcome(resource, result.remote_directory); } catch (Error e) {}
+                    if (outcome == null && pid > 0) { try { outcome = status(resource, pid); } catch (Error e) {} }
                     if (outcome != null) break;
                     if (get_monotonic_time() >= end) break;
                     pause();
@@ -300,8 +300,8 @@ namespace Rigs {
                 return result;
             } finally { active_mutex.lock(); active.remove(key); active_mutex.unlock(); }
         }
-        public GuestInstallResult install(VmModel vm, GuestToolsArtifact artifact, uint timeout_ms = 600000) throws Error {
-            string key = resource_key(vm);
+        public GuestInstallResult install(Resource resource, GuestToolsArtifact artifact, uint timeout_ms = 600000) throws Error {
+            string key = resource_key(resource);
             active_mutex.lock();
             if (active == null) active = new HashTable<string, bool>(str_hash, str_equal);
             if (active.contains(key)) { active_mutex.unlock(); throw new IOError.BUSY("A driver installation is already active for this guest."); }
@@ -326,28 +326,28 @@ namespace Rigs {
                 result.journal_path = Path.build_filename(state_dir, job + ".json");
                 journal(result.journal_path, key, "preflight", result.remote_directory, pid, artifact, result);
                 progress(_("Checking Windows guest and installer…"));
-                var check = probe(vm);
+                var check = probe(resource);
                 if (!check.available || !check.compatible || !check.administrator) { result.summary = check.summary; return result; }
                 string hash = validate_artifact(artifact);
-                pid = execute(vm, "$ErrorActionPreference='Stop'; New-Item -ItemType Directory -Path " + quote(result.remote_directory) + " -Force | Out-Null; @{created=$true} | ConvertTo-Json -Compress");
+                pid = execute(resource, "$ErrorActionPreference='Stop'; New-Item -ItemType Directory -Path " + quote(result.remote_directory) + " -Force | Out-Null; @{created=$true} | ConvertTo-Json -Compress");
                 int64 end = get_monotonic_time() + (int64)timeout_ms * 1000;
                 bool created = false;
-                while (get_monotonic_time() < end) { var data = status(vm, pid); if (data != null) { created = flag(data, "created"); break; } pause(); }
+                while (get_monotonic_time() < end) { var data = status(resource, pid); if (data != null) { created = flag(data, "created"); break; } pause(); }
                 if (!created) throw new IOError.TIMED_OUT("Guest installation directory creation timed out.");
                 progress(_("Uploading verified driver installer…"));
                 journal(result.journal_path, key, "upload", result.remote_directory, pid, artifact, result);
-                upload(vm, artifact.path, result.remote_directory + "\\guest-tools.exe");
+                upload(resource, artifact.path, result.remote_directory + "\\guest-tools.exe");
                 progress(_("Installing Windows guest drivers…"));
                 // Record intent before launch: reconnects may lose the guest-exec reply.
                 journal(result.journal_path, key, "launching", result.remote_directory, -1, artifact, result);
                 uncertain = true;
-                try { pid = execute(vm, install_script(result.remote_directory, hash)); } catch (Error e) { pid = -1; }
+                try { pid = execute(resource, install_script(result.remote_directory, hash)); } catch (Error e) { pid = -1; }
                 journal(result.journal_path, key, "installing", result.remote_directory, pid, artifact, result);
                 end = get_monotonic_time() + (int64)timeout_ms * 1000;
                 Json.Object? outcome = null;
                 while (get_monotonic_time() < end) {
-                    try { if (pid > 0) outcome = status(vm, pid); } catch (Error e) {}
-                    if (outcome == null) { try { outcome = read_outcome(vm, result.remote_directory); } catch (Error e) {} }
+                    try { if (pid > 0) outcome = status(resource, pid); } catch (Error e) {}
+                    if (outcome == null) { try { outcome = read_outcome(resource, result.remote_directory); } catch (Error e) {} }
                     if (outcome != null) break;
                     pause();
                 }
@@ -375,6 +375,6 @@ namespace Rigs {
                 active_mutex.lock(); active.remove(key); active_mutex.unlock();
             }
         }
-        public void reboot(VmModel vm) throws Error { agent.reboot(vm); }
+        public void reboot(Resource resource) throws Error { agent.reboot(resource); }
     }
 }

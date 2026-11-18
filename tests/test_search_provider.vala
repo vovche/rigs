@@ -4,32 +4,32 @@ namespace Rigs.Tests {
 
     public class TestSearchProvider {
 
-        private static GenericArray<VmModel> create_sample_vms() {
-            var list = new GenericArray<VmModel>();
+        private static GenericArray<Resource> create_sample_resources() {
+            var list = new GenericArray<Resource>();
 
-            var vm1 = new VmModel();
+            var vm1 = new Resource();
             vm1.id = "debian-12";
             vm1.name = "Debian 12 Dev";
             vm1.subtitle = "QEMU/KVM micro-VM";
-            vm1.vm_type = "qemu";
+            vm1.kind = "qemu";
             vm1.icon = "computer-symbolic";
             vm1.details = "RAM: 4 GB • CPUs: 2 • Ports: 2222:22";
             list.add(vm1);
 
-            var vm2 = new VmModel();
+            var vm2 = new Resource();
             vm2.id = "postgres-16";
             vm2.name = "PostgreSQL 16";
             vm2.subtitle = "Docker Compose Stack";
-            vm2.vm_type = "compose";
+            vm2.kind = "compose";
             vm2.icon = "server-database-symbolic";
             vm2.details = "Services: db, pgadmin • Ports: 5432:5432";
             list.add(vm2);
 
-            var vm3 = new VmModel();
+            var vm3 = new Resource();
             vm3.id = "alpine-min";
             vm3.name = "Alpine Minimal";
             vm3.subtitle = "QEMU/KVM micro-VM";
-            vm3.vm_type = "qemu";
+            vm3.kind = "qemu";
             vm3.icon = "utilities-terminal-symbolic";
             vm3.details = "RAM: 512 MB • CPUs: 1";
             list.add(vm3);
@@ -38,8 +38,8 @@ namespace Rigs.Tests {
         }
 
         public static void test_initial_search_by_name() {
-            var vms = create_sample_vms();
-            var provider = new SearchProvider(null, vms);
+            var resources = create_sample_resources();
+            var provider = new SearchProvider(null, resources);
 
             try {
                 string[] res = provider.get_initial_result_set({ "debian" });
@@ -55,8 +55,8 @@ namespace Rigs.Tests {
         }
 
         public static void test_initial_search_by_port_and_type() {
-            var vms = create_sample_vms();
-            var provider = new SearchProvider(null, vms);
+            var resources = create_sample_resources();
+            var provider = new SearchProvider(null, resources);
 
             try {
                 // By port
@@ -84,8 +84,8 @@ namespace Rigs.Tests {
         }
 
         public static void test_subsearch() {
-            var vms = create_sample_vms();
-            var provider = new SearchProvider(null, vms);
+            var resources = create_sample_resources();
+            var provider = new SearchProvider(null, resources);
 
             try {
                 string[] prev = { "debian-12", "alpine-min" };
@@ -101,8 +101,8 @@ namespace Rigs.Tests {
         }
 
         public static void test_result_metas() {
-            var vms = create_sample_vms();
-            var provider = new SearchProvider(null, vms);
+            var resources = create_sample_resources();
+            var provider = new SearchProvider(null, resources);
 
             try {
                 string[] ids = { "postgres-16", "debian-12" };

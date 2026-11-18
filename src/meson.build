@@ -7,6 +7,7 @@ core_sources = [
   'core/metrics.vala',
   'core/qemu_monitor.vala',
   'core/resource.vala',
+  'core/resource_store.vala',
   'core/resource_issue.vala',
   'core/monitor.vala',
   'core/resource_discovery.vala',

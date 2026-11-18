@@ -48,18 +48,18 @@ namespace Rigs.Tests {
             commands.podman_output = CONTAINER_A + "\tmy VM; $(touch impossible)\timage:test\texited\n" +
                 "invalid-id\tbad\timage\trunning\n";
             commands.docker_output = CONTAINER_B + "\tother\timage:latest\trunning\n";
-            var result = new ResourceDiscovery(commands).scan(new GenericArray<VmModel>());
+            var result = new ResourceDiscovery(commands).scan(new GenericArray<Resource>());
             assert(commands.calls == 4 && result.sources.length == 4);
             assert(result.candidates.length == 2);
-            var vm = result.candidates[0];
-            assert(vm.id == "podman:" + CONTAINER_A);
-            assert(vm.runtime == "podman" && vm.vm_type == "container");
-            assert(vm.name == "my VM; $(touch impossible)" && vm.container_name == vm.name);
-            assert(vm.details == "exited" && vm.resource_id == CONTAINER_A);
-            assert(vm.start_cmd == "" && vm.stop_cmd == "");
+            var resource = result.candidates[0];
+            assert(resource.id == "podman:" + CONTAINER_A);
+            assert(resource.runtime == "podman" && resource.kind == "container");
+            assert(resource.name == "my VM; $(touch impossible)" && resource.container_name == resource.name);
+            assert(resource.details == "exited" && resource.resource_id == CONTAINER_A);
+            assert(resource.start_cmd == "" && resource.stop_cmd == "");
             assert(!result.sources[0].available);
             assert(result.sources[1].available && result.sources[2].available);
-            assert(vm.guest_os == "" && vm.qmp_socket == "");
+            assert(resource.guest_os == "" && resource.qmp_socket == "");
 
             // Known Windows VM images get setup hints; names and unrelated images do not.
             commands.podman_output =
@@ -69,7 +69,7 @@ namespace Rigs.Tests {
                 "000000000004\twindows\tother/windows:latest\trunning\n" +
                 "000000000005\twindows\tdockurr/windows-tools:latest\trunning\n";
             commands.docker_output = "";
-            var hints = new ResourceDiscovery(commands).scan(new GenericArray<VmModel>());
+            var hints = new ResourceDiscovery(commands).scan(new GenericArray<Resource>());
             assert(hints.candidates.length == 5);
             for (uint i = 0; i < hints.candidates.length; i++) {
                 assert(hints.candidates[i].guest_os == (i < 3 ? "windows" : ""));
@@ -81,9 +81,9 @@ namespace Rigs.Tests {
             var commands = new DiscoveryCommands();
             commands.session_output = DOMAIN + " Domain with spaces; $data\n";
             commands.system_output = DOMAIN + "\tSystem domain\ninvalid bad-domain\n";
-            var result = new ResourceDiscovery(commands).scan(new GenericArray<VmModel>());
+            var result = new ResourceDiscovery(commands).scan(new GenericArray<Resource>());
             assert(commands.calls == 4 && result.candidates.length == 2);
-            assert(result.candidates[0].vm_type == "libvirt");
+            assert(result.candidates[0].kind == "libvirt");
             assert(result.candidates[0].id == "qemu:///session:" + DOMAIN);
             assert(result.candidates[0].resource_id == DOMAIN);
             assert(result.candidates[0].name == "Domain with spaces; $data");
@@ -96,7 +96,7 @@ namespace Rigs.Tests {
             commands.deny_podman = true;
             commands.missing_docker = true;
             commands.session_output = DOMAIN + " Available domain\n";
-            var result = new ResourceDiscovery(commands).scan(new GenericArray<VmModel>());
+            var result = new ResourceDiscovery(commands).scan(new GenericArray<Resource>());
             assert(commands.calls == 4 && result.candidates.length == 1);
             assert(!result.sources[0].available && !result.sources[1].available);
             assert(result.sources[0].message == _("Runtime connection is unavailable or access was denied."));
@@ -112,12 +112,12 @@ namespace Rigs.Tests {
                 CONTAINER_B + "\tlegacy\timage\texited\n";
             commands.docker_output = CONTAINER_A + "\taliased\timage\trunning\n";
             commands.session_output = DOMAIN + " Existing domain\n";
-            var existing = new GenericArray<VmModel>();
-            var legacy = new VmModel();
+            var existing = new GenericArray<Resource>();
+            var legacy = new Resource();
             legacy.container_name = "legacy";
             existing.add(legacy);
-            var domain = new VmModel();
-            domain.vm_type = "libvirt";
+            var domain = new Resource();
+            domain.kind = "libvirt";
             domain.resource_id = DOMAIN;
             existing.add(domain);
             var result = new ResourceDiscovery(commands).scan(existing);

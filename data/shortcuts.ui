@@ -11,13 +11,13 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;Control&gt;n</property>
-                <property name="title" translatable="yes">Add Virtual Machine</property>
+                <property name="title" translatable="yes">Add Resource</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;Control&gt;f</property>
-                <property name="title" translatable="yes">Search Virtual Machines</property>
+                <property name="title" translatable="yes">Filter Resources</property>
               </object>
             </child>
             <child>

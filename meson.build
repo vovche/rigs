@@ -45,6 +45,7 @@ subdir('src')
 test_sources = [
   'tests/main.vala',
   'tests/test_models.vala',
+  'tests/test_resource_presets.vala',
   'tests/test_guest_memory.vala',
   'tests/test_guest_agent.vala',
   'tests/test_guest_media.vala',

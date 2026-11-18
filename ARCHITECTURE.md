@@ -79,7 +79,18 @@ Lint rules CORE-01/02 stop GTK from leaking into core.
 → `ScriptedQemuDriver` sends `change cdrom "<quoted path>"` over HMP; QEMU's reply text, if any,
 becomes a MEDIA issue. Other kinds return an "unsupported" issue.
 
-### 2.4 Persistence
+### 2.4 Adding a resource
+
+The header has one "+" button (Ctrl+N); the magnifier (Ctrl+F) only filters resources already
+added. `AddResourceDialog` page 1 lists what `ResourceDiscovery` finds on this computer
+(containers, libvirt domains; scanned automatically, read-only) and manual presets
+("From a folder", "Compose project", "QEMU start script"). `ResourcePresets` reads the folder:
+`compose.yaml` → container_name, Windows image, port summary; `run-vm.sh` → process match,
+monitor/QMP/guest-agent sockets and a SPICE connect command (plain `VAR=value` expansion only).
+Page 2, `ResourceEditorPage`, shows only the fields relevant to the kind, explains what an empty
+field means, and enables "Add" only while `ResourcePresets.validate()` returns null.
+
+### 2.5 Persistence
 
 - **`~/.config/rigs/vms.json`** (`ResourceStore`): human-editable; keys keep their historical
   names (`"type"` = kind, `"process_name"` = process_match). A damaged file is preserved, shown
@@ -102,6 +113,7 @@ rigs/
 │   ├── core/                  # GLib-only library rigs-core
 │   │   ├── resource.vala          # Resource, ResourceKind, ContainerRuntime, ResourceStatus
 │   │   ├── resource_store.vala    # vms.json
+│   │   ├── resource_presets.vala  # settings read from compose.yaml / run-vm.sh, validation
 │   │   ├── resource_issue.vala    # ResourceIssue, ResourceOperation, FailureCategory
 │   │   ├── failure_rules.vala     # output → ResourceIssue
 │   │   ├── resource_actions.vala  # runs drivers off the main thread, publishes issues
@@ -113,7 +125,9 @@ rigs/
 │   └── ui/                    # GTK widgets
 │       ├── main.vala, application.vala, window.vala
 │       ├── host_overview.vala, resource_list.vala, resource_card.vala, sparkline.vala
-│       └── *_dialog.vala          # add, discovery, guest tools, driver setup, issue
+│       ├── add_resource_dialog.vala   # the only "add" flow: discovered + manual presets
+│       ├── resource_editor_page.vala  # settings form with live validation
+│       └── *_dialog.vala          # guest tools, driver setup, issue
 ├── tests/                     # GLib.Test, headless, < 1 s; test_regressions.vala for bug repros
 ├── data/, po/, snap/
 └── docs/                      # guardrails.md, packaging.md, llm-workflow.md, work-items/

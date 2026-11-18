@@ -965,3 +965,187 @@ msgstr "Контейнер завершився без жодного вивод
 
 msgid "Unrecognized error"
 msgstr "Нерозпізнана помилка"
+
+#, c-format
+msgid "%d of %d connected"
+msgstr "підключено %d з %d"
+
+#, c-format
+msgid "%s does not exist in the folder."
+msgstr "%s немає в цій теці."
+
+msgid "A folder with run-vm.sh or your own start command"
+msgstr "Тека з run-vm.sh або власна команда запуску"
+
+msgid "Add Resource"
+msgstr "Додати ресурс"
+
+msgid "Add Resource (Ctrl+N)"
+msgstr "Додати ресурс (Ctrl+N)"
+
+msgid "Add a virtual machine or container. Rigs also looks for existing ones on this computer."
+msgstr "Додайте віртуальну машину або контейнер. Rigs також шукає наявні на цьому комп’ютері."
+
+#, c-format
+msgid "Added “%s”"
+msgstr "Додано «%s»"
+
+msgid "Choose Folder and Read Its Settings"
+msgstr "Вибрати теку й зчитати налаштування"
+
+msgid "Choose the Resource Folder"
+msgstr "Виберіть теку ресурсу"
+
+msgid "Choose the VM folder."
+msgstr "Виберіть теку VM."
+
+msgid "Choose the project folder."
+msgstr "Виберіть теку проєкту."
+
+msgid "Commands"
+msgstr "Команди"
+
+msgid "Compose Project"
+msgstr "Compose-проєкт"
+
+msgid "Compose project"
+msgstr "Compose-проєкт"
+
+msgid "Container"
+msgstr "Контейнер"
+
+msgid "Container Engine"
+msgstr "Рушій контейнерів"
+
+msgid "Containers and libvirt virtual machines your user can reach. Scanning changes nothing."
+msgstr "Контейнери та віртуальні машини libvirt, доступні вашому користувачу. Сканування нічого не змінює."
+
+#, c-format
+msgid "Empty Start and Stop run “%s compose up -d” and “%s compose down” in the folder."
+msgstr "Порожні «Старт» і «Стоп» виконують у теці «%s compose up -d» та «%s compose down»."
+
+msgid "Empty Start runs ./run-vm.sh. Empty Stop shuts the VM down through the monitor socket."
+msgstr "Порожній «Старт» запускає ./run-vm.sh. Порожній «Стоп» вимикає VM через сокет монітора."
+
+msgid "Enter a name."
+msgstr "Введіть назву."
+
+msgid "Everything reachable is already added, or a connection below is unavailable."
+msgstr "Усе доступне вже додано, або одне з підключень нижче недоступне."
+
+msgid "Filter Resources"
+msgstr "Фільтр ресурсів"
+
+msgid "Filter Resources (Ctrl+F)"
+msgstr "Фільтр ресурсів (Ctrl+F)"
+
+msgid "Filter added resources by name, type or ports…"
+msgstr "Фільтр доданих ресурсів за назвою, типом або портами…"
+
+msgid "Folder"
+msgstr "Тека"
+
+msgid "Found on This Computer"
+msgstr "Знайдено на цьому комп’ютері"
+
+msgid "From a Folder…"
+msgstr "З теки…"
+
+msgid "General"
+msgstr "Загальне"
+
+msgid "Guest Agent Socket"
+msgstr "Сокет гостьового агента"
+
+msgid "Location"
+msgstr "Розташування"
+
+msgid "Name"
+msgstr "Назва"
+
+msgid "No Resources Yet"
+msgstr "Ресурсів ще немає"
+
+msgid "Nothing new found"
+msgstr "Нічого нового не знайдено"
+
+msgid "Podman or Docker Compose in a project folder"
+msgstr "Podman або Docker Compose у теці проєкту"
+
+msgid "Process Match"
+msgstr "Збіг процесу"
+
+msgid "Process Match is part of the QEMU command line used to find the running VM, e.g. its -name."
+msgstr "«Збіг процесу» — частина командного рядка QEMU, за якою Rigs знаходить запущену VM, напр. її -name."
+
+msgid "QEMU Monitor Socket"
+msgstr "Сокет монітора QEMU"
+
+msgid "QEMU Start Script"
+msgstr "Скрипт запуску QEMU"
+
+msgid "QEMU script"
+msgstr "Скрипт QEMU"
+
+msgid "QMP Socket"
+msgstr "Сокет QMP"
+
+msgid "Resource Settings"
+msgstr "Налаштування ресурсу"
+
+msgid "Review settings before adding"
+msgstr "Переглянути налаштування перед додаванням"
+
+msgid "Rigs reads compose.yaml or run-vm.sh and fills in the settings"
+msgstr "Rigs зчитує compose.yaml або run-vm.sh і заповнює налаштування"
+
+msgid "Rigs reads status and errors from this container. Without it, a failed start cannot be detected."
+msgstr "Rigs читає стан і помилки з цього контейнера. Без нього невдалий старт не буде виявлено."
+
+msgid "Scan This Computer Again"
+msgstr "Просканувати комп’ютер знову"
+
+msgid "Set Up Manually"
+msgstr "Налаштувати вручну"
+
+msgid "Socket paths must be absolute."
+msgstr "Шляхи до сокетів мають бути абсолютними."
+
+msgid "Start and stop use the engine directly. Connect runs your command, e.g. a remote desktop client."
+msgstr "Старт і стоп виконуються рушієм напряму. «Підключення» запускає вашу команду, напр. клієнт віддаленого робочого столу."
+
+msgid "Status and Control"
+msgstr "Стан і керування"
+
+msgid "The container ID is not valid."
+msgstr "ID контейнера недійсний."
+
+msgid "The container name may contain only letters, digits, “_”, “.” and “-”."
+msgstr "Назва контейнера може містити лише літери, цифри, «_», «.» і «-»."
+
+msgid "The folder has no compose.yaml; enter a start command."
+msgstr "У теці немає compose.yaml; введіть команду запуску."
+
+msgid "The folder has no run-vm.sh; enter a start command."
+msgstr "У теці немає run-vm.sh; введіть команду запуску."
+
+msgid "The libvirt domain is not valid."
+msgstr "Домен libvirt недійсний."
+
+msgid "Windows • Compose"
+msgstr "Windows • Compose"
+
+msgid "libvirt Domain"
+msgstr "Домен libvirt"
+
+msgid "Activate button or expand details"
+msgstr "Натиснути кнопку або розгорнути подробиці"
+
+msgid "Close dialog or clear search"
+msgstr "Закрити діалог або очистити фільтр"
+
+msgid "Focus next control"
+msgstr "Перейти до наступного елемента"
+
+msgid "Navigation & Controls"
+msgstr "Навігація та керування"

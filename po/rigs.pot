@@ -553,3 +553,187 @@ msgstr ""
 
 msgid "Unrecognized error"
 msgstr ""
+
+#, c-format
+msgid "%d of %d connected"
+msgstr ""
+
+#, c-format
+msgid "%s does not exist in the folder."
+msgstr ""
+
+msgid "A folder with run-vm.sh or your own start command"
+msgstr ""
+
+msgid "Add Resource"
+msgstr ""
+
+msgid "Add Resource (Ctrl+N)"
+msgstr ""
+
+msgid "Add a virtual machine or container. Rigs also looks for existing ones on this computer."
+msgstr ""
+
+#, c-format
+msgid "Added “%s”"
+msgstr ""
+
+msgid "Choose Folder and Read Its Settings"
+msgstr ""
+
+msgid "Choose the Resource Folder"
+msgstr ""
+
+msgid "Choose the VM folder."
+msgstr ""
+
+msgid "Choose the project folder."
+msgstr ""
+
+msgid "Commands"
+msgstr ""
+
+msgid "Compose Project"
+msgstr ""
+
+msgid "Compose project"
+msgstr ""
+
+msgid "Container"
+msgstr ""
+
+msgid "Container Engine"
+msgstr ""
+
+msgid "Containers and libvirt virtual machines your user can reach. Scanning changes nothing."
+msgstr ""
+
+#, c-format
+msgid "Empty Start and Stop run “%s compose up -d” and “%s compose down” in the folder."
+msgstr ""
+
+msgid "Empty Start runs ./run-vm.sh. Empty Stop shuts the VM down through the monitor socket."
+msgstr ""
+
+msgid "Enter a name."
+msgstr ""
+
+msgid "Everything reachable is already added, or a connection below is unavailable."
+msgstr ""
+
+msgid "Filter Resources"
+msgstr ""
+
+msgid "Filter Resources (Ctrl+F)"
+msgstr ""
+
+msgid "Filter added resources by name, type or ports…"
+msgstr ""
+
+msgid "Folder"
+msgstr ""
+
+msgid "Found on This Computer"
+msgstr ""
+
+msgid "From a Folder…"
+msgstr ""
+
+msgid "General"
+msgstr ""
+
+msgid "Guest Agent Socket"
+msgstr ""
+
+msgid "Location"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "No Resources Yet"
+msgstr ""
+
+msgid "Nothing new found"
+msgstr ""
+
+msgid "Podman or Docker Compose in a project folder"
+msgstr ""
+
+msgid "Process Match"
+msgstr ""
+
+msgid "Process Match is part of the QEMU command line used to find the running VM, e.g. its -name."
+msgstr ""
+
+msgid "QEMU Monitor Socket"
+msgstr ""
+
+msgid "QEMU Start Script"
+msgstr ""
+
+msgid "QEMU script"
+msgstr ""
+
+msgid "QMP Socket"
+msgstr ""
+
+msgid "Resource Settings"
+msgstr ""
+
+msgid "Review settings before adding"
+msgstr ""
+
+msgid "Rigs reads compose.yaml or run-vm.sh and fills in the settings"
+msgstr ""
+
+msgid "Rigs reads status and errors from this container. Without it, a failed start cannot be detected."
+msgstr ""
+
+msgid "Scan This Computer Again"
+msgstr ""
+
+msgid "Set Up Manually"
+msgstr ""
+
+msgid "Socket paths must be absolute."
+msgstr ""
+
+msgid "Start and stop use the engine directly. Connect runs your command, e.g. a remote desktop client."
+msgstr ""
+
+msgid "Status and Control"
+msgstr ""
+
+msgid "The container ID is not valid."
+msgstr ""
+
+msgid "The container name may contain only letters, digits, “_”, “.” and “-”."
+msgstr ""
+
+msgid "The folder has no compose.yaml; enter a start command."
+msgstr ""
+
+msgid "The folder has no run-vm.sh; enter a start command."
+msgstr ""
+
+msgid "The libvirt domain is not valid."
+msgstr ""
+
+msgid "Windows • Compose"
+msgstr ""
+
+msgid "libvirt Domain"
+msgstr ""
+
+msgid "Activate button or expand details"
+msgstr ""
+
+msgid "Close dialog or clear search"
+msgstr ""
+
+msgid "Focus next control"
+msgstr ""
+
+msgid "Navigation & Controls"
+msgstr ""

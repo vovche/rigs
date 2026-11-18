@@ -4,8 +4,8 @@ src/ui/main.vala
 src/ui/application.vala
 src/ui/window.vala
 src/ui/resource_card.vala
-src/ui/add_dialog.vala
-src/ui/discovery_dialog.vala
+src/ui/add_resource_dialog.vala
+src/ui/resource_editor_page.vala
 src/core/resource_discovery.vala
 src/ui/guest_tools_dialog.vala
 src/ui/guest_driver_setup_dialog.vala
@@ -23,3 +23,4 @@ src/core/drivers/container_driver.vala
 src/core/drivers/libvirt_driver.vala
 src/ui/host_overview.vala
 src/ui/resource_list.vala
+src/core/resource_presets.vala

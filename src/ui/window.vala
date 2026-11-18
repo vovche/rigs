@@ -37,7 +37,7 @@ namespace Rigs {
 
             build_ui();
             if (resources.length == 0 && ResourceStore.load_error == null) {
-                Idle.add(() => { open_discovery_dialog(); return Source.REMOVE; });
+                Idle.add(() => { open_add_dialog(); return Source.REMOVE; });
             }
 
             this.notify["default-width"].connect(() => { save_window_state(); });
@@ -91,17 +91,13 @@ namespace Rigs {
             header.title_widget = title_widget;
 
             var add_btn = new Gtk.Button.from_icon_name("list-add-symbolic");
-            add_btn.tooltip_text = _("Add Virtual Machine (Ctrl+N)");
-            add_btn.update_property(Gtk.AccessibleProperty.LABEL, _("Add Virtual Machine"));
+            add_btn.tooltip_text = _("Add Resource (Ctrl+N)");
+            add_btn.update_property(Gtk.AccessibleProperty.LABEL, _("Add Resource"));
             add_btn.clicked.connect(open_add_dialog);
             header.pack_start(add_btn);
-            var discover_btn = new Gtk.Button.from_icon_name("system-search-symbolic");
-            discover_btn.tooltip_text = _("Find Resources");
-            discover_btn.clicked.connect(open_discovery_dialog);
-            header.pack_start(discover_btn);
 
             var menu = new Menu();
-            menu.append(_("Search Virtual Machines"), "win.search");
+            menu.append(_("Filter Resources"), "win.search");
             menu.append(_("Keyboard Shortcuts"), "win.show-help-overlay");
             menu.append(_("Report an Issue"), "app.report-issue");
             menu.append(_("About Rigs"), "app.about");
@@ -116,8 +112,8 @@ namespace Rigs {
 
             search_toggle_btn = new Gtk.ToggleButton();
             search_toggle_btn.icon_name = "edit-find-symbolic";
-            search_toggle_btn.tooltip_text = _("Search Virtual Machines (Ctrl+F)");
-            search_toggle_btn.update_property(Gtk.AccessibleProperty.LABEL, _("Search Virtual Machines"));
+            search_toggle_btn.tooltip_text = _("Filter Resources (Ctrl+F)");
+            search_toggle_btn.update_property(Gtk.AccessibleProperty.LABEL, _("Filter Resources"));
             header.pack_end(search_toggle_btn);
 
             root.append(header);
@@ -125,7 +121,7 @@ namespace Rigs {
             search_bar = new Gtk.SearchBar();
             search_entry = new Gtk.SearchEntry();
             search_entry.hexpand = true;
-            search_entry.placeholder_text = _("Search virtual machines by name, type, or ports…");
+            search_entry.placeholder_text = _("Filter added resources by name, type or ports…");
             search_bar.set_child(search_entry);
             search_bar.connect_entry(search_entry);
             search_bar.bind_property("search-mode-enabled", search_toggle_btn, "active", BindingFlags.BIDIRECTIONAL);
@@ -157,14 +153,14 @@ namespace Rigs {
             empty_group = new Adw.PreferencesGroup();
             empty_status_page = new Adw.StatusPage();
             empty_status_page.icon_name = "utilities-system-monitor-symbolic";
-            empty_status_page.title = _("No Virtual Machines");
-            empty_status_page.description = _("Find existing containers and virtual machines, or add a machine manually.");
+            empty_status_page.title = _("No Resources Yet");
+            empty_status_page.description = _("Add a virtual machine or container. Rigs also looks for existing ones on this computer.");
 
-            var empty_add_btn = new Gtk.Button.with_label(_("Find Resources"));
+            var empty_add_btn = new Gtk.Button.with_label(_("Add Resource"));
             empty_add_btn.add_css_class("suggested-action");
             empty_add_btn.add_css_class("pill");
             empty_add_btn.halign = Gtk.Align.CENTER;
-            empty_add_btn.clicked.connect(open_discovery_dialog);
+            empty_add_btn.clicked.connect(open_add_dialog);
             empty_status_page.set_child(empty_add_btn);
             empty_group.add(empty_status_page);
             page.add(empty_group);
@@ -199,7 +195,7 @@ namespace Rigs {
 
         public void open_add_dialog() {
             if (!configuration_ready()) return;
-            var dialog = new AddDialog(this);
+            var dialog = new AddResourceDialog(resources);
             dialog.resource_added.connect(register_resource);
             dialog.present(this);
         }
@@ -210,13 +206,6 @@ namespace Rigs {
             dialog.add_response("close", _("Close"));
             dialog.present(this);
             return false;
-        }
-
-        public void open_discovery_dialog() {
-            if (!configuration_ready()) return;
-            var dialog = new DiscoveryDialog(resources);
-            dialog.resource_added.connect(register_resource);
-            dialog.present(this);
         }
 
         private void register_resource(Resource resource) {

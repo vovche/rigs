@@ -83,5 +83,8 @@ int main(string[] args) {
     Test.add_func("/regressions/qemu-start-failures", TestRegressions.test_qemu_start_failures);
     Test.add_func("/regressions/managed-start-failures", TestRegressions.test_managed_start_failures);
     Test.add_func("/regressions/save-failure-reported", TestRegressions.test_save_failure_reported);
+    Test.add_func("/presets/qemu-script", TestResourcePresets.test_qemu_script);
+    Test.add_func("/presets/compose", TestResourcePresets.test_compose);
+    Test.add_func("/presets/validate", TestResourcePresets.test_validate);
     return Test.run();
 }

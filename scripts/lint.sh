@@ -78,6 +78,8 @@ fi
 # --- Vala pitfalls -----------------------------------------------------------
 grep_rule VALA-01 '\)\[-?[0-9]*:-?[0-9]*\]' \
     "Slicing a temporary array is a use-after-free in Vala; store the array in a local first." $SRC $TESTS
+grep_rule VALA-05 '\?\?[^;]*\.split\([^)]*\)\[' \
+    "An element of a temporary split() array inside ?? reads freed memory; split into a local array first." $SRC
 grep_rule VALA-02 'split\("\\0"\)' \
     "A Vala string ends at the first NUL; split binary data (cmdline) as uint8[] instead." $SRC
 grep_rule VALA-03 'uint64 [a-z_]+ = [^;]*[a-z_)] - ' \

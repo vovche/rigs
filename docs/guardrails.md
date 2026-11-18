@@ -23,6 +23,7 @@ Adding a rule: add the check to `lint.sh`, an injected violation to `lint_selfte
 | UI-01 | `toast.timeout = 0` (blocks every later toast in the overlay queue) | default timeout; keep persistent state on the card (warning icon) |
 | MODEL-01 | `resource.issue_raised.connect(…)` in a widget (the model outlives the card: duplicate handlers after Undo, leaked widgets) | in `ResourceCard`: `track(resource.….connect(…))`; the window connects to the **card's** signal; `ResourceList.remove_card()` detaches |
 | VALA-01 | `foreach (x in s.split(" ")[1:])` (slice of a temporary = use-after-free, segfault) | `string[] parts = s.split(" ");` then index or slice the local |
+| VALA-05 | `x = p ?? value.split(",")[0]` (the temporary array is freed before the element is copied: garbage strings) | `string[] parts = value.split(","); x = p != null ? p : (parts.length > 0 ? parts[0] : "");` |
 | VALA-02 | `string.split("\0")` (a Vala string ends at the first NUL) | read as `uint8[]` via `FileUtils.get_data` and split bytes |
 | VALA-03 | `uint64 d = now - prev` (kernel counters such as iowait go backwards → wraps to 1.8e19) | `Metrics.saturating_delta`, `Metrics.delta_percent`, `Metrics.busy_percent` |
 | VALA-04 | `public virtual` method with a body inside an interface (an inherited same-name method, e.g. `GApplication.hold`, is **not** bound; the no-op runs) | `public abstract` in interfaces; implement explicitly |

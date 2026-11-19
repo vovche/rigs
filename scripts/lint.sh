@@ -93,7 +93,7 @@ check_version() { # file extracted-version
     [[ -f "$1" ]] || return 0
     [[ "$2" == "$project_version" ]] || report VERSION-02 "$1:1" "version '$2' differs from meson.build '$project_version'; update every packaging file together."
 }
-check_version debian/changelog "$(sed -n '1s/^rigs (\([^)]*\)).*/\1/p' debian/changelog 2>/dev/null)"
+check_version debian/changelog "$(sed -n '1s/^rigs (\([^)+]*\).*/\1/p' debian/changelog 2>/dev/null)"  # +gitN.SHA = local snapshot
 check_version packaging/rpm/rigs.spec "$(sed -n 's/^Version: *//p' packaging/rpm/rigs.spec 2>/dev/null)"
 check_version packaging/arch/rigs/PKGBUILD "$(sed -n 's/^pkgver=//p' packaging/arch/rigs/PKGBUILD 2>/dev/null)"
 check_version snap/snapcraft.yaml "$(sed -n "s/^version: '\([^']*\)'/\1/p" snap/snapcraft.yaml 2>/dev/null)"

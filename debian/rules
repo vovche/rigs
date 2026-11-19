@@ -1,0 +1,4 @@
+#!/usr/bin/make -f
+# Plain meson build; dh_auto_test runs the unit tests and the repository lint.
+%:
+	dh $@ --buildsystem=meson

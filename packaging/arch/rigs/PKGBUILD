@@ -1,0 +1,33 @@
+# Maintainer: vovche <vovche@users.noreply.github.com>
+# Release package (AUR: rigs). After tagging v$pkgver run `updpkgsums && makepkg --printsrcinfo > .SRCINFO`.
+pkgname=rigs
+pkgver=0.9.0
+pkgrel=1
+pkgdesc='Native GNOME hub for virtual machines and containers'
+arch=('x86_64' 'aarch64')
+url='https://github.com/vovche/rigs'
+license=('Apache-2.0')
+depends=('glib2' 'gtk4' 'libadwaita' 'json-glib' 'libsoup3')
+makedepends=('meson' 'vala' 'gettext')
+optdepends=('podman: containers and Compose projects'
+            'docker: containers and Compose projects'
+            'docker-compose: Compose projects with Docker'
+            'qemu-desktop: VMs started by your own QEMU script'
+            'libvirt: libvirt domains (virsh)'
+            'virt-viewer: consoles of libvirt domains and SPICE VMs'
+            'remmina: RDP connections')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  arch-meson "$pkgname-$pkgver" build
+  meson compile -C build
+}
+
+check() {
+  meson test -C build --print-errorlogs
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}

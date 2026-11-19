@@ -28,6 +28,7 @@ Adding a rule: add the check to `lint.sh`, an injected violation to `lint_selfte
 | VALA-03 | `uint64 d = now - prev` (kernel counters such as iowait go backwards → wraps to 1.8e19) | `Metrics.saturating_delta`, `Metrics.delta_percent`, `Metrics.busy_percent` |
 | VALA-04 | `public virtual` method with a body inside an interface (an inherited same-name method, e.g. `GApplication.hold`, is **not** bound; the no-op runs) | `public abstract` in interfaces; implement explicitly |
 | VERSION-01 | `"0.9.0"` literal in code | `Config.VERSION` (from `project(version:)` in `meson.build`) |
+| VERSION-02 | bumping `meson.build` but not `debian/changelog`, `packaging/rpm/rigs.spec`, `packaging/arch/rigs/PKGBUILD`, `snap/snapcraft.yaml`, metainfo `<release>` | bump all of them in one commit (see docs/packaging.md "Releasing") |
 | BUILD-01..03 | new `src/*.vala` or `tests/test_*.vala` not in meson; `test_*` function not in `tests/main.vala` (it silently never runs) | register in all three places |
 | I18N-01 | file uses `_()` but is missing from `po/POTFILES.in` | add the path |
 

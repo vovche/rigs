@@ -6,6 +6,7 @@ ROOT="${1:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 T=$(mktemp -d "${TMPDIR:-/tmp}/rigs-lint-selftest-XXXXXX")
 trap 'rm -rf "$T"' EXIT
 cp -r "$ROOT/src" "$ROOT/tests" "$ROOT/po" "$ROOT/meson.build" "$ROOT/scripts" "$T/"
+mkdir -p "$T/packaging/rpm" && sed 's/^Version: .*/Version: 9.9.9/' "$ROOT/packaging/rpm/rigs.spec" > "$T/packaging/rpm/rigs.spec"
 cat >> "$T/src/ui/window.vala" <<'X'
 // lint self-test injections
 Process.spawn_command_line_sync("ls");
@@ -35,7 +36,7 @@ touch "$T/src/orphan.vala" "$T/tests/test_orphan.vala"
 printf 'string s = _("x");\n' > "$T/src/orphan.vala"
 out=$(bash "$T/scripts/lint.sh" "$T" 2>&1)
 missing=0
-for rule in CORE-01 CORE-02 SILENT-01 SILENT-02 SILENT-03 SPAWN-01 SPAWN-02 SPAWN-03 SHELL-01 APP-01 UI-01 MODEL-01 VALA-01 VALA-02 VALA-03 VALA-04 VALA-05 VERSION-01 BUILD-01 BUILD-02 BUILD-03 I18N-01; do
+for rule in CORE-01 CORE-02 SILENT-01 SILENT-02 SILENT-03 SPAWN-01 SPAWN-02 SPAWN-03 SHELL-01 APP-01 UI-01 MODEL-01 VALA-01 VALA-02 VALA-03 VALA-04 VALA-05 VERSION-01 VERSION-02 BUILD-01 BUILD-02 BUILD-03 I18N-01; do
     grep -q "\[$rule\]" <<<"$out" || { echo "lint rule $rule no longer fires"; missing=1; }
 done
 bash "$ROOT/scripts/lint.sh" "$ROOT" >/dev/null || { echo "the real tree must lint clean"; missing=1; }

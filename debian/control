@@ -1,0 +1,29 @@
+Source: rigs
+Section: admin
+Priority: optional
+Maintainer: vovche <vovche@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13),
+               meson (>= 0.59),
+               ninja-build,
+               valac,
+               libglib2.0-dev (>= 2.76),
+               libgtk-4-dev (>= 4.10),
+               libadwaita-1-dev (>= 1.5),
+               libjson-glib-dev,
+               libsoup-3.0-dev,
+               gettext
+Standards-Version: 4.7.0
+Homepage: https://github.com/vovche/rigs
+Vcs-Git: https://github.com/vovche/rigs.git
+Rules-Requires-Root: no
+
+Package: rigs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: podman | docker.io
+Suggests: qemu-system-x86, libvirt-clients, virt-viewer, remmina
+Description: native GNOME hub for virtual machines and containers
+ Rigs starts, stops and monitors local QEMU/KVM virtual machines, Podman and
+ Docker containers, Compose projects and libvirt domains. It shows live CPU
+ and memory graphs, hot-swaps ISO images, explains failed starts in plain
+ language and integrates with GNOME Shell search.

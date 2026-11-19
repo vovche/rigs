@@ -3,7 +3,7 @@
 **Website and downloads: [vovche.github.io/rigs](https://vovche.github.io/rigs/)** ·
 [Українською](https://vovche.github.io/rigs/uk/) · [Releases](https://github.com/vovche/rigs/releases)
 
-**Rigs** is a native, lightweight GNOME application (built with **Vala**, **GTK 4**, and **Libadwaita**) for managing and monitoring local developer virtual environments, micro-VMs, and containerized operating systems.
+**Rigs** is a native, lightweight Linux desktop app for managing and monitoring local virtual machines, micro-VMs and containerized operating systems. It is built with **Vala**, **GTK 4** and **libadwaita**, runs on any desktop (GNOME, KDE Plasma, Hyprland, Sway, …) and fits in best on GNOME, where it also appears in Shell search.
 
 Designed as an ultra-fast, zero-overhead hub for mixed workflows:
 - **Standalone QEMU / KVM micro-VMs** (direct QEMU scripts, custom OVMF UEFI, SPICE & audio passthrough).
@@ -15,7 +15,7 @@ Designed as an ultra-fast, zero-overhead hub for mixed workflows:
 
 - **Instant Startup (~15–20 ms):** Transpiled to native C via Vala and compiled directly with GCC — zero interpreter overhead.
 - **Ultra-low Memory Footprint (~15–20 MB):** Pure GObject native baseline.
-- **100% GNOME HIG Compliant:**
+- **Follows the GNOME design guidelines (HIG):**
   - `Adw.HeaderBar` with title and primary menu (Burger menu ☰).
   - `Adw.ToastOverlay` with in-app notifications and `Undo` support.
   - `Adw.Clamp` for clean, adaptive centering on ultrawide displays.
@@ -55,9 +55,18 @@ does not reveal a reliable persistent start command or safe stop target.
 
 ## Installation & Packaging
 
-Requires GNOME 46+ libraries (GTK 4.10+, Libadwaita 1.5+): Ubuntu 24.04+, Debian 13+,
-Fedora 40+, Arch. Runtime tools (`podman` or `docker`, optional `qemu`, `virsh`,
+Requires GTK 4.10+ and libadwaita 1.5+ (Ubuntu 24.04+, Debian 13+, Fedora 42+, Arch) — not the
+GNOME desktop itself; packages install just these libraries. Runtime tools (`podman` or `docker`, optional `qemu`, `virsh`,
 `virt-viewer`, `remmina`) come from your distribution.
+
+### Other desktops (KDE Plasma, Hyprland, Sway, …)
+Everything works the same; only desktop integration differs:
+- Notifications need a notification daemon (Plasma, mako, dunst, swaync). In-window messages always work.
+- Dark style follows the desktop's portal setting (automatic on Plasma). On Hyprland or Sway:
+  `gsettings set org.gnome.desktop.interface color-scheme prefer-dark`.
+- Tiling window managers: hide the window buttons with
+  `gsettings set org.gnome.desktop.interface gtk-decoration-layout ':'`.
+- GNOME Shell search is available only on GNOME.
 
 ### Ubuntu / Debian (.deb)
 Download `rigs_*.deb` from the [website](https://vovche.github.io/rigs/#install) or the [releases](https://github.com/vovche/rigs/releases), then:

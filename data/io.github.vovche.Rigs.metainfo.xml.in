@@ -31,6 +31,16 @@
   </branding>
   <content_rating type="oars-1.1" />
   <releases>
+    <release version="1.0.0" date="2026-11-19">
+      <description>
+        <p>First stable release.</p>
+        <ul>
+          <li>Failed starts, stops and connections are explained with the likely cause and a command to fix it.</li>
+          <li>One “Add Resource” window: finds containers and libvirt machines and reads compose.yaml or run-vm.sh.</li>
+          <li>Packages for Ubuntu and Debian, Fedora and Arch Linux.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.9.0" date="2026-09-16">
       <description>
         <p>Pre-release featuring native Vala + Libadwaita UI, QEMU and Compose drivers, adaptive resource monitoring, GNOME Shell search provider, and smooth Bezier sparklines.</p>

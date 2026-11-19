@@ -1,7 +1,7 @@
 # Fedora / RHEL-family package. Local snapshot builds: scripts/package.sh rpm
 # (passes --define "snapshot .gitN.SHA"); releases build from the v%{version} tag.
 Name:           rigs
-Version:        0.9.0
+Version:        1.0.0
 Release:        1%{?snapshot}%{?dist}
 Summary:        Native GNOME hub for virtual machines and containers
 License:        Apache-2.0
@@ -57,5 +57,8 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/io.github.vovche.Rigs
 %{_datadir}/icons/hicolor/symbolic/apps/io.github.vovche.Rigs-symbolic.svg
 
 %changelog
+* Thu Nov 19 2026 vovche <vovche@users.noreply.github.com> - 1.0.0-1
+- Rigs 1.0: failures explained, one add flow with presets, deb/rpm/Arch packages.
+
 * Thu Nov 19 2026 vovche <vovche@users.noreply.github.com> - 0.9.0-1
 - Packaging for Fedora.

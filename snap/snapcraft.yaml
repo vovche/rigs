@@ -1,6 +1,6 @@
 name: rigs
 base: core24
-version: '0.9.0'
+version: '1.0.0'
 summary: Ultra-fast GNOME VM and Container Hub
 description: |
   Rigs is an ultra-fast, native GNOME Virtual Machine and Container Hub written in Vala.

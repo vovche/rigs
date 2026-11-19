@@ -50,13 +50,29 @@ scripts/package.sh arch-install                 # on Arch: build from this clone
 ### Releasing a version
 
 1. Bump the version in `meson.build`, `debian/changelog` (new entry: `dch -v X.Y.Z`),
-   `packaging/rpm/rigs.spec` (Version + `%changelog`), `packaging/arch/rigs/PKGBUILD`,
+   `packaging/rpm/rigs.spec` (Version + `%changelog`), both `packaging/arch/*/PKGBUILD`,
    `snap/snapcraft.yaml` and a new `<release>` in the metainfo. Lint VERSION-02 fails until all match.
-2. `./build.sh`, then `scripts/package.sh all` and install-test the results.
-3. Tag and push: `git tag vX.Y.Z && git push origin main vX.Y.Z`. CI publishes the packages.
-4. AUR (`rigs`): copy `packaging/arch/rigs/PKGBUILD` into the AUR repo, run `updpkgsums` and
-   `makepkg --printsrcinfo > .SRCINFO`, commit, push. `rigs-git` needs an update only when its
-   PKGBUILD changes.
+2. Write the release notes in `docs/releases/X.Y.Z.md` (the release workflow refuses to publish without them).
+3. `./build.sh`, then `scripts/package.sh all` and install-test the results.
+4. Tag and push: `git tag -a vX.Y.Z -m "Rigs X.Y.Z" && git push origin main vX.Y.Z`.
+   `.github/workflows/packages.yml` then builds deb/rpm/Arch + source tarball + SHA256SUMS,
+   publishes the GitHub release, and calls `pages.yml`, which re-renders the website with
+   links to exactly those files.
+5. AUR (`rigs`): copy `packaging/arch/rigs/PKGBUILD` into the AUR repo, run `updpkgsums` and
+   `makepkg --printsrcinfo > .SRCINFO`, commit, push.
+
+## Website (GitHub Pages)
+
+`site/` is the landing page: `template.html`, `i18n/en.json` + `i18n/uk.json` (same keys),
+`style.css`, `site.js`. `scripts/build_site.py` renders `/` (English) and `/uk/` (Ukrainian)
+with the version, date, file names, sizes and download links of the latest release; it fails on
+a missing translation key, asset or placeholder (meson test `site` renders a fixture release).
+
+- Language: `/` redirects to `/uk/` when the browser prefers Ukrainian or Russian, unless the
+  visitor picked a language with the switch (remembered in localStorage).
+- Preview locally: `scripts/build_site.py --release-json tests/fixtures/release.json --out /tmp/site`
+  and `python3 -m http.server -d /tmp/site`.
+- Text changes between releases: commit, then `gh workflow run pages.yml`.
 
 ## Logs and diagnostics
 

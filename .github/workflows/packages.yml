@@ -1,6 +1,7 @@
 # Builds .deb, .rpm and Arch packages with the same script developers use locally
 # (scripts/package.sh --inside <format>), on every tag v* and on demand.
-# A tag push also attaches the packages to its GitHub release.
+# A tag push publishes a GitHub release (packages, source tarball, SHA256SUMS, notes from
+# docs/releases/<version>.md) and then rebuilds the landing page with the new links.
 name: Packages
 
 on:
@@ -10,6 +11,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -46,15 +49,48 @@ jobs:
             dist/*.rpm
             dist/*.pkg.tar.zst
 
-  release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+  source:
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v4
+      - name: Source tarball (same as scripts/package.sh)
+        run: |
+          version=$(sed -n "s/^ *version: '\([^']*\)',/\1/p" meson.build | head -1)
+          mkdir -p dist
+          git archive --format=tar.gz --prefix="rigs-$version/" -o "dist/rigs-$version.tar.gz" HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rigs-source
+          path: dist/*.tar.gz
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, source]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
+      - name: Checksums and notes
+        id: notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          [ "$(sed -n "s/^ *version: '\([^']*\)',/\1/p" meson.build | head -1)" = "$version" ] \
+            || { echo "tag $GITHUB_REF_NAME does not match meson.build"; exit 1; }
+          (cd dist && sha256sum * > SHA256SUMS)
+          notes="docs/releases/$version.md"
+          [ -f "$notes" ] || { echo "missing $notes"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "notes=$notes" >> "$GITHUB_OUTPUT"
       - uses: softprops/action-gh-release@v2
         with:
+          name: Rigs ${{ steps.notes.outputs.version }}
+          body_path: ${{ steps.notes.outputs.notes }}
           files: dist/*
+          make_latest: true
+
+  pages:
+    needs: release
+    uses: ./.github/workflows/pages.yml

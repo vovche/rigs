@@ -1,0 +1,40 @@
+# Landing page on GitHub Pages: site/ rendered by scripts/build_site.py with the links and
+# sizes of the LATEST GitHub release. Runs after every release (called from packages.yml) and
+# on demand: `gh workflow run pages.yml` after editing site/ between releases.
+name: Pages
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render site for the latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/build_site.py --repo "${{ github.repository }}" --out _site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{t.page_title}}</title>
+<meta name="description" content="{{t.meta_description}}">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/svg+xml" href="{{base}}icon.svg">
+<link rel="alternate" hreflang="en" href="{{site_url}}">
+<link rel="alternate" hreflang="uk" href="{{site_url}}uk/">
+<link rel="alternate" hreflang="x-default" href="{{site_url}}">
+<meta property="og:title" content="{{t.page_title}}">
+<meta property="og:description" content="{{t.meta_description}}">
+<meta property="og:image" content="{{site_url}}icon-512.png">
+<meta property="og:url" content="{{site_url}}{{lang_path}}">
+{{auto_language_script}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{base}}style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#top"><img src="{{base}}icon.svg" alt="" width="28" height="28"> Rigs</a>
+    <nav class="nav" aria-label="{{t.nav_label}}">
+      <a href="#features">{{t.nav_features}}</a>
+      <a href="#install">{{t.nav_install}}</a>
+      <a href="{{r.repo_url}}">GitHub</a>
+      <a class="lang" href="{{alt_href}}" hreflang="{{alt_lang}}" lang="{{alt_lang}}" data-lang="{{alt_lang}}">{{t.switch_language}}</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <img class="hero-icon" src="{{base}}icon.svg" alt="{{t.icon_alt}}" width="128" height="128">
+    <h1>Rigs</h1>
+    <p class="tagline">{{t.tagline}}</p>
+    <p class="lead">{{t.lead}}</p>
+    <div class="actions">
+      <a class="button suggested" href="#install">{{t.install_button}}</a>
+      <a class="button" href="{{r.release_url}}">{{t.release_notes}}</a>
+    </div>
+    <p class="version"><span class="pill">{{t.version}} {{r.version}}</span> <span class="dim">{{t.released}} {{r.date}}</span></p>
+    <p class="platforms dim">{{t.platforms}}</p>
+  </section>
+
+  <section id="features" class="section">
+    <h2>{{t.features_title}}</h2>
+    <div class="grid">
+      <article class="card feature"><span class="feature-icon blue" aria-hidden="true"><svg viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="8" rx="1.5"/><path d="M5 13.5h6M8 10.5v3"/></svg></span>
+        <h3>{{t.f1_title}}</h3><p>{{t.f1_text}}</p></article>
+      <article class="card feature"><span class="feature-icon green" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M1.5 11.5l3-4 3 2 3-5 4 3"/><path d="M1.5 14.5h13"/></svg></span>
+        <h3>{{t.f2_title}}</h3><p>{{t.f2_text}}</p></article>
+      <article class="card feature"><span class="feature-icon orange" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 1.8l6.5 11.7h-13z"/><path d="M8 6v3.5M8 11.6v.1"/></svg></span>
+        <h3>{{t.f3_title}}</h3><p>{{t.f3_text}}</p></article>
+      <article class="card feature"><span class="feature-icon purple" aria-hidden="true"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5l4 4"/></svg></span>
+        <h3>{{t.f4_title}}</h3><p>{{t.f4_text}}</p></article>
+      <article class="card feature"><span class="feature-icon red" aria-hidden="true"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><circle cx="8" cy="8" r="1.5"/></svg></span>
+        <h3>{{t.f5_title}}</h3><p>{{t.f5_text}}</p></article>
+      <article class="card feature"><span class="feature-icon yellow" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M9 1.5L3.5 9H8l-1 5.5L12.5 7H8z"/></svg></span>
+        <h3>{{t.f6_title}}</h3><p>{{t.f6_text}}</p></article>
+    </div>
+  </section>
+
+  <section id="install" class="section">
+    <h2>{{t.install_title}}</h2>
+    <p class="section-lead">{{t.install_lead}}</p>
+    <div class="tabs" role="tablist" aria-label="{{t.install_title}}">
+      <button role="tab" id="tab-deb" aria-controls="panel-deb" aria-selected="true">Ubuntu / Debian</button>
+      <button role="tab" id="tab-rpm" aria-controls="panel-rpm" aria-selected="false">Fedora</button>
+      <button role="tab" id="tab-arch" aria-controls="panel-arch" aria-selected="false">Arch Linux</button>
+      <button role="tab" id="tab-src" aria-controls="panel-src" aria-selected="false">{{t.tab_source}}</button>
+    </div>
+
+    <div class="card panel" role="tabpanel" id="panel-deb" aria-labelledby="tab-deb">
+      <h3 class="panel-title">Ubuntu / Debian</h3>
+      <p class="dim">{{t.deb_requires}}</p>
+      <a class="download" href="{{r.deb_url}}"><span class="download-name">{{r.deb_name}}</span><span class="download-size">{{r.deb_size}}</span></a>
+      <p>{{t.deb_steps}}</p>
+      <div class="command"><pre><code>wget {{r.deb_url}}
+sudo apt install ./{{r.deb_name}}</code></pre><button class="copy" type="button" data-copied="{{t.copied}}">{{t.copy}}</button></div>
+    </div>
+
+    <div class="card panel" role="tabpanel" id="panel-rpm" aria-labelledby="tab-rpm">
+      <h3 class="panel-title">Fedora</h3>
+      <p class="dim">{{t.rpm_requires}}</p>
+      <a class="download" href="{{r.rpm_url}}"><span class="download-name">{{r.rpm_name}}</span><span class="download-size">{{r.rpm_size}}</span></a>
+      <p>{{t.rpm_steps}}</p>
+      <div class="command"><pre><code>sudo dnf install {{r.rpm_url}}</code></pre><button class="copy" type="button" data-copied="{{t.copied}}">{{t.copy}}</button></div>
+    </div>
+
+    <div class="card panel" role="tabpanel" id="panel-arch" aria-labelledby="tab-arch">
+      <h3 class="panel-title">Arch Linux</h3>
+      <p class="dim">{{t.arch_requires}}</p>
+      <a class="download" href="{{r.arch_url}}"><span class="download-name">{{r.arch_name}}</span><span class="download-size">{{r.arch_size}}</span></a>
+      <p>{{t.arch_steps}}</p>
+      <div class="command"><pre><code>sudo pacman -U {{r.arch_url}}</code></pre><button class="copy" type="button" data-copied="{{t.copied}}">{{t.copy}}</button></div>
+      <p>{{t.arch_clone}}</p>
+      <div class="command"><pre><code>git clone {{r.repo_url}}
+cd rigs &amp;&amp; scripts/package.sh arch-install</code></pre><button class="copy" type="button" data-copied="{{t.copied}}">{{t.copy}}</button></div>
+    </div>
+
+    <div class="card panel" role="tabpanel" id="panel-src" aria-labelledby="tab-src">
+      <h3 class="panel-title">{{t.tab_source}}</h3>
+      <p class="dim">{{t.src_requires}}</p>
+      <a class="download" href="{{r.src_url}}"><span class="download-name">{{r.src_name}}</span><span class="download-size">{{r.src_size}}</span></a>
+      <p>{{t.src_steps}}</p>
+      <div class="command"><pre><code>curl -LO {{r.src_url}}
+tar xf {{r.src_name}} &amp;&amp; cd rigs-{{r.version}}
+meson setup build --prefix=/usr
+meson compile -C build &amp;&amp; meson test -C build
+sudo meson install -C build</code></pre><button class="copy" type="button" data-copied="{{t.copied}}">{{t.copy}}</button></div>
+    </div>
+
+    <p class="after-install">{{t.verify}} <a href="{{r.sums_url}}">SHA256SUMS</a> · <a href="{{r.releases_url}}">{{t.all_releases}}</a> · <a href="{{r.repo_url}}/blob/main/docs/packaging.md">{{t.packaging_doc}}</a></p>
+  </section>
+
+  <section class="section">
+    <div class="card notes">
+      <h2>{{t.notes_title}}</h2>
+      <ul>
+        <li>{{t.note_tools}}</li>
+        <li>{{t.note_flatpak}}</li>
+        <li>{{t.note_config}}</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p><img src="{{base}}icon-symbolic.svg" alt="" width="16" height="16" class="footer-icon"> Rigs {{r.version}} · {{t.license}} · <a href="{{r.repo_url}}">GitHub</a> · <a href="{{r.repo_url}}/issues">{{t.report_issue}}</a> · <a href="{{alt_href}}" hreflang="{{alt_lang}}" lang="{{alt_lang}}" data-lang="{{alt_lang}}">{{t.switch_language}}</a></p>
+  <p class="dim">{{t.footer_note}}</p>
+</footer>
+<script src="{{base}}site.js" defer></script>
+</body>
+</html>

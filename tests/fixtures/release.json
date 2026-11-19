@@ -1,0 +1,14 @@
+{
+  "tag_name": "v1.0.0",
+  "html_url": "https://github.com/vovche/rigs/releases/tag/v1.0.0",
+  "published_at": "2026-11-19T12:00:00Z",
+  "assets": [
+    {"name": "rigs_1.0.0_amd64.deb", "size": 245760, "browser_download_url": "https://github.com/vovche/rigs/releases/download/v1.0.0/rigs_1.0.0_amd64.deb"},
+    {"name": "rigs-1.0.0-1.fc42.x86_64.rpm", "size": 262144, "browser_download_url": "https://github.com/vovche/rigs/releases/download/v1.0.0/rigs-1.0.0-1.fc42.x86_64.rpm"},
+    {"name": "rigs-debuginfo-1.0.0-1.fc42.x86_64.rpm", "size": 900000, "browser_download_url": "https://github.com/vovche/rigs/releases/download/v1.0.0/rigs-debuginfo-1.0.0-1.fc42.x86_64.rpm"},
+    {"name": "rigs-1.0.0-1-x86_64.pkg.tar.zst", "size": 229376, "browser_download_url": "https://github.com/vovche/rigs/releases/download/v1.0.0/rigs-1.0.0-1-x86_64.pkg.tar.zst"},
+    {"name": "rigs-debug-1.0.0-1-x86_64.pkg.tar.zst", "size": 800000, "browser_download_url": "https://github.com/vovche/rigs/releases/download/v1.0.0/rigs-debug-1.0.0-1-x86_64.pkg.tar.zst"},
+    {"name": "rigs-1.0.0.tar.gz", "size": 1048576, "browser_download_url": "https://github.com/vovche/rigs/releases/download/v1.0.0/rigs-1.0.0.tar.gz"},
+    {"name": "SHA256SUMS", "size": 512, "browser_download_url": "https://github.com/vovche/rigs/releases/download/v1.0.0/SHA256SUMS"}
+  ]
+}

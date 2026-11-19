@@ -2,7 +2,7 @@
 # Latest main branch (AUR: rigs-git). Local install from a clone: see docs/packaging.md.
 pkgname=rigs-git
 _pkgname=rigs
-pkgver=0.9.0
+pkgver=1.0.0
 pkgrel=1
 pkgdesc='Native GNOME hub for virtual machines and containers (git main)'
 arch=('x86_64' 'aarch64')

@@ -85,7 +85,7 @@ grep_rule VALA-02 'split\("\\0"\)' \
 grep_rule VALA-03 'uint64 [a-z_]+ = [^;]*[a-z_)] - ' \
     "Unsigned counter subtraction wraps around; use Metrics.saturating_delta()." $(grep -v 'src/core/metrics.vala' <<<"$SRC")
 grep_rule VERSION-01 '"[0-9]+\.[0-9]+\.[0-9]+"' \
-    "Do not hardcode the app version; use Config.VERSION (from meson.build)." $SRC
+    "Do not hardcode the app version; use Config.VERSION (from meson.build)." $SRC $TESTS
 
 # Packaging must carry the meson.build version (the single source of truth).
 project_version=$(sed -n "s/^ *version: '\([^']*\)',/\1/p" meson.build | head -1)

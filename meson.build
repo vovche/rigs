@@ -1,5 +1,5 @@
 project('rigs', ['c', 'vala'],
-  version: '0.9.0',
+  version: '1.0.0',
   meson_version: '>= 0.59.0',
   default_options: [
     'warning_level=2',
@@ -74,3 +74,7 @@ test('unit-tests', test_exe)
 bash = find_program('bash')
 test('lint', bash, args: [files('scripts/lint.sh'), meson.project_source_root()])
 test('lint-selftest', bash, args: [files('scripts/lint_selftest.sh'), meson.project_source_root()])
+# Landing page (site/) renders in both languages from a fixture release; see docs/packaging.md.
+python3 = find_program('python3')
+test('site', python3, args: [files('scripts/build_site.py'), '--release-json', files('tests/fixtures/release.json'),
+  '--out', meson.current_build_dir() / 'site-test'])

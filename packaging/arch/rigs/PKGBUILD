@@ -1,7 +1,7 @@
 # Maintainer: vovche <vovche@users.noreply.github.com>
 # Release package (AUR: rigs). After tagging v$pkgver run `updpkgsums && makepkg --printsrcinfo > .SRCINFO`.
 pkgname=rigs
-pkgver=0.9.0
+pkgver=1.0.0
 pkgrel=1
 pkgdesc='Native GNOME hub for virtual machines and containers'
 arch=('x86_64' 'aarch64')

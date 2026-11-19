@@ -1,5 +1,8 @@
 # Rigs ⚡
 
+**Website and downloads: [vovche.github.io/rigs](https://vovche.github.io/rigs/)** ·
+[Українською](https://vovche.github.io/rigs/uk/) · [Releases](https://github.com/vovche/rigs/releases)
+
 **Rigs** is a native, lightweight GNOME application (built with **Vala**, **GTK 4**, and **Libadwaita**) for managing and monitoring local developer virtual environments, micro-VMs, and containerized operating systems.
 
 Designed as an ultra-fast, zero-overhead hub for mixed workflows:
@@ -57,7 +60,7 @@ Fedora 40+, Arch. Runtime tools (`podman` or `docker`, optional `qemu`, `virsh`,
 `virt-viewer`, `remmina`) come from your distribution.
 
 ### Ubuntu / Debian (.deb)
-Download `rigs_*.deb` from the [releases](https://github.com/vovche/rigs/releases), then:
+Download `rigs_*.deb` from the [website](https://vovche.github.io/rigs/#install) or the [releases](https://github.com/vovche/rigs/releases), then:
 
 ```sh
 sudo apt install ./rigs_*.deb
@@ -70,7 +73,7 @@ sudo dnf install ./rigs-*.rpm
 ```
 
 ### Arch Linux
-From the AUR (once published): `yay -S rigs` (latest release) or `yay -S rigs-git` (main branch).
+Install the release package straight from GitHub: `sudo pacman -U <link from the website>`.
 From a clone, one command builds a real pacman package and installs it:
 
 ```sh

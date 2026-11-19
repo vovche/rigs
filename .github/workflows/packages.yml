@@ -1,0 +1,60 @@
+# Builds .deb, .rpm and Arch packages with the same script developers use locally
+# (scripts/package.sh --inside <format>), on every tag v* and on demand.
+# A tag push also attaches the packages to its GitHub release.
+name: Packages
+
+on:
+  push:
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - format: deb
+            image: ubuntu:24.04
+            prepare: apt-get update -qq && apt-get install -y -qq git ca-certificates
+          - format: rpm
+            image: fedora:42
+            prepare: dnf -y -q install git
+          - format: arch
+            image: archlinux:latest
+            prepare: pacman -Syu --noconfirm -q --needed git
+    runs-on: ubuntu-24.04
+    container: ${{ matrix.image }}
+    steps:
+      - name: Install git
+        run: ${{ matrix.prepare }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build ${{ matrix.format }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          bash scripts/package.sh --inside ${{ matrix.format }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rigs-${{ matrix.format }}
+          path: |
+            dist/*.deb
+            dist/*.rpm
+            dist/*.pkg.tar.zst
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

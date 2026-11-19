@@ -3,6 +3,7 @@
 #
 #   scripts/package.sh deb|rpm|arch|all     build in rootless podman containers (any distro host)
 #   scripts/package.sh --inside deb|rpm|arch run in the matching distro already (CI jobs use this)
+#   scripts/package.sh arch-install          on Arch Linux: build from this clone and install with pacman
 #
 # Packages are built from the COMMITTED tree (git archive of HEAD), exactly like a distro would
 # build a release tarball, and every build runs the unit tests and the repository lint.
@@ -70,22 +71,38 @@ inside_rpm() {
     find "$DIST" -mindepth 1 -type d -empty -delete
 }
 
+# Same PKGBUILD as the AUR release package, pointed at the local tarball.
+write_arch_pkgbuild() { # dir
+    local pkgver="$VERSION"
+    if [[ -n "$SNAP_SHA" ]]; then pkgver="$VERSION.r$SNAP_N.g$SNAP_SHA"; fi
+    cp "$TARBALL" "$1/"
+    sed -e "s|^pkgver=.*|pkgver=$pkgver|" \
+        -e "s|^source=.*|source=(\"rigs-$VERSION.tar.gz\")|" \
+        -e "s|\"\$pkgname-\$pkgver\"|\"rigs-$VERSION\"|" \
+        "$ROOT/packaging/arch/rigs/PKGBUILD" > "$1/PKGBUILD"
+}
+
 inside_arch() {
     pacman -Syu --noconfirm --needed -q base-devel >/dev/null
     id builder >/dev/null 2>&1 || useradd -m builder
     echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
-    local work=/home/builder/pkg pkgver="$VERSION"
-    [[ -n "$SNAP_SHA" ]] && pkgver="$VERSION.r$SNAP_N.g$SNAP_SHA"
+    local work=/home/builder/pkg
     mkdir -p "$work"
-    cp "$TARBALL" "$work/"
-    # Same PKGBUILD as the AUR release package, pointed at the local tarball.
-    sed -e "s|^pkgver=.*|pkgver=$pkgver|" \
-        -e "s|^source=.*|source=(\"rigs-$VERSION.tar.gz\")|" \
-        -e "s|\"\$pkgname-\$pkgver\"|\"rigs-$VERSION\"|" \
-        "$ROOT/packaging/arch/rigs/PKGBUILD" > "$work/PKGBUILD"
+    write_arch_pkgbuild "$work"
     chown -R builder: "$work"
     su builder -c "cd $work && makepkg -s --noconfirm --needed"
     cp "$work"/rigs-*.pkg.tar.zst "$DIST/"
+}
+
+# For Arch users with a clone: one command, regular user, pacman asks for sudo once.
+arch_install() {
+    [[ -f /etc/arch-release ]] || die "arch-install runs on Arch Linux (elsewhere: package.sh arch)"
+    [[ $EUID -ne 0 ]] || die "run as your normal user; makepkg refuses root and asks for sudo itself"
+    command -v makepkg >/dev/null || die "install base-devel first: sudo pacman -S --needed base-devel"
+    local work; work="$(mktemp -d)"
+    write_arch_pkgbuild "$work"
+    (cd "$work" && makepkg -si --needed)
+    rm -rf "$work"
 }
 
 in_container() { # format image
@@ -108,9 +125,10 @@ if [[ "${1:-}" == "--inside" ]]; then
 fi
 
 target="${1:-}"
-case "$target" in deb|rpm|arch|all) ;; *) die "usage: package.sh deb|rpm|arch|all" ;; esac
+case "$target" in deb|rpm|arch|all|arch-install) ;; *) die "usage: package.sh deb|rpm|arch|all|arch-install" ;; esac
 snapshot_info
 make_tarball
+if [[ "$target" == arch-install ]]; then arch_install; exit 0; fi
 [[ "$target" == deb || "$target" == all ]] && in_container deb "$DEB_IMAGE"
 [[ "$target" == rpm || "$target" == all ]] && in_container rpm "$RPM_IMAGE"
 [[ "$target" == arch || "$target" == all ]] && in_container arch "$ARCH_IMAGE"

@@ -52,9 +52,41 @@ does not reveal a reliable persistent start command or safe stop target.
 
 ## Installation & Packaging
 
-### Native
-`./build.sh` builds, tests and installs the native application. Runtime tools
-(`podman`, `docker`, `virsh`, optional `virt-viewer`) belong on the host.
+Requires GNOME 46+ libraries (GTK 4.10+, Libadwaita 1.5+): Ubuntu 24.04+, Debian 13+,
+Fedora 40+, Arch. Runtime tools (`podman` or `docker`, optional `qemu`, `virsh`,
+`virt-viewer`, `remmina`) come from your distribution.
+
+### Ubuntu / Debian (.deb)
+Download `rigs_*.deb` from the [releases](https://github.com/vovche/rigs/releases), then:
+
+```sh
+sudo apt install ./rigs_*.deb
+```
+
+### Fedora (.rpm)
+
+```sh
+sudo dnf install ./rigs-*.rpm
+```
+
+### Arch Linux
+From the AUR (once published): `yay -S rigs` (latest release) or `yay -S rigs-git` (main branch).
+From a clone, one command builds a real pacman package and installs it:
+
+```sh
+git clone https://github.com/vovche/rigs && cd rigs
+scripts/package.sh arch-install
+```
+
+Uninstall with `sudo pacman -R rigs`. The PKGBUILDs live in `packaging/arch/`.
+
+### Build packages yourself
+`scripts/package.sh deb|rpm|arch|all` builds packages from the committed tree in clean
+podman containers (Ubuntu 24.04, Fedora 42, Arch), running all tests, into `dist/`.
+Details and the release checklist: [docs/packaging.md](docs/packaging.md).
+
+### From source (development)
+`./build.sh` builds, tests and installs into `~/.local`.
 
 ### Flatpak: not supported
 Rigs manages host processes, `/proc` and QEMU monitor sockets. A Flatpak sandbox

@@ -24,6 +24,7 @@ jobs:
             libgtk-4-dev \
             libadwaita-1-dev \
             libjson-glib-dev \
+            libsoup-3.0-dev \
             gettext \
             appstream
 

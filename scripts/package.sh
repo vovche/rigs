@@ -3,7 +3,8 @@
 #
 #   scripts/package.sh deb|rpm|arch|all     build in rootless podman containers (any distro host)
 #   scripts/package.sh --inside deb|rpm|arch run in the matching distro already (CI jobs use this)
-#   scripts/package.sh arch-install          on Arch Linux: build from this clone and install with pacman
+#   scripts/package.sh arch-install [makepkg flags]  on Arch: build from this clone, install with pacman
+#                                                    (e.g. --noconfirm for unattended installs)
 #
 # Packages are built from the COMMITTED tree (git archive of HEAD), exactly like a distro would
 # build a release tarball, and every build runs the unit tests and the repository lint.
@@ -95,13 +96,13 @@ inside_arch() {
 }
 
 # For Arch users with a clone: one command, regular user, pacman asks for sudo once.
-arch_install() {
+arch_install() { # extra makepkg flags...
     [[ -f /etc/arch-release ]] || die "arch-install runs on Arch Linux (elsewhere: package.sh arch)"
     [[ $EUID -ne 0 ]] || die "run as your normal user; makepkg refuses root and asks for sudo itself"
     command -v makepkg >/dev/null || die "install base-devel first: sudo pacman -S --needed base-devel"
     local work; work="$(mktemp -d)"
     write_arch_pkgbuild "$work"
-    (cd "$work" && makepkg -si --needed)
+    (cd "$work" && makepkg -si --needed "$@")
     rm -rf "$work"
 }
 
@@ -128,7 +129,7 @@ target="${1:-}"
 case "$target" in deb|rpm|arch|all|arch-install) ;; *) die "usage: package.sh deb|rpm|arch|all|arch-install" ;; esac
 snapshot_info
 make_tarball
-if [[ "$target" == arch-install ]]; then arch_install; exit 0; fi
+if [[ "$target" == arch-install ]]; then arch_install "${@:2}"; exit 0; fi
 [[ "$target" == deb || "$target" == all ]] && in_container deb "$DEB_IMAGE"
 [[ "$target" == rpm || "$target" == all ]] && in_container rpm "$RPM_IMAGE"
 [[ "$target" == arch || "$target" == all ]] && in_container arch "$ARCH_IMAGE"
